@@ -9,14 +9,26 @@
       "lng": 3.5814,
       "description": "Sommet emblématique des Cévennes, à 1565 m. Observatoire météorologique historique, et théâtre du plus grand reboisement volontaire de France à la fin du XIXe siècle.",
       "aliases": [
-        {
-          "name": "L'Aigoual",
-          "context": "local"
-        },
-        {
-          "name": "L'Agoal",
-          "context": "occitan"
-        }
+        { "name": "L'Aigoual", "context": "local" },
+        { "name": "L'Agoal", "context": "occitan" }
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "mas-de-la-coste",
+      "primaryName": "Mas de la Coste",
+      "lat": 44.0987,
+      "lng": 3.6420,
+      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, au-dessus de Valleraugue. Aliases multiples dans le temps et selon les personnes.",
+      "aliases": [
+        { "name": "La Ferme Vieille", "context": "cadastre", "startYear": 1812, "endYear": 1920 },
+        { "name": "Lo Mas de la Còsta", "context": "occitan" },
+        { "name": "Chez Suzette", "context": "familial", "usedBy": "pierre-duval", "startYear": 1970 },
+        { "name": "Le mazet là-haut", "context": "oral local" }
       ],
       "status": "approved",
       "createdAt": "2026-04-23T00:00:00.000Z",
