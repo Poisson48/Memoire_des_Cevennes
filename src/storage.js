@@ -9,8 +9,9 @@ const FILES = {
   places:  path.join(DATA_DIR, 'places.json'),
   people:  path.join(DATA_DIR, 'people.json'),
   stories: path.join(DATA_DIR, 'stories.json'),
+  edits:   path.join(DATA_DIR, 'edits.json'),
 };
-const KEY = { places: 'places', people: 'people', stories: 'stories' };
+const KEY = { places: 'places', people: 'people', stories: 'stories', edits: 'edits' };
 
 function load(name) {
   const raw = fs.readFileSync(FILES[name], 'utf8');

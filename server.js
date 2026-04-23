@@ -7,6 +7,7 @@ const { randomUUID } = require('crypto');
 const places = require('./src/places');
 const people = require('./src/people');
 const stories = require('./src/stories');
+const edits = require('./src/edits');
 const moderation = require('./src/moderation');
 const { resolve } = require('./src/resolve');
 
@@ -183,10 +184,56 @@ app.post('/api/stories/:id/media', (req, res, next) => {
   });
 });
 
+// ── Edits (propositions de modification style Wikipédia) ──────────────
+// Tout le monde peut proposer une modif sur un Lieu / Personne / Récit
+// (mêmes endpoints, pas d'auth). L'admin valide/refuse via la file.
+app.post('/api/:type(places|people|stories)/:id/edits', async (req, res, next) => {
+  try {
+    const edit = await edits.propose({
+      targetType: req.params.type,
+      targetId: req.params.id,
+      changes: (req.body && req.body.changes) || {},
+      note: (req.body && req.body.note) || '',
+      submittedBy: req.body && req.body.submittedBy,
+    });
+    res.status(201).json({ edit, message: 'Proposition reçue — en attente de validation admin.' });
+  } catch (err) { next(err); }
+});
+
+app.get('/api/:type(places|people|stories)/:id/edits', (req, res) => {
+  const { type, id } = req.params;
+  res.json({
+    edits: edits.list({ targetType: type, targetId: id, status: req.query.status || 'all' }),
+  });
+});
+
 // ── Admin (modération) ─────────────────────────────────────────────────
 app.get('/api/admin/queue', requireAdmin, (req, res) => {
   const type = req.query.type;
   res.json({ queue: moderation.queue({ type }), counts: moderation.counts() });
+});
+
+app.get('/api/admin/edits/:id', requireAdmin, (req, res) => {
+  const edit = edits.get(req.params.id);
+  if (!edit) return res.status(404).json({ error: 'introuvable' });
+  res.json({ edit, diff: edits.diff(edit) });
+});
+
+app.post('/api/admin/edits/:id/approve', requireAdmin, async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const out = await edits.approve(req.params.id, { reviewer });
+    res.json({ edit: out });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/edits/:id/reject', requireAdmin, async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const reason = (req.body && req.body.reason) || '';
+    const out = await edits.reject(req.params.id, { reviewer, reason });
+    res.json({ edit: out });
+  } catch (err) { next(err); }
 });
 
 app.post('/api/admin/:type/:id/approve', requireAdmin, async (req, res, next) => {

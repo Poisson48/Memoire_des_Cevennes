@@ -18,6 +18,7 @@
     <div class="topbar-actions">
       <button id="btn-add-place" class="btn-primary" type="button">+ Ajouter un lieu</button>
       <span id="add-hint" class="hint" hidden>Clique sur la carte pour placer le nouveau lieu</span>
+      <a href="admin.html" class="btn-ghost" title="Page d'administration">🛡️ Admin</a>
     </div>
   </header>
   <div id="readonly-banner" class="banner" hidden>
@@ -54,6 +55,30 @@
       <div class="actions">
         <button value="cancel" class="btn-ghost">Annuler</button>
         <button value="submit" class="btn-primary">Envoyer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal : proposer une modification (style Wikipédia) -->
+  <dialog id="dlg-edit">
+    <form id="form-edit">
+      <h2>✏️ Proposer une modification</h2>
+      <p id="edit-target-name" class="coords"></p>
+      <div id="edit-fields"></div>
+      <label>Résumé de la modification (pourquoi ce changement ?)
+        <input type="text" name="note" maxlength="500" placeholder="Ex. « corrige l'orthographe du nom » ou « ajoute une date » — visible par l'admin"/>
+      </label>
+      <label>Ton pseudo (optionnel — pour te recontacter)
+        <input type="text" name="pseudo" maxlength="80" />
+      </label>
+      <p class="dialog-note">
+        📝 Ta proposition est <strong>soumise à validation</strong> par les admins.
+        Tu pourras voir les anciens et les nouveaux textes côte à côte dans la
+        file de modération.
+      </p>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close>Annuler</button>
+        <button type="submit" class="btn-primary">Envoyer la proposition</button>
       </div>
     </form>
   </dialog>
