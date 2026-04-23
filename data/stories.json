@@ -19,6 +19,27 @@
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
       "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "chataignes-maquis",
+      "placeId": "mas-de-la-coste",
+      "type": "text",
+      "title": "Les châtaignes du maquis",
+      "body": "Suzette nous racontait qu'au Mas de la Coste, pendant la guerre, son frère Joseph Boissier était parti au maquis, et que sa mère Céleste faisait griller les châtaignes toutes les nuits pour le ravitaillement.",
+      "memoryDate": "1943-1944",
+      "contributorId": "pierre-duval",
+      "mentions": [
+        { "start": 0,   "end": 7,   "type": "person", "entityId": "suzanne-duval" },
+        { "start": 29,  "end": 44,  "type": "place",  "entityId": "mas-de-la-coste" },
+        { "start": 75,  "end": 90,  "type": "person", "entityId": "joseph-boissier" },
+        { "start": 129, "end": 136, "type": "person", "entityId": "celeste-roumieux" }
+      ],
+      "mediaFiles": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
     }
   ]
 }

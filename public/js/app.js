@@ -133,10 +133,12 @@ window.addEventListener('hashchange', routeFromHash);
 
 function routeFromHash() {
   const route = parseHash();
-  if (!route) { closePanel(); return; }
+  if (!route) { closePanel(); closeFullTree(); return; }
+  if (route.type !== 'arbre') closeFullTree();
   if (route.type === 'lieu') return openPlacePanel(route.id);
   if (route.type === 'personne') return openPersonPanel(route.id);
   if (route.type === 'recit') return openStoryFocus(route.id);
+  if (route.type === 'arbre') return openFullTree(route.id);
   closePanel();
 }
 
@@ -197,7 +199,7 @@ function openPlacePanel(placeId) {
     ${addStoryBtn}
     <h3 class="section-title">Récits (${related.length})</h3>
     ${related.length === 0
-      ? '<p class="desc"><em>Aucun récit pour l\\'instant.</em></p>'
+      ? '<p class="desc"><em>Aucun récit pour l\'instant.</em></p>'
       : related.map(renderStoryCard).join('')}
   `);
 }
@@ -236,6 +238,8 @@ function openPersonPanel(personId) {
     person.death && `† ${eventLabel(person.death)}`,
   ].filter(Boolean).join(' · ');
 
+  const hasFamily = parentLinks || spouseLinks || childLinks;
+
   openPanel(`
     <div class="entity-header">
       <span class="entity-kind">👤 Personne</span>
@@ -245,13 +249,12 @@ function openPersonPanel(personId) {
     </div>
     ${person.bio ? `<p class="desc">${escapeHtml(person.bio)}</p>` : ''}
 
-    ${(parentLinks || spouseLinks || childLinks) ? `
-      <h3 class="section-title">Famille</h3>
-      <ul class="relations">
-        ${parentLinks ? `<li><strong>Parents :</strong> ${parentLinks}</li>` : ''}
-        ${spouseLinks ? `<li><strong>Uni·e à :</strong> ${spouseLinks}</li>` : ''}
-        ${childLinks  ? `<li><strong>Enfants :</strong> ${childLinks}</li>` : ''}
-      </ul>
+    ${hasFamily ? `
+      <h3 class="section-title">Arbre généalogique</h3>
+      <div id="tree-mini"></div>
+      <p class="tree-full-link">
+        <a href="#/arbre/${encodeURIComponent(person.id)}">→ Voir l'arbre en grand</a>
+      </p>
     ` : ''}
 
     <h3 class="section-title">Récits où elle/il contribue (${asContrib.length})</h3>
@@ -260,6 +263,62 @@ function openPersonPanel(personId) {
     <h3 class="section-title">Récits où elle/il est mentionné·e (${asMention.length})</h3>
     ${asMention.length ? asMention.map(renderStoryCard).join('') : '<p class="desc"><em>Aucun.</em></p>'}
   `);
+
+  // Rendu de l'arbre (version compacte dans le panneau)
+  if (hasFamily && window.FamilyTree) {
+    const el = document.getElementById('tree-mini');
+    if (el) FamilyTree.render(el, person.id, state.people, {
+      compact: true,
+      onNavigate: (id) => navigateTo('personne', id),
+    });
+  }
+}
+
+function openFullTree(personId) {
+  const person = state.people.get(personId);
+  if (!person) {
+    openPanel(`<p class="desc">Personne introuvable.</p>`);
+    return;
+  }
+  // Overlay plein écran par-dessus la carte
+  let overlay = document.getElementById('tree-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'tree-overlay';
+    overlay.className = 'tree-overlay';
+    overlay.innerHTML = `
+      <div class="tree-overlay-head">
+        <div class="tree-overlay-title"></div>
+        <button type="button" class="btn-ghost tree-overlay-back">← Retour à la fiche</button>
+        <button type="button" class="btn-ghost tree-overlay-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="tree-overlay-body"></div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.tree-overlay-close').addEventListener('click', () => {
+      history.replaceState(null, '', location.pathname + location.search);
+      overlay.remove();
+      closePanel();
+    });
+    overlay.querySelector('.tree-overlay-back').addEventListener('click', () => {
+      navigateTo('personne', overlay.dataset.personId);
+    });
+  }
+  overlay.dataset.personId = personId;
+  overlay.querySelector('.tree-overlay-title').innerHTML =
+    `🌳 <strong>${escapeHtml(person.primaryName)}</strong> — arbre généalogique`;
+  const body = overlay.querySelector('.tree-overlay-body');
+  if (window.FamilyTree) {
+    FamilyTree.render(body, personId, state.people, {
+      compact: false,
+      onNavigate: (id) => navigateTo('arbre', id),
+    });
+  }
+}
+
+function closeFullTree() {
+  const overlay = document.getElementById('tree-overlay');
+  if (overlay) overlay.remove();
 }
 
 function openStoryFocus(storyId) {

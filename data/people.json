@@ -19,6 +19,214 @@
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
       "reviewedBy": "bootstrap"
+    },
+
+    {
+      "id": "ernest-boissier",
+      "primaryName": "Ernest Boissier",
+      "gender": "M",
+      "aliases": [],
+      "birth": { "year": 1880 },
+      "death": { "year": 1955 },
+      "bio": "Exemple fictif — grand-père paternel de Suzanne.",
+      "parents": [],
+      "spouses": [{ "id": "anne-rieu", "start": 1904, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "anne-rieu",
+      "primaryName": "Anne Boissier",
+      "maidenName": "Rieu",
+      "gender": "F",
+      "aliases": [],
+      "birth": { "year": 1882 },
+      "death": { "year": 1960 },
+      "bio": "Exemple fictif — grand-mère paternelle de Suzanne.",
+      "parents": [],
+      "spouses": [{ "id": "ernest-boissier", "start": 1904, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "jean-roumieux",
+      "primaryName": "Jean Roumieux",
+      "gender": "M",
+      "aliases": [],
+      "birth": { "year": 1875 },
+      "death": { "year": 1942 },
+      "bio": "Exemple fictif — grand-père maternel de Suzanne.",
+      "parents": [],
+      "spouses": [{ "id": "jeanne-agulhon", "start": 1903, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "jeanne-agulhon",
+      "primaryName": "Jeanne Roumieux",
+      "maidenName": "Agulhon",
+      "gender": "F",
+      "aliases": [],
+      "birth": { "year": 1880 },
+      "death": { "year": 1965 },
+      "bio": "Exemple fictif — grand-mère maternelle de Suzanne.",
+      "parents": [],
+      "spouses": [{ "id": "jean-roumieux", "start": 1903, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+
+    {
+      "id": "paul-boissier",
+      "primaryName": "Paul Boissier",
+      "gender": "M",
+      "aliases": [
+        { "name": "Paulin", "context": "familial" }
+      ],
+      "birth": { "year": 1905 },
+      "death": { "year": 1978 },
+      "bio": "Exemple fictif — père de Suzanne. Paysan au Mas de la Coste, muletier occasionnel vers Alès.",
+      "parents": [
+        { "id": "ernest-boissier", "kind": "bio" },
+        { "id": "anne-rieu", "kind": "bio" }
+      ],
+      "spouses": [{ "id": "celeste-roumieux", "start": 1928, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "celeste-roumieux",
+      "primaryName": "Céleste Boissier",
+      "maidenName": "Roumieux",
+      "gender": "F",
+      "aliases": [],
+      "birth": { "year": 1908 },
+      "death": { "year": 1985 },
+      "bio": "Exemple fictif — mère de Suzanne. Tisserande de châtaigniers, connue pour ses recettes de châtaignes rôties.",
+      "parents": [
+        { "id": "jean-roumieux", "kind": "bio" },
+        { "id": "jeanne-agulhon", "kind": "bio" }
+      ],
+      "spouses": [{ "id": "paul-boissier", "start": 1928, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+
+    {
+      "id": "joseph-boissier",
+      "primaryName": "Joseph Boissier",
+      "gender": "M",
+      "aliases": [
+        { "name": "Jo", "context": "familial" }
+      ],
+      "birth": { "year": 1929 },
+      "death": { "year": 2012 },
+      "bio": "Exemple fictif — frère aîné de Suzanne. Maquisard pendant la guerre, puis forestier sur l'Aigoual.",
+      "parents": [
+        { "id": "paul-boissier", "kind": "bio" },
+        { "id": "celeste-roumieux", "kind": "bio" }
+      ],
+      "spouses": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+
+    {
+      "id": "suzanne-duval",
+      "primaryName": "Suzanne Duval",
+      "maidenName": "Boissier",
+      "gender": "F",
+      "aliases": [
+        { "name": "Suzette", "context": "familial" },
+        { "name": "la petite Duval", "context": "village" }
+      ],
+      "birth": { "year": 1932, "month": 3, "placeId": "mas-de-la-coste" },
+      "death": { "year": 2019 },
+      "bio": "Exemple fictif — figure du Mas de la Coste. Dernière habitante née au mas, gardienne des récits de la famille Boissier-Duval.",
+      "parents": [
+        { "id": "paul-boissier", "kind": "bio" },
+        { "id": "celeste-roumieux", "kind": "bio" }
+      ],
+      "spouses": [{ "id": "henri-duval", "start": 1952, "end": 2001, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "henri-duval",
+      "primaryName": "Henri Duval",
+      "gender": "M",
+      "aliases": [],
+      "birth": { "year": 1930 },
+      "death": { "year": 2001 },
+      "bio": "Exemple fictif — mari de Suzanne. Cheminot à la Grand-Combe puis retraité au Mas de la Coste.",
+      "parents": [],
+      "spouses": [{ "id": "suzanne-duval", "start": 1952, "end": 2001, "kind": "mariage" }],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+
+    {
+      "id": "pierre-duval",
+      "primaryName": "Pierre Duval",
+      "gender": "M",
+      "aliases": [],
+      "birth": { "year": 1954 },
+      "bio": "Exemple fictif — fils aîné de Suzanne et Henri. Contributeur fréquent des récits de la famille.",
+      "parents": [
+        { "id": "suzanne-duval", "kind": "bio" },
+        { "id": "henri-duval", "kind": "bio" }
+      ],
+      "spouses": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "marie-duval",
+      "primaryName": "Marie Duval",
+      "gender": "F",
+      "aliases": [],
+      "birth": { "year": 1957 },
+      "bio": "Exemple fictif — fille de Suzanne et Henri. Partie à Montpellier mais revient au mas à chaque été.",
+      "parents": [
+        { "id": "suzanne-duval", "kind": "bio" },
+        { "id": "henri-duval", "kind": "bio" }
+      ],
+      "spouses": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
     }
   ]
 }

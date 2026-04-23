@@ -322,6 +322,139 @@ main {
   border-radius: 0 4px 4px 0;
 }
 
+/* ── Arbre généalogique ────────────────────────────────────── */
+.tree-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fbf7ef;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin: 0.4rem 0 0.6rem;
+  -webkit-overflow-scrolling: touch;
+}
+.tree-svg {
+  display: block;
+  max-width: none;
+}
+.tree-svg .card-bg {
+  fill: #fff;
+  stroke: var(--border);
+  stroke-width: 1;
+  transition: fill 0.15s, stroke 0.15s;
+}
+.tree-svg .tree-card:hover .card-bg {
+  fill: rgba(140, 90, 43, 0.08);
+  stroke: var(--accent);
+}
+.tree-svg .tree-card.focus .card-bg {
+  fill: rgba(140, 90, 43, 0.15);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.tree-svg .card-name {
+  fill: var(--fg);
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.tree-svg .card-dates {
+  fill: var(--muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+.tree-svg .card-meta {
+  fill: var(--muted);
+  font-size: 10px;
+  font-style: italic;
+  pointer-events: none;
+}
+.tree-svg .edge {
+  stroke: var(--accent-dark);
+  stroke-width: 1.3;
+  fill: none;
+}
+.tree-svg .edge-marriage {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.tree-svg .tree-card:focus {
+  outline: none;
+}
+.tree-svg .tree-card:focus .card-bg {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 2;
+}
+.tree-empty {
+  font-style: italic;
+  color: var(--muted);
+  padding: 0.5rem 0;
+}
+.tree-full-link {
+  margin: 0.3rem 0 0.8rem;
+  font-size: 0.92rem;
+}
+.tree-full-link a {
+  color: var(--accent-dark);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+}
+
+/* ── Overlay plein écran ───────────────────────────────────── */
+.tree-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.tree-overlay-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.2rem;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+}
+.tree-overlay-title {
+  flex: 1;
+  font-size: 1.1rem;
+}
+.tree-overlay-title strong {
+  color: var(--fg);
+}
+.tree-overlay-close {
+  font-size: 1.4rem;
+  padding: 0.2rem 0.7rem;
+  line-height: 1;
+}
+.tree-overlay-body {
+  flex: 1;
+  overflow: auto;
+  padding: 1.2rem;
+  -webkit-overflow-scrolling: touch;
+}
+.tree-overlay-body .tree-wrap {
+  border: none;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+}
+@media (max-width: 600px) {
+  .tree-overlay-head {
+    flex-wrap: wrap;
+    padding: 0.5rem 0.8rem;
+  }
+  .tree-overlay-title {
+    flex: 1 0 100%;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+}
+
 /* ── Modals ────────────────────────────────────────────────── */
 dialog {
   border: 1px solid var(--border);
