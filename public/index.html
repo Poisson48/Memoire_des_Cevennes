@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Mémoire des Cévennes</h1>
+    <p class="tagline">Une carte pour recueillir les récits, les voix et les images de nos vallées.</p>
+    <div class="topbar-actions">
+      <button id="btn-add-place" class="btn-primary" type="button">+ Ajouter un lieu</button>
+      <span id="add-hint" class="hint" hidden>Clique sur la carte pour placer le nouveau lieu</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="map" role="application" aria-label="Carte des Cévennes"></div>
+
+    <aside id="panel" class="panel" aria-hidden="true">
+      <button class="panel-close" id="panel-close" aria-label="Fermer">×</button>
+      <div id="panel-content"></div>
+    </aside>
+  </main>
+
+  <!-- Modal : ajouter un lieu -->
+  <dialog id="dlg-place">
+    <form method="dialog" id="form-place">
+      <h2>Nouveau lieu</h2>
+      <p class="coords" id="place-coords"></p>
+      <label>Nom du lieu
+        <input type="text" name="title" required maxlength="120" />
+      </label>
+      <label>Description (optionnel)
+        <textarea name="description" rows="3" maxlength="2000"></textarea>
+      </label>
+      <div class="actions">
+        <button value="cancel" class="btn-ghost">Annuler</button>
+        <button value="submit" class="btn-primary">Créer le lieu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal : ajouter un témoignage/contenu -->
+  <dialog id="dlg-story">
+    <form id="form-story" enctype="multipart/form-data">
+      <h2>Ajouter un contenu</h2>
+      <p id="story-place-name" class="coords"></p>
+      <label>Type
+        <select name="type" id="story-type" required>
+          <option value="text">Histoire / témoignage écrit</option>
+          <option value="photo">Photo</option>
+          <option value="audio">Enregistrement audio</option>
+          <option value="drawing">Dessin</option>
+          <option value="note">Note</option>
+        </select>
+      </label>
+      <label>Titre
+        <input type="text" name="title" maxlength="160" />
+      </label>
+      <label>Auteur / contributeur
+        <input type="text" name="author" maxlength="120" />
+      </label>
+      <label>Texte (récit, légende, transcription…)
+        <textarea name="body" rows="5" maxlength="10000"></textarea>
+      </label>
+      <label id="story-media-label">Fichier (photo, audio, dessin, PDF)
+        <input type="file" name="media" accept="image/*,audio/*,application/pdf" />
+      </label>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close>Annuler</button>
+        <button type="submit" class="btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
