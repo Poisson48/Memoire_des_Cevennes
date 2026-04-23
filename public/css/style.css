@@ -148,16 +148,32 @@ main {
   position: absolute;
   top: 0.4rem;
   right: 0.6rem;
-  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  font: inherit;
+  font-size: 1rem;
   line-height: 1;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
   cursor: pointer;
   color: var(--muted);
-  width: 44px;
-  height: 44px;
+  min-height: 40px;
 }
-.panel-close:hover { color: var(--fg); }
+.panel-close span[aria-hidden] {
+  font-size: 1.8rem;
+  line-height: 0.7;
+}
+.panel-close-label {
+  font-size: 0.9rem;
+}
+.panel-close:hover {
+  color: var(--fg);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--border);
+}
 
 .panel h2 {
   margin: 0.4rem 0 0.2rem;
@@ -231,6 +247,25 @@ main {
 }
 .story .story-title:hover {
   border-bottom-color: var(--accent);
+}
+
+.story-byline {
+  margin: 0.3rem 0 0.3rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(140, 90, 43, 0.06);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 3px 3px 0;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+.story-byline small {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.places-told {
+  margin: 0.3rem 0 0.8rem;
+  line-height: 1.8;
 }
 
 /* ── Entête d'entité (lieu / personne / récit) ─────────────── */
@@ -431,9 +466,19 @@ main {
   color: var(--fg);
 }
 .tree-overlay-close {
-  font-size: 1.4rem;
-  padding: 0.2rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.7rem;
   line-height: 1;
+  min-height: 40px;
+}
+.tree-overlay-close span[aria-hidden] {
+  font-size: 1.4rem;
+  line-height: 0.8;
+}
+.tree-overlay-close .close-label {
+  font-size: 0.92rem;
 }
 .tree-overlay-body {
   flex: 1;
@@ -566,7 +611,25 @@ dialog .actions {
     border-radius: 2px;
     margin: -0.6rem auto 0.6rem;
   }
-  .panel-close { top: 0.2rem; right: 0.4rem; }
+  /* Bouton Fermer bien visible sur mobile (le back Android n'est pas
+     toujours évident, surtout sur les surfaces plein écran). */
+  .panel-close {
+    top: 0.3rem;
+    right: 0.5rem;
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    padding: 0.35rem 0.75rem;
+    min-height: 44px;
+    font-weight: 600;
+  }
+  .panel-close:hover,
+  .panel-close:active {
+    background: var(--accent-dark);
+    color: #fff;
+    border-color: var(--accent-dark);
+  }
+  .panel-close-label { font-size: 0.95rem; }
 
   /* Pousse un peu la carte vers le haut pour laisser la place au panneau */
   body.panel-open #map {

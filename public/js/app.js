@@ -36,24 +36,9 @@ const readonlyBanner = document.getElementById('readonly-banner');
 const addBtn = document.getElementById('btn-add-place');
 const addHint = document.getElementById('add-hint');
 
-const dlgPlace = document.getElementById('dlg-place');
-const formPlace = document.getElementById('form-place');
-const dlgStory = document.getElementById('dlg-story');
-const formStory = document.getElementById('form-story');
-const storyType = document.getElementById('story-type');
-const storyMediaLabel = document.getElementById('story-media-label');
-const dlgEdit = document.getElementById('dlg-edit');
-const formEdit = document.getElementById('form-edit');
-
 document.getElementById('panel-close').addEventListener('click', closePanel);
-dlgStory.querySelectorAll('[data-close]').forEach(b =>
-  b.addEventListener('click', () => dlgStory.close('cancel'))
-);
-dlgEdit.querySelectorAll('[data-close]').forEach(b =>
-  b.addEventListener('click', () => dlgEdit.close('cancel'))
-);
-storyType.addEventListener('change', updateStoryMediaVisibility);
-updateStoryMediaVisibility();
+// Les dialogs (add-place / add-story / propose-edit) et leur logique vivent
+// dans forms.js, chargé après app.js.
 
 // ─── Chargement données ─────────────────────────────────────────────────
 async function fetchJson(url) {
@@ -252,6 +237,20 @@ function openPersonPanel(personId) {
     && s.contributorId !== person.id
   );
 
+  // Lieux sur lesquels cette personne a livré un récit (déduplication par
+  // placeId d'ancrage + mentions de lieux dans ses contributions). Cliquables.
+  const placesToldSet = new Set();
+  asContrib.forEach(s => {
+    if (s.placeId) placesToldSet.add(s.placeId);
+    (s.mentions || []).forEach(m => {
+      if (m.type === 'place') placesToldSet.add(m.entityId);
+    });
+  });
+  const placesToldLinks = [...placesToldSet]
+    .map(id => inlineEntity('lieu', id))
+    .filter(Boolean)
+    .join(' · ');
+
   const dates = [
     person.birth && `né·e en ${eventLabel(person.birth)}`,
     person.death && `† ${eventLabel(person.death)}`,
@@ -282,8 +281,13 @@ function openPersonPanel(personId) {
       </p>
     ` : ''}
 
-    <h3 class="section-title">Récits où elle/il contribue (${asContrib.length})</h3>
-    ${asContrib.length ? asContrib.map(renderStoryCard).join('') : '<p class="desc"><em>Aucun.</em></p>'}
+    ${placesToldLinks ? `
+      <h3 class="section-title">Lieux où elle/il a livré ses récits</h3>
+      <p class="places-told">${placesToldLinks}</p>
+    ` : ''}
+
+    <h3 class="section-title">🎙️ Récits qu'elle/il a racontés (${asContrib.length})</h3>
+    ${asContrib.length ? asContrib.map(renderStoryCard).join('') : '<p class="desc"><em>Aucun récit livré pour l\'instant.</em></p>'}
 
     <h3 class="section-title">Récits où elle/il est mentionné·e (${asMention.length})</h3>
     ${asMention.length ? asMention.map(renderStoryCard).join('') : '<p class="desc"><em>Aucun.</em></p>'}
@@ -315,7 +319,10 @@ function openFullTree(personId) {
       <div class="tree-overlay-head">
         <div class="tree-overlay-title"></div>
         <button type="button" class="btn-ghost tree-overlay-back">← Retour à la fiche</button>
-        <button type="button" class="btn-ghost tree-overlay-close" aria-label="Fermer">×</button>
+        <button type="button" class="btn-ghost tree-overlay-close" aria-label="Fermer l'arbre">
+          <span aria-hidden="true">×</span>
+          <span class="close-label">Fermer</span>
+        </button>
       </div>
       <div class="tree-overlay-body"></div>
     `;
@@ -368,14 +375,23 @@ function renderStoryCard(s, { full = false } = {}) {
     text: 'Histoire', photo: 'Photo', audio: 'Audio',
     video: 'Vidéo', drawing: 'Dessin', note: 'Note',
   }[s.type] || s.type;
+
+  // Bloc "raconté par" — mis en avant plutôt que mélangé aux autres méta.
+  const contributor = s.contributorId ? state.people.get(s.contributorId) : null;
+  const contribBlock = s.contributorId
+    ? `<div class="story-byline">
+         🎙️ Raconté par ${inlineEntity('personne', s.contributorId)}${
+           contributor && (contributor.birth?.year || contributor.death?.year)
+             ? ` <small>(${[contributor.birth?.year, contributor.death?.year].filter(Boolean).join('–')})</small>`
+             : ''
+         }
+       </div>`
+    : '';
+
   const dateBits = [
     s.memoryDate,
     s.createdAt ? `ajouté ${new Date(s.createdAt).toLocaleDateString('fr-FR')}` : null,
   ].filter(Boolean).join(' · ');
-  const contribHtml = s.contributorId
-    ? `par ${inlineEntity('personne', s.contributorId)}`
-    : '';
-  const meta = [contribHtml, dateBits].filter(Boolean).join(' · ');
 
   const media = (s.mediaFiles || []).map(f => {
     if (!f.url) return '';
@@ -391,7 +407,8 @@ function renderStoryCard(s, { full = false } = {}) {
         <span class="type-badge">${typeLabel}</span>
         <a href="#/recit/${encodeURIComponent(s.id)}" class="story-title">${escapeHtml(s.title || '(sans titre)')}</a>
       </h3>
-      ${meta ? `<div class="meta">${meta}</div>` : ''}
+      ${contribBlock}
+      ${dateBits ? `<div class="meta">${dateBits}</div>` : ''}
       ${s.body ? `<div class="body">${renderBodyWithMentions(s.body, s.mentions)}</div>` : ''}
       ${media}
     </article>
@@ -452,215 +469,6 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   return escapeHtml(str);
 }
-
-// ─── Ajout lieu / récit (mode live uniquement) ─────────────────────────
-let addMode = false;
-let pendingLatLng = null;
-
-addBtn.addEventListener('click', () => {
-  if (state.mode === 'static') {
-    alert('Cette page est un aperçu en lecture seule. Lance l\'application localement (./run.sh) pour contribuer.');
-    return;
-  }
-  addMode = !addMode;
-  addHint.hidden = !addMode;
-  addBtn.textContent = addMode ? '✕ Annuler' : '+ Ajouter un lieu';
-  map.getContainer().style.cursor = addMode ? 'crosshair' : '';
-});
-
-map.on('click', (e) => {
-  if (!addMode) return;
-  pendingLatLng = e.latlng;
-  document.getElementById('place-coords').textContent =
-    `📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
-  formPlace.reset();
-  dlgPlace.showModal();
-});
-
-formPlace.addEventListener('close', async () => {
-  if (dlgPlace.returnValue !== 'submit' || !pendingLatLng) {
-    resetAddMode(); return;
-  }
-  const fd = new FormData(formPlace);
-  const payload = {
-    primaryName: fd.get('title'),
-    description: fd.get('description'),
-    lat: pendingLatLng.lat,
-    lng: pendingLatLng.lng,
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
-  };
-  try {
-    const res = await fetch('/api/places', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || res.statusText);
-    alert(data.message || 'Ajout reçu. En attente de validation par un·e admin avant affichage public.');
-  } catch (err) {
-    alert('Erreur : ' + err.message);
-  } finally {
-    resetAddMode();
-  }
-});
-
-function resetAddMode() {
-  addMode = false; pendingLatLng = null;
-  addHint.hidden = true;
-  addBtn.textContent = '+ Ajouter un lieu';
-  map.getContainer().style.cursor = '';
-}
-
-function openStoryDialog(placeId) {
-  formStory.reset();
-  updateStoryMediaVisibility();
-  formStory.dataset.placeId = placeId;
-  const place = state.places.get(placeId);
-  document.getElementById('story-place-name').textContent = `Pour : ${place ? place.primaryName : placeId}`;
-  dlgStory.showModal();
-}
-
-function updateStoryMediaVisibility() {
-  const t = storyType.value;
-  storyMediaLabel.hidden = (t === 'text' || t === 'note');
-}
-
-formStory.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const placeId = formStory.dataset.placeId;
-  if (!placeId) return;
-  const fd = new FormData(formStory);
-  const payload = {
-    placeId,
-    type: fd.get('type'),
-    title: fd.get('title'),
-    body: fd.get('body'),
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
-  };
-  try {
-    const res = await fetch('/api/stories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || res.statusText);
-
-    // Upload média si présent
-    const file = fd.get('media');
-    if (file && file.size > 0) {
-      const mediaForm = new FormData();
-      mediaForm.append('media', file);
-      const mres = await fetch(`/api/stories/${encodeURIComponent(data.story.id)}/media`, {
-        method: 'POST',
-        body: mediaForm,
-      });
-      if (!mres.ok) {
-        const mdata = await mres.json().catch(() => ({}));
-        throw new Error(`Récit créé mais média refusé : ${mdata.error || mres.statusText}`);
-      }
-    }
-
-    dlgStory.close('submit');
-    alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
-  } catch (err) {
-    alert('Erreur : ' + err.message);
-  }
-});
-
-// ─── Proposition de modification (style Wikipédia) ─────────────────────
-const EDIT_FIELDS = {
-  places: [
-    { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
-    { key: 'description', label: 'Description', type: 'textarea', rows: 4 },
-  ],
-  people: [
-    { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
-    { key: 'maidenName', label: 'Nom de naissance (pour les femmes mariées)', type: 'text' },
-    { key: 'bio', label: 'Biographie', type: 'textarea', rows: 4 },
-  ],
-  stories: [
-    { key: 'title', label: 'Titre', type: 'text' },
-    { key: 'memoryDate', label: 'Date du souvenir (libre : « années 40 », « 1952 »…)', type: 'text' },
-    { key: 'body', label: 'Texte', type: 'textarea', rows: 6 },
-  ],
-};
-
-function openEditDialog(entityType, entity) {
-  formEdit.reset();
-  formEdit.dataset.entityType = entityType;
-  formEdit.dataset.entityId = entity.id;
-  const name = entity.primaryName || entity.title || entity.id;
-  const kindLabel = { places: 'le lieu', people: 'la personne', stories: 'le récit' }[entityType] || '';
-  document.getElementById('edit-target-name').textContent = `Pour ${kindLabel} : ${name}`;
-
-  const fields = EDIT_FIELDS[entityType] || [];
-  const fieldsEl = document.getElementById('edit-fields');
-  fieldsEl.innerHTML = fields.map(f => {
-    const val = entity[f.key] ?? '';
-    const req = f.required ? ' required' : '';
-    if (f.type === 'textarea') {
-      return `
-        <label>${escapeHtml(f.label)}
-          <textarea name="${f.key}" rows="${f.rows || 3}"${req}>${escapeHtml(val)}</textarea>
-        </label>
-      `;
-    }
-    return `
-      <label>${escapeHtml(f.label)}
-        <input type="text" name="${f.key}" value="${escapeAttr(val)}"${req} />
-      </label>
-    `;
-  }).join('');
-
-  // Sauvegarde des valeurs d'origine pour ne soumettre que les diffs
-  formEdit.dataset.originalData = JSON.stringify(
-    Object.fromEntries(fields.map(f => [f.key, entity[f.key] ?? '']))
-  );
-  dlgEdit.showModal();
-}
-
-formEdit.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const entityType = formEdit.dataset.entityType;
-  const entityId = formEdit.dataset.entityId;
-  const original = JSON.parse(formEdit.dataset.originalData || '{}');
-  const fd = new FormData(formEdit);
-
-  const changes = {};
-  for (const [k, v] of fd.entries()) {
-    if (k === 'note' || k === 'pseudo') continue;
-    if (String(original[k] ?? '') !== String(v ?? '')) {
-      changes[k] = v;
-    }
-  }
-
-  if (Object.keys(changes).length === 0) {
-    alert('Aucun changement détecté.');
-    return;
-  }
-
-  const payload = {
-    changes,
-    note: fd.get('note') || '',
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
-  };
-
-  try {
-    const res = await fetch(`/api/${entityType}/${encodeURIComponent(entityId)}/edits`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || res.statusText);
-    dlgEdit.close('submit');
-    alert(data.message || 'Proposition reçue — en attente de validation.');
-  } catch (err) {
-    alert('Erreur : ' + err.message);
-  }
-});
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────
 reload().catch(err => {

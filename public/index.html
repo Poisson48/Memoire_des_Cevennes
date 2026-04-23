@@ -30,7 +30,10 @@
     <div id="map" role="application" aria-label="Carte des Cévennes"></div>
 
     <aside id="panel" class="panel" aria-hidden="true">
-      <button class="panel-close" id="panel-close" aria-label="Fermer">×</button>
+      <button class="panel-close" id="panel-close" aria-label="Fermer le panneau">
+        <span aria-hidden="true">×</span>
+        <span class="panel-close-label">Fermer</span>
+      </button>
       <div id="panel-content"></div>
     </aside>
   </main>
@@ -125,5 +128,6 @@
           crossorigin=""></script>
   <script src="js/tree.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/forms.js"></script>
 </body>
 </html>
