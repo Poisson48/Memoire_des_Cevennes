@@ -8,6 +8,15 @@ Le projet a pour but de **recueillir la parole des anciens** autant que les
 histoires contemporaines, et de les rattacher géographiquement à la vallée, au
 hameau, au mazet ou au chemin où elles prennent sens.
 
+## 👀 Aperçu en ligne
+
+Preview du design, **lecture seule** (pas d'ajout, pas d'upload) :
+
+👉 **<https://poisson48.github.io/Memoire_des_Cevennes/>**
+
+La version complète (création de lieux, upload de photos/audio/vidéo…)
+tourne sur serveur Node — voir *Démarrer en local* ci-dessous.
+
 ---
 
 ## Démarrer en local
