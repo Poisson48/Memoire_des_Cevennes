@@ -1,0 +1,232 @@
+/* Admin page — réutilise les variables de style.css */
+
+.admin-body {
+  overflow: auto;
+}
+
+#admin-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.2rem 1rem 3rem;
+}
+
+.admin-topbar h1 {
+  font-size: 1.25rem;
+}
+
+.admin-login {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 1.6rem 1.8rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.admin-login h2 { margin-top: 0; }
+.admin-login label {
+  display: block;
+  margin: 0.8rem 0;
+}
+.admin-login input {
+  width: 100%;
+  font: inherit;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+.admin-login .actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.admin-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+.count-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+.count-card strong {
+  font-size: 1.1rem;
+  color: var(--accent-dark);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab-btn.active {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Éléments de la file ────────────────────────────────── */
+.queue-item {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+.queue-item.kind-edit {
+  border-left-color: #7a3a6a;
+}
+
+.item-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+.kind-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--accent);
+  color: #fff;
+}
+.kind-badge.edit {
+  background: #7a3a6a;
+}
+.kind-badge.type {
+  background: rgba(0,0,0,0);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.item-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  flex: 1;
+}
+.item-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.item-preview {
+  background: #fff;
+  border: 1px dashed var(--border);
+  padding: 0.7rem 0.9rem;
+  border-radius: 4px;
+  margin: 0.6rem 0;
+  font-size: 0.95rem;
+}
+.item-preview pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: Georgia, serif;
+}
+
+/* Diff pour les édits */
+.diff {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.4rem 0;
+  font-size: 0.92rem;
+}
+.diff th, .diff td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.45rem 0.5rem;
+  vertical-align: top;
+  text-align: left;
+}
+.diff th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.diff td.field {
+  width: 140px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.diff .before {
+  background: rgba(200, 80, 80, 0.06);
+  color: #7a2424;
+  font-family: Consolas, Menlo, monospace;
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.diff .after {
+  background: rgba(80, 150, 80, 0.08);
+  color: #2a5a2a;
+  font-family: Consolas, Menlo, monospace;
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.edit-note {
+  font-style: italic;
+  color: var(--accent-dark);
+  background: var(--banner-bg);
+  padding: 0.4rem 0.7rem;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 0.5rem;
+  border-radius: 0 4px 4px 0;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.item-actions .btn-reject {
+  background: transparent;
+  color: #a14040;
+  border: 1px solid #a14040;
+}
+.item-actions .btn-reject:hover {
+  background: rgba(161, 64, 64, 0.08);
+}
+.item-actions .btn-approve {
+  background: #4a7a4a;
+  border-color: #4a7a4a;
+  color: #fff;
+}
+.item-actions .btn-approve:hover {
+  background: #3a6a3a;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  padding: 2rem 1rem;
+}
+
+@media (max-width: 600px) {
+  .admin-topbar .topbar-actions { width: 100%; }
+  .diff td.field { width: 100px; font-size: 0.82rem; }
+  .item-actions button { flex: 1; }
+}

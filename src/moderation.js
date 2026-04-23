@@ -3,6 +3,7 @@
 const places = require('./places');
 const people = require('./people');
 const stories = require('./stories');
+const edits = require('./edits');
 
 const ENTITIES = { places, people, stories };
 
@@ -11,7 +12,12 @@ function queue({ type } = {}) {
   for (const [name, repo] of Object.entries(ENTITIES)) {
     if (type && type !== name) continue;
     for (const item of repo.list({ status: 'pending' })) {
-      out.push({ entityType: name, item });
+      out.push({ kind: 'create', entityType: name, item });
+    }
+  }
+  if (!type || type === 'edits') {
+    for (const edit of edits.list({ status: 'pending' })) {
+      out.push({ kind: 'edit', entityType: edit.targetType, item: edit, diff: edits.diff(edit) });
     }
   }
   out.sort((a, b) => {
@@ -55,6 +61,13 @@ function counts() {
       rejected: all.filter(x => x.status === 'rejected').length,
     };
   }
+  const allEdits = edits.list({ status: 'all' });
+  out.edits = {
+    total: allEdits.length,
+    pending: allEdits.filter(x => x.status === 'pending').length,
+    approved: allEdits.filter(x => x.status === 'approved').length,
+    rejected: allEdits.filter(x => x.status === 'rejected').length,
+  };
   return out;
 }
 

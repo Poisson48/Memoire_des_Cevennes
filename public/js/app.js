@@ -42,10 +42,15 @@ const dlgStory = document.getElementById('dlg-story');
 const formStory = document.getElementById('form-story');
 const storyType = document.getElementById('story-type');
 const storyMediaLabel = document.getElementById('story-media-label');
+const dlgEdit = document.getElementById('dlg-edit');
+const formEdit = document.getElementById('form-edit');
 
 document.getElementById('panel-close').addEventListener('click', closePanel);
 dlgStory.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => dlgStory.close('cancel'))
+);
+dlgEdit.querySelectorAll('[data-close]').forEach(b =>
+  b.addEventListener('click', () => dlgEdit.close('cancel'))
 );
 storyType.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
@@ -165,6 +170,14 @@ function openPanel(html) {
     const placeId = addStoryBtn.dataset.placeId;
     addStoryBtn.addEventListener('click', () => openStoryDialog(placeId));
   }
+  panelContent.querySelectorAll('.btn-propose-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.entityType;
+      const id = btn.dataset.entityId;
+      const entity = type === 'places' ? state.places.get(id) : state.people.get(id);
+      if (entity) openEditDialog(type, entity);
+    });
+  });
 }
 
 function closePanel() {
@@ -188,8 +201,11 @@ function openPlacePanel(placeId) {
     return `<span class="chip">${escapeHtml(a.name)}${ctx ? ` <em>(${escapeHtml(ctx)})</em>` : ''}</span>`;
   }).join('');
 
-  const addStoryBtn = state.mode === 'live'
-    ? `<div class="add-story"><button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button></div>`
+  const actions = state.mode === 'live'
+    ? `<div class="entity-actions">
+         <button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>
+         <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
+       </div>`
     : '';
 
   openPanel(`
@@ -199,7 +215,7 @@ function openPlacePanel(placeId) {
       ${aliases ? `<div class="aliases">aussi appelé ${aliases}</div>` : ''}
     </div>
     ${place.description ? `<p class="desc">${escapeHtml(place.description)}</p>` : ''}
-    ${addStoryBtn}
+    ${actions}
     <h3 class="section-title">Récits (${related.length})</h3>
     ${related.length === 0
       ? '<p class="desc"><em>Aucun récit pour l\'instant.</em></p>'
@@ -242,6 +258,11 @@ function openPersonPanel(personId) {
   ].filter(Boolean).join(' · ');
 
   const hasFamily = parentLinks || spouseLinks || childLinks;
+  const actions = state.mode === 'live'
+    ? `<div class="entity-actions">
+         <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
+       </div>`
+    : '';
 
   openPanel(`
     <div class="entity-header">
@@ -251,6 +272,7 @@ function openPersonPanel(personId) {
       ${dates ? `<div class="dates">${dates}</div>` : ''}
     </div>
     ${person.bio ? `<p class="desc">${escapeHtml(person.bio)}</p>` : ''}
+    ${actions}
 
     ${hasFamily ? `
       <h3 class="section-title">Arbre généalogique</h3>
@@ -542,6 +564,99 @@ formStory.addEventListener('submit', async (e) => {
 
     dlgStory.close('submit');
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
+  } catch (err) {
+    alert('Erreur : ' + err.message);
+  }
+});
+
+// ─── Proposition de modification (style Wikipédia) ─────────────────────
+const EDIT_FIELDS = {
+  places: [
+    { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
+    { key: 'description', label: 'Description', type: 'textarea', rows: 4 },
+  ],
+  people: [
+    { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
+    { key: 'maidenName', label: 'Nom de naissance (pour les femmes mariées)', type: 'text' },
+    { key: 'bio', label: 'Biographie', type: 'textarea', rows: 4 },
+  ],
+  stories: [
+    { key: 'title', label: 'Titre', type: 'text' },
+    { key: 'memoryDate', label: 'Date du souvenir (libre : « années 40 », « 1952 »…)', type: 'text' },
+    { key: 'body', label: 'Texte', type: 'textarea', rows: 6 },
+  ],
+};
+
+function openEditDialog(entityType, entity) {
+  formEdit.reset();
+  formEdit.dataset.entityType = entityType;
+  formEdit.dataset.entityId = entity.id;
+  const name = entity.primaryName || entity.title || entity.id;
+  const kindLabel = { places: 'le lieu', people: 'la personne', stories: 'le récit' }[entityType] || '';
+  document.getElementById('edit-target-name').textContent = `Pour ${kindLabel} : ${name}`;
+
+  const fields = EDIT_FIELDS[entityType] || [];
+  const fieldsEl = document.getElementById('edit-fields');
+  fieldsEl.innerHTML = fields.map(f => {
+    const val = entity[f.key] ?? '';
+    const req = f.required ? ' required' : '';
+    if (f.type === 'textarea') {
+      return `
+        <label>${escapeHtml(f.label)}
+          <textarea name="${f.key}" rows="${f.rows || 3}"${req}>${escapeHtml(val)}</textarea>
+        </label>
+      `;
+    }
+    return `
+      <label>${escapeHtml(f.label)}
+        <input type="text" name="${f.key}" value="${escapeAttr(val)}"${req} />
+      </label>
+    `;
+  }).join('');
+
+  // Sauvegarde des valeurs d'origine pour ne soumettre que les diffs
+  formEdit.dataset.originalData = JSON.stringify(
+    Object.fromEntries(fields.map(f => [f.key, entity[f.key] ?? '']))
+  );
+  dlgEdit.showModal();
+}
+
+formEdit.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const entityType = formEdit.dataset.entityType;
+  const entityId = formEdit.dataset.entityId;
+  const original = JSON.parse(formEdit.dataset.originalData || '{}');
+  const fd = new FormData(formEdit);
+
+  const changes = {};
+  for (const [k, v] of fd.entries()) {
+    if (k === 'note' || k === 'pseudo') continue;
+    if (String(original[k] ?? '') !== String(v ?? '')) {
+      changes[k] = v;
+    }
+  }
+
+  if (Object.keys(changes).length === 0) {
+    alert('Aucun changement détecté.');
+    return;
+  }
+
+  const payload = {
+    changes,
+    note: fd.get('note') || '',
+    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
+  };
+
+  try {
+    const res = await fetch(`/api/${entityType}/${encodeURIComponent(entityId)}/edits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    dlgEdit.close('submit');
+    alert(data.message || 'Proposition reçue — en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }

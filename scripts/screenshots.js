@@ -107,11 +107,77 @@ async function runMobile(browser) {
   await ctx.close();
 }
 
+async function runAdmin(browser) {
+  // Pour avoir du contenu à afficher : on injecte une proposition de modif
+  // via l'API publique, puis on se connecte à l'admin.
+  const http = require('http');
+  await new Promise((res, rej) => {
+    const req = http.request({
+      hostname: 'localhost', port: PORT, path: '/api/places/saint-roman-de-codieres/edits',
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    }, r => { r.on('data', () => {}); r.on('end', res); });
+    req.on('error', rej);
+    req.write(JSON.stringify({
+      changes: { description: 'Village du piémont cévenol, sur le flanc sud du massif de la Fage, à mi-chemin entre Ganges et Le Vigan. Point de départ du projet.' },
+      note: 'Reformule plus concis et ajoute une référence géographique',
+      submittedBy: { pseudo: 'marie-d' },
+    }));
+    req.end();
+  });
+
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.on('console', msg => {
+    if (msg.type() === 'error') console.log('  [admin console.error]', msg.text());
+  });
+  page.on('pageerror', err => console.log('  [admin pageerror]', err.message));
+  page.on('response', r => {
+    if (r.url().includes('/api/admin') && r.status() >= 400) {
+      console.log('  [admin api]', r.status(), r.url());
+    }
+  });
+
+  console.log('— Admin —');
+  // Dépose le token + reviewer en localStorage via une première visite.
+  await page.goto(`${BASE}/admin.html`);
+  await page.evaluate((token) => {
+    localStorage.setItem('mdc-admin-token', token);
+    localStorage.setItem('mdc-admin-reviewer', 'valou');
+  }, process.env.ADMIN_TOKEN || 'dev');
+  await page.goto(`${BASE}/admin.html`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1000);
+  try {
+    await page.waitForSelector('.queue-item', { timeout: 5000 });
+  } catch {
+    // Capture l'écran quand même pour diagnostiquer
+    console.log('  [admin] .queue-item introuvable, capture quand même');
+    await shot(page, '08-admin-debug');
+  }
+  await page.waitForTimeout(400);
+  await shot(page, '08-admin-queue-desktop');
+
+  // Vue de la boîte de dialogue "Proposer une modification" côté utilisateur
+  const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page2 = await ctx2.newPage();
+  await page2.goto(BASE, { waitUntil: 'networkidle' });
+  await settleMap(page2);
+  await page2.evaluate(() => { location.hash = '#/lieu/saint-roman-de-codieres'; });
+  await page2.waitForTimeout(500);
+  await page2.click('.btn-propose-edit');
+  await page2.waitForTimeout(400);
+  await shot(page2, '09-propose-edit-dialog');
+
+  await ctx.close();
+  await ctx2.close();
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     await runDesktop(browser);
     await runMobile(browser);
+    if (process.env.ADMIN_TOKEN) await runAdmin(browser);
+    else console.log('— Admin — (skip : ADMIN_TOKEN non défini)');
   } finally {
     await browser.close();
   }

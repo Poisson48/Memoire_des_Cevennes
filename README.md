@@ -50,6 +50,26 @@ des liens parent-enfant.
 
 ![Arbre généalogique 3 générations](docs/screenshots/04-full-tree-desktop.png)
 
+### Proposer une modification (style Wikipédia)
+
+N'importe qui peut proposer une correction sur un lieu ou une personne
+(orthographe, ajout d'info, précision historique…). La proposition est
+soumise à l'équipe admin, qui voit un **diff avant/après** avant de
+valider ou refuser avec motif. Principe : on fait confiance aux
+contributeurs, mais tout passe par un filtre humain.
+
+![Modale « Proposer une modification »](docs/screenshots/09-propose-edit-dialog.png)
+
+### Page d'administration
+
+Accessible à `/admin.html`, protégée par un **token partagé** entre les
+admins (variable `ADMIN_TOKEN` côté serveur). Affiche en une seule file
+les **nouveaux contenus en attente** (lieux / personnes / récits) et les
+**propositions de modification**, avec diff avant/après sur chaque champ
+modifié. Un seul compte admin, plusieurs personnes peuvent l'utiliser.
+
+![Page admin avec un diff](docs/screenshots/08-admin-queue-desktop.png)
+
 ### Sur mobile
 
 Le panneau devient un bottom sheet qui remonte depuis le bas, les dialogs
@@ -75,8 +95,11 @@ passent en plein écran, les boutons font ≥ 44 px pour les doigts.
   boutons ← → du navigateur fonctionnent.
 - **Arbre généalogique** SVG centré sur une personne, 3 générations par
   défaut, cliquer pour re-centrer.
-- **Modération** : toute soumission atterrit en file `pending`, approuvée
-  ou refusée par les admins via API protégée par token.
+- **Modération style Wikipédia** : toute création ET toute modification
+  d'un contenu existant passe par une file d'attente, approuvée ou
+  refusée par les admins avec diff avant/après. Plusieurs admins peuvent
+  partager le même compte (un token commun).
+- **Page `/admin`** : interface web de la file de modération.
 - **Mobile-friendly** : responsive complet.
 - **Preview GitHub Pages** : déploiement automatique à chaque push.
 
@@ -126,24 +149,31 @@ Puis ouvre <http://localhost:3003>.
 
 ### Modération (admin)
 
-Toutes les soumissions tombent en `pending`. Pour voir / approuver :
+Toutes les soumissions — créations **et** propositions de modification —
+tombent en `pending`.
+
+**Interface graphique** : <http://localhost:3003/admin.html>
+- Saisis le token partagé (variable `ADMIN_TOKEN`).
+- La file d'attente unifie créations et modifications.
+- Pour les modifications : diff avant/après par champ, côte à côte.
+- Boutons **Approuver** / **Refuser (avec motif)** sur chaque item.
+
+**En ligne de commande** (pratique pour des scripts ou du batch) :
 
 ```bash
-# File d'attente
+# File d'attente (créations + propositions de modif)
 curl http://localhost:3003/api/admin/queue -H "X-Admin-Token: $ADMIN_TOKEN"
 
-# Approuver
+# Approuver une création
 curl -X POST http://localhost:3003/api/admin/places/<id>/approve \
   -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"reviewer":"moi"}'
 
-# Refuser avec motif
-curl -X POST http://localhost:3003/api/admin/stories/<id>/reject \
+# Approuver une modif → applique le delta sur l'entité cible
+curl -X POST http://localhost:3003/api/admin/edits/<edit-id>/approve \
   -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
-  -d '{"reviewer":"moi","reason":"contenu hors sujet"}'
+  -d '{"reviewer":"moi"}'
 ```
-
-Interface graphique `/admin` : à venir (ticket 7).
 
 ### Re-générer les captures d'écran
 
@@ -164,22 +194,28 @@ memoire_des_cevennes/
 ├── data/
 │   ├── places.json         # lieux + aliases
 │   ├── people.json         # personnes + relations familiales
-│   └── stories.json        # récits + mentions (offsets)
+│   ├── stories.json        # récits + mentions (offsets)
+│   └── edits.json          # propositions de modification (style Wikipédia)
 ├── uploads/                # médias binaires (NON versionnés — voir plus bas)
 ├── public/                 # frontend vanilla
-│   ├── index.html
-│   ├── css/style.css
+│   ├── index.html          # carte + panneau + dialogs
+│   ├── admin.html          # page de modération
+│   ├── css/
+│   │   ├── style.css
+│   │   └── admin.css
 │   └── js/
-│       ├── app.js          # carte, panneaux, routage
-│       └── tree.js         # arbre généalogique SVG
+│       ├── app.js          # carte, panneaux, routage, propose-edit
+│       ├── tree.js         # arbre généalogique SVG
+│       └── admin.js        # file d'attente + approve/reject
 ├── src/
-│   ├── storage.js          # I/O des 3 fichiers avec verrou
+│   ├── storage.js          # I/O des 4 fichiers avec verrou
 │   ├── schema.js           # normalisation + validation des entités
 │   ├── places.js           # CRUD Lieux
 │   ├── people.js           # CRUD Personnes (+ dérivation enfants/fratrie)
 │   ├── stories.js          # CRUD Récits (+ filtres par lieu/personne)
+│   ├── edits.js            # propositions de modif (propose/approve/diff)
 │   ├── resolve.js          # résolution d'alias (recherche)
-│   └── moderation.js       # file d'attente + approve/reject
+│   └── moderation.js       # file d'attente unifiée + approve/reject
 ├── scripts/
 │   └── screenshots.js      # playwright → docs/screenshots/
 ├── docs/

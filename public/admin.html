@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administration — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin-body">
+  <header class="topbar admin-topbar">
+    <div class="topbar-titles">
+      <h1>🛡️ Administration — Mémoire des Cévennes</h1>
+      <p class="tagline">Validation des ajouts et des propositions de modification.</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+      <button id="btn-logout" class="btn-ghost" type="button" hidden>Déconnexion</button>
+    </div>
+  </header>
+
+  <main id="admin-main">
+    <!-- Login -->
+    <section id="login" class="admin-login">
+      <h2>Connexion</h2>
+      <p>Saisis le token partagé entre les admins (variable <code>ADMIN_TOKEN</code> du serveur).</p>
+      <form id="form-login">
+        <label>Token
+          <input type="password" name="token" autocomplete="off" required />
+        </label>
+        <label>Nom (pour l'historique d'audit)
+          <input type="text" name="reviewer" placeholder="ton pseudo" maxlength="80" />
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Entrer</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard" hidden>
+      <div class="admin-counts" id="admin-counts"></div>
+
+      <div class="admin-tabs">
+        <button type="button" class="tab-btn active" data-filter="all">Tout</button>
+        <button type="button" class="tab-btn" data-filter="create">Créations</button>
+        <button type="button" class="tab-btn" data-filter="edit">Modifications</button>
+      </div>
+
+      <div id="queue" class="queue"></div>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
