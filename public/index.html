@@ -112,8 +112,28 @@
       <label>Texte (récit, légende, transcription…)
         <textarea name="body" rows="5" maxlength="20000"></textarea>
       </label>
-      <label id="story-media-label">Fichier (photo, audio, vidéo, PDF)
-        <input type="file" name="media" accept="image/*,audio/*,video/*,application/pdf" />
+      <div id="story-recorder" class="recorder" hidden>
+        <div class="recorder-label">🎙️ Enregistrer depuis le navigateur</div>
+        <div class="recorder-body">
+          <button type="button" id="rec-start" class="btn-primary">🔴 Commencer</button>
+          <div id="rec-live" class="rec-live" hidden>
+            <span class="rec-dot" aria-hidden="true"></span>
+            <span id="rec-timer" class="rec-timer">00:00</span>
+            <button type="button" id="rec-stop" class="btn-ghost">⏹ Arrêter</button>
+          </div>
+          <div id="rec-preview" class="rec-preview" hidden>
+            <audio id="rec-playback" controls preload="metadata"></audio>
+            <div class="rec-preview-actions">
+              <button type="button" id="rec-redo" class="btn-ghost">↻ Refaire</button>
+              <span class="rec-ready">✓ prêt à envoyer</span>
+            </div>
+          </div>
+          <div id="rec-error" class="rec-error" hidden></div>
+        </div>
+        <div class="recorder-or">— ou —</div>
+      </div>
+      <label id="story-media-label">Fichier à joindre (photo, audio, vidéo, PDF — plusieurs possibles)
+        <input type="file" name="media" id="story-media-input" multiple accept="image/*,audio/*,video/*,application/pdf" />
       </label>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins

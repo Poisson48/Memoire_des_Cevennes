@@ -21,6 +21,8 @@ const dlgStory = document.getElementById('dlg-story');
 const formStory = document.getElementById('form-story');
 const storyType = document.getElementById('story-type');
 const storyMediaLabel = document.getElementById('story-media-label');
+const storyRecorder = document.getElementById('story-recorder');
+const storyMediaInput = document.getElementById('story-media-input');
 const dlgEdit = document.getElementById('dlg-edit');
 const formEdit = document.getElementById('form-edit');
 
@@ -95,6 +97,7 @@ function resetAddMode() {
 // ── Flux 2 : ajouter un contenu (texte / photo / audio / vidéo / …) ────
 function openStoryDialog(placeId) {
   formStory.reset();
+  resetRecorderIfAvailable();
   updateStoryMediaVisibility();
   formStory.dataset.placeId = placeId;
   const place = state.places.get(placeId);
@@ -102,9 +105,33 @@ function openStoryDialog(placeId) {
   dlgStory.showModal();
 }
 
+function resetRecorderIfAvailable() {
+  // `resetRecorder` est défini plus bas — on teste sa présence pour éviter
+  // une ReferenceError si le widget n'a pas été initialisé (nav sans
+  // MediaRecorder par ex.).
+  if (typeof resetRecorder === 'function') resetRecorder();
+}
+
+// ── Capture caméra / micro selon le type ───────────────────────────────
 function updateStoryMediaVisibility() {
   const t = storyType.value;
-  storyMediaLabel.hidden = (t === 'text' || t === 'note');
+  const textOnly = (t === 'text' || t === 'note');
+  storyMediaLabel.hidden = textOnly;
+  storyRecorder.hidden = textOnly || t !== 'audio';
+
+  // Oriente l'accept du file input selon le type et, sur mobile, ouvre
+  // directement l'appareil photo / caméra pour les photos et vidéos.
+  const config = {
+    photo:   { accept: 'image/*', capture: 'environment' },
+    video:   { accept: 'video/*', capture: 'environment' },
+    audio:   { accept: 'audio/*', capture: null },
+    drawing: { accept: 'image/*', capture: null },
+    note:    { accept: '', capture: null },
+    text:    { accept: '', capture: null },
+  }[t] || { accept: 'image/*,audio/*,video/*,application/pdf', capture: null };
+  storyMediaInput.accept = config.accept || 'image/*,audio/*,video/*,application/pdf';
+  if (config.capture) storyMediaInput.setAttribute('capture', config.capture);
+  else storyMediaInput.removeAttribute('capture');
 }
 
 formStory.addEventListener('submit', async (e) => {
@@ -128,10 +155,21 @@ formStory.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
 
-    const file = fd.get('media');
-    if (file && file.size > 0) {
-      const mediaForm = new FormData();
-      mediaForm.append('media', file);
+    // Fichiers sélectionnés (plusieurs possibles) + enregistrement in-browser.
+    const mediaForm = new FormData();
+    let added = 0;
+    for (const file of storyMediaInput.files || []) {
+      if (file && file.size > 0) {
+        mediaForm.append('media', file);
+        added++;
+      }
+    }
+    if (recordedBlob) {
+      const ext = (recordedBlob.type.includes('webm') ? 'webm' : 'ogg');
+      mediaForm.append('media', recordedBlob, `enregistrement-${Date.now()}.${ext}`);
+      added++;
+    }
+    if (added > 0) {
       const mres = await fetch(`/api/stories/${encodeURIComponent(data.story.id)}/media`, {
         method: 'POST',
         body: mediaForm,
@@ -143,11 +181,123 @@ formStory.addEventListener('submit', async (e) => {
     }
 
     dlgStory.close('submit');
+    resetRecorder();
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }
 });
+
+// ── Enregistrement audio in-browser ────────────────────────────────────
+// On utilise MediaRecorder. Fallback : si l'API n'est pas dispo, on
+// masque le widget et le contributeur utilise le file input.
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordedBlob = null;
+let recordingStream = null;
+let recordingStarted = 0;
+let recordingTimer = null;
+
+const recStart = document.getElementById('rec-start');
+const recStop  = document.getElementById('rec-stop');
+const recRedo  = document.getElementById('rec-redo');
+const recLive  = document.getElementById('rec-live');
+const recPreview = document.getElementById('rec-preview');
+const recError = document.getElementById('rec-error');
+const recTimer = document.getElementById('rec-timer');
+const recPlayback = document.getElementById('rec-playback');
+
+function hasMediaRecorder() {
+  return typeof MediaRecorder !== 'undefined'
+      && navigator.mediaDevices
+      && typeof navigator.mediaDevices.getUserMedia === 'function';
+}
+
+if (!hasMediaRecorder()) {
+  // Cache le widget, laisse juste le file input.
+  storyRecorder.hidden = true;
+}
+
+function pickMimeType() {
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  for (const m of candidates) {
+    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return '';
+}
+
+recStart.addEventListener('click', async () => {
+  recError.hidden = true;
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    recError.textContent = 'Accès au micro refusé ou indisponible : ' + err.message;
+    recError.hidden = false;
+    return;
+  }
+  const mimeType = pickMimeType();
+  try {
+    mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined);
+  } catch (err) {
+    recError.textContent = 'Enregistrement impossible sur ce navigateur : ' + err.message;
+    recError.hidden = false;
+    recordingStream.getTracks().forEach(t => t.stop());
+    return;
+  }
+  recordedChunks = [];
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+  };
+  mediaRecorder.onstop = () => {
+    recordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+    recPlayback.src = URL.createObjectURL(recordedBlob);
+    recLive.hidden = true;
+    recStart.hidden = true;
+    recPreview.hidden = false;
+    if (recordingStream) {
+      recordingStream.getTracks().forEach(t => t.stop());
+      recordingStream = null;
+    }
+    if (recordingTimer) { clearInterval(recordingTimer); recordingTimer = null; }
+  };
+  mediaRecorder.start();
+  recordingStarted = Date.now();
+  recStart.hidden = true;
+  recLive.hidden = false;
+  recPreview.hidden = true;
+  recordingTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - recordingStarted) / 1000);
+    recTimer.textContent = `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+  }, 250);
+});
+
+recStop.addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+});
+
+recRedo.addEventListener('click', () => {
+  resetRecorder();
+});
+
+function resetRecorder() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    try { mediaRecorder.stop(); } catch {}
+  }
+  if (recordingStream) {
+    recordingStream.getTracks().forEach(t => t.stop());
+    recordingStream = null;
+  }
+  if (recordingTimer) { clearInterval(recordingTimer); recordingTimer = null; }
+  mediaRecorder = null;
+  recordedChunks = [];
+  recordedBlob = null;
+  recPlayback.removeAttribute('src');
+  recLive.hidden = true;
+  recPreview.hidden = true;
+  recError.hidden = true;
+  recStart.hidden = false;
+  recTimer.textContent = '00:00';
+}
 
 // ── Flux 3 : proposer une modification (style Wikipédia) ───────────────
 const EDIT_FIELDS = {
