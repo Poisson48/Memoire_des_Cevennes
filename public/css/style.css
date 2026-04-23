@@ -386,6 +386,83 @@ main {
   border-radius: 0 4px 4px 0;
 }
 
+/* ── Post-tagging des mentions ─────────────────────────────── */
+.tag-popover {
+  position: absolute;
+  z-index: 1500;
+}
+.tag-popover button {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow);
+}
+
+.tag-type-toggle {
+  display: flex;
+  gap: 1rem;
+  margin: 0.8rem 0 0.3rem;
+}
+.tag-type-toggle label {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.tag-type-toggle input {
+  width: auto;
+  min-height: auto;
+  margin: 0;
+}
+
+.tag-results {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+.tag-results li {
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.94rem;
+}
+.tag-results li:last-child { border-bottom: none; }
+.tag-results li:hover { background: rgba(140,90,43,0.08); }
+.tag-results li.selected { background: rgba(140,90,43,0.18); }
+.tag-results .alias-hint {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+.tag-result-empty {
+  color: var(--muted);
+  font-style: italic;
+  padding: 0.55rem 0.7rem;
+  cursor: default !important;
+  background: transparent !important;
+}
+
+.tag-chosen {
+  margin: 0.35rem 0 0;
+  padding: 0.4rem 0.7rem;
+  background: rgba(80,150,80,0.1);
+  border-left: 3px solid #4a7a4a;
+  color: #2a5a2a;
+  border-radius: 0 3px 3px 0;
+  font-size: 0.9rem;
+}
+
+/* Rend les zones de texte des récits sélectionnables de manière évidente */
+.story .body {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* ── Enregistreur audio in-browser ─────────────────────────── */
 .recorder {
   margin: 0.8rem 0 0.3rem;

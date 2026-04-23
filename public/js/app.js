@@ -411,7 +411,7 @@ function renderStoryCard(s, { full = false } = {}) {
   }).join('');
 
   return `
-    <article class="story">
+    <article class="story" data-story-id="${escapeAttr(s.id)}">
       <h3>
         <span class="type-badge">${typeLabel}</span>
         <a href="#/recit/${encodeURIComponent(s.id)}" class="story-title">${escapeHtml(s.title || '(sans titre)')}</a>
