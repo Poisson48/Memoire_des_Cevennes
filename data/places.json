@@ -3,14 +3,15 @@
   "updatedAt": "2026-04-23T00:00:00.000Z",
   "places": [
     {
-      "id": "mont-aigoual",
-      "primaryName": "Mont Aigoual",
-      "lat": 44.1214,
-      "lng": 3.5814,
-      "description": "Sommet emblématique des Cévennes, à 1565 m. Observatoire météorologique historique, et théâtre du plus grand reboisement volontaire de France à la fin du XIXe siècle.",
+      "id": "saint-roman-de-codieres",
+      "primaryName": "Saint-Roman-de-Codières",
+      "lat": 43.9881,
+      "lng": 3.7439,
+      "description": "Village du piémont cévenol, en Gard, au pied du col du Mercou et du massif de la Fage. Point de départ du projet Mémoire des Cévennes : on commence ici, on s'élargira aux vallées voisines ensuite.",
       "aliases": [
-        { "name": "L'Aigoual", "context": "local" },
-        { "name": "L'Agoal", "context": "occitan" }
+        { "name": "Sant Roman de Codièras", "context": "occitan" },
+        { "name": "Saint-Roman", "context": "usuel" },
+        { "name": "Codières", "context": "ancien" }
       ],
       "status": "approved",
       "createdAt": "2026-04-23T00:00:00.000Z",
@@ -21,14 +22,30 @@
     {
       "id": "mas-de-la-coste",
       "primaryName": "Mas de la Coste",
-      "lat": 44.0987,
-      "lng": 3.6420,
-      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, au-dessus de Valleraugue. Aliases multiples dans le temps et selon les personnes.",
+      "lat": 43.9975,
+      "lng": 3.7310,
+      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, au-dessus de Saint-Roman-de-Codières. Aliases multiples dans le temps et selon les personnes.",
       "aliases": [
         { "name": "La Ferme Vieille", "context": "cadastre", "startYear": 1812, "endYear": 1920 },
         { "name": "Lo Mas de la Còsta", "context": "occitan" },
         { "name": "Chez Suzette", "context": "familial", "usedBy": "pierre-duval", "startYear": 1970 },
         { "name": "Le mazet là-haut", "context": "oral local" }
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
+      "id": "mont-aigoual",
+      "primaryName": "Mont Aigoual",
+      "lat": 44.1214,
+      "lng": 3.5814,
+      "description": "Sommet emblématique des Cévennes, à 1565 m. Observatoire météorologique historique, et théâtre du plus grand reboisement volontaire de France à la fin du XIXe siècle. Plus au nord de Saint-Roman — visible par beau temps depuis la crête de la Fage.",
+      "aliases": [
+        { "name": "L'Aigoual", "context": "local" },
+        { "name": "L'Agoal", "context": "occitan" }
       ],
       "status": "approved",
       "createdAt": "2026-04-23T00:00:00.000Z",

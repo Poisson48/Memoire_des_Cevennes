@@ -8,8 +8,11 @@
 //     via le hash, donc boutons ← → du navigateur marchent nativement).
 
 // ─── Config ─────────────────────────────────────────────────────────────
-const CEVENNES_CENTER = [44.25, 3.75];
-const CEVENNES_ZOOM = 10;
+// Le projet démarre focalisé sur Saint-Roman-de-Codières et ses alentours
+// (vallée de la Crenze, versant sud de l'Aigoual). Une ouverture plus large
+// sur l'ensemble des Cévennes viendra plus tard.
+const DEFAULT_CENTER = [43.9881, 3.7439];   // Saint-Roman-de-Codières
+const DEFAULT_ZOOM = 13;
 
 const state = {
   mode: 'live',           // 'live' (API) ou 'static' (GitHub Pages)
@@ -20,7 +23,7 @@ const state = {
 };
 
 // ─── Carte ──────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView(CEVENNES_CENTER, CEVENNES_ZOOM);
+const map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '© OpenStreetMap France | © OpenStreetMap contributors',

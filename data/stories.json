@@ -3,6 +3,23 @@
   "updatedAt": "2026-04-23T00:00:00.000Z",
   "stories": [
     {
+      "id": "saint-roman-magnanaries",
+      "placeId": "saint-roman-de-codieres",
+      "type": "text",
+      "title": "Les magnanaries et le chemin de la soie",
+      "body": "Au XIXe siècle, Saint-Roman-de-Codières comptait plusieurs magnanaries où les foyers élevaient des vers à soie pour la filature de Ganges. Chaque printemps, les mûriers bordaient les chemins menant au village.",
+      "memoryDate": "XIXe siècle",
+      "mentions": [
+        { "start": 16, "end": 39, "type": "place", "entityId": "saint-roman-de-codieres" }
+      ],
+      "mediaFiles": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    },
+    {
       "id": "reboisement-aigoual",
       "placeId": "mont-aigoual",
       "type": "text",
