@@ -34,7 +34,6 @@
     </aside>
   </main>
 
-  <!-- Modal : ajouter un lieu -->
   <dialog id="dlg-place">
     <form method="dialog" id="form-place">
       <h2>Nouveau lieu</h2>
@@ -45,14 +44,20 @@
       <label>Description (optionnel)
         <textarea name="description" rows="3" maxlength="2000"></textarea>
       </label>
+      <label>Ton pseudo (optionnel — utile pour te recontacter)
+        <input type="text" name="pseudo" maxlength="80" />
+      </label>
+      <p class="dialog-note">
+        📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
+        avant d'apparaître sur la carte publique.
+      </p>
       <div class="actions">
         <button value="cancel" class="btn-ghost">Annuler</button>
-        <button value="submit" class="btn-primary">Créer le lieu</button>
+        <button value="submit" class="btn-primary">Envoyer</button>
       </div>
     </form>
   </dialog>
 
-  <!-- Modal : ajouter un témoignage/contenu -->
   <dialog id="dlg-story">
     <form id="form-story" enctype="multipart/form-data">
       <h2>Ajouter un contenu</h2>
@@ -62,6 +67,7 @@
           <option value="text">Histoire / témoignage écrit</option>
           <option value="photo">Photo</option>
           <option value="audio">Enregistrement audio</option>
+          <option value="video">Vidéo</option>
           <option value="drawing">Dessin</option>
           <option value="note">Note</option>
         </select>
@@ -69,18 +75,22 @@
       <label>Titre
         <input type="text" name="title" maxlength="160" />
       </label>
-      <label>Auteur / contributeur
-        <input type="text" name="author" maxlength="120" />
+      <label>Ton pseudo (optionnel)
+        <input type="text" name="pseudo" maxlength="80" />
       </label>
       <label>Texte (récit, légende, transcription…)
-        <textarea name="body" rows="5" maxlength="10000"></textarea>
+        <textarea name="body" rows="5" maxlength="20000"></textarea>
       </label>
-      <label id="story-media-label">Fichier (photo, audio, dessin, PDF)
-        <input type="file" name="media" accept="image/*,audio/*,application/pdf" />
+      <label id="story-media-label">Fichier (photo, audio, vidéo, PDF)
+        <input type="file" name="media" accept="image/*,audio/*,video/*,application/pdf" />
       </label>
+      <p class="dialog-note">
+        📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
+        avant d'apparaître sur la carte publique.
+      </p>
       <div class="actions">
         <button type="button" class="btn-ghost" data-close>Annuler</button>
-        <button type="submit" class="btn-primary">Ajouter</button>
+        <button type="submit" class="btn-primary">Envoyer</button>
       </div>
     </form>
   </dialog>

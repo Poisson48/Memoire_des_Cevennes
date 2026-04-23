@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-23T00:00:00.000Z",
+  "stories": [
+    {
+      "id": "reboisement-aigoual",
+      "placeId": "mont-aigoual",
+      "type": "text",
+      "title": "Le reboisement de l'Aigoual",
+      "body": "Georges Fabre, conservateur des Eaux et Forêts, entreprit à partir de 1875 le reboisement du mont Aigoual. En quarante ans, il y plantera plus de 6 000 hectares, transformant un massif dévasté en l'une des plus grandes hêtraies de France.",
+      "memoryDate": "1875-1915",
+      "mentions": [
+        { "start": 0,  "end": 13, "type": "person", "entityId": "georges-fabre" },
+        { "start": 93, "end": 105, "type": "place",  "entityId": "mont-aigoual" }
+      ],
+      "mediaFiles": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    }
+  ]
+}

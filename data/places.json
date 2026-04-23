@@ -1,24 +1,28 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-04-23T00:00:00.000Z",
   "places": [
     {
-      "id": "exemple-mont-aigoual",
-      "title": "Mont Aigoual",
-      "description": "Sommet emblématique des Cévennes, observatoire météorologique historique. Remplace cet exemple par tes propres lieux.",
+      "id": "mont-aigoual",
+      "primaryName": "Mont Aigoual",
       "lat": 44.1214,
       "lng": 3.5814,
-      "createdAt": "2026-04-23T00:00:00.000Z",
-      "stories": [
+      "description": "Sommet emblématique des Cévennes, à 1565 m. Observatoire météorologique historique, et théâtre du plus grand reboisement volontaire de France à la fin du XIXe siècle.",
+      "aliases": [
         {
-          "id": "exemple-story-1",
-          "type": "text",
-          "title": "Le gardien des nuages",
-          "author": "Exemple",
-          "body": "Histoire ou témoignage écrit à propos du lieu. Remplace ce contenu par un vrai récit.",
-          "createdAt": "2026-04-23T00:00:00.000Z"
+          "name": "L'Aigoual",
+          "context": "local"
+        },
+        {
+          "name": "L'Agoal",
+          "context": "occitan"
         }
-      ]
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
     }
   ]
 }
