@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-23T00:00:00.000Z",
+  "people": [
+    {
+      "id": "georges-fabre",
+      "primaryName": "Georges Fabre",
+      "gender": "M",
+      "aliases": [
+        { "name": "Le reboiseur de l'Aigoual", "context": "historique" }
+      ],
+      "birth": { "year": 1844, "month": 10, "day": 25 },
+      "death": { "year": 1911, "month": 11, "day": 20 },
+      "bio": "Conservateur des Eaux et Forêts, instigateur du reboisement du massif de l'Aigoual à partir de 1875. On lui doit la hêtraie de l'Aigoual et l'observatoire météorologique au sommet.",
+      "parents": [],
+      "spouses": [],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap"
+    }
+  ]
+}

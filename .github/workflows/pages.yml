@@ -29,7 +29,9 @@ jobs:
           mkdir -p _site
           cp -r public/. _site/
           mkdir -p _site/data
-          cp data/places.json _site/data/places.json
+          cp data/places.json  _site/data/places.json
+          cp data/people.json  _site/data/people.json
+          cp data/stories.json _site/data/stories.json
           # Pas d'uploads/ : les médias lourds vivent sur le serveur, pas sur Pages.
 
       - uses: actions/configure-pages@v5
