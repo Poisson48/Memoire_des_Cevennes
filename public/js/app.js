@@ -40,6 +40,14 @@ document.getElementById('panel-close').addEventListener('click', closePanel);
 // Les dialogs (add-place / add-story / propose-edit) et leur logique vivent
 // dans forms.js, chargé après app.js.
 
+// Bandeau "lecture seule" : fermable, son état est mémorisé pour ne pas
+// ré-apparaître à chaque visite.
+const BANNER_DISMISSED_KEY = 'mdc-readonly-banner-dismissed';
+document.getElementById('banner-close').addEventListener('click', () => {
+  readonlyBanner.hidden = true;
+  try { localStorage.setItem(BANNER_DISMISSED_KEY, '1'); } catch {}
+});
+
 // ─── Chargement données ─────────────────────────────────────────────────
 async function fetchJson(url) {
   const res = await fetch(url, { cache: 'no-store' });
@@ -99,7 +107,8 @@ function refreshMarkers() {
 
 function applyMode() {
   if (state.mode === 'static') {
-    readonlyBanner.hidden = false;
+    const dismissed = (() => { try { return localStorage.getItem(BANNER_DISMISSED_KEY) === '1'; } catch { return false; } })();
+    readonlyBanner.hidden = dismissed;
     addBtn.textContent = '🔒 Lecture seule';
     addBtn.classList.add('btn-locked');
   } else {

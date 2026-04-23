@@ -66,8 +66,14 @@ body {
   background: var(--banner-bg);
   color: var(--banner-fg);
   border-bottom: 1px solid var(--border);
-  padding: 0.55rem 1.2rem;
+  padding: 0.45rem 0.5rem 0.45rem 1rem;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.banner-text {
+  flex: 1;
   text-align: center;
 }
 .banner code {
@@ -75,6 +81,21 @@ body {
   padding: 0 0.25rem;
   border-radius: 3px;
   font-size: 0.88em;
+}
+.banner-close {
+  background: transparent;
+  border: none;
+  color: var(--banner-fg);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 3px;
+}
+.banner-close:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .btn-primary, .btn-ghost {
@@ -572,31 +593,48 @@ dialog .actions {
 /* ── Responsive : mobile ───────────────────────────────────── */
 @media (max-width: 600px) {
   .topbar {
-    padding: 0.5rem 0.8rem;
-    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    gap: 0.3rem;
   }
-  .topbar-titles h1 { font-size: 1.1rem; }
-  .tagline {
-    font-size: 0.82rem;
-    /* on garde le sous-titre mais on le laisse passer à la ligne */
+  .topbar-titles h1 {
+    font-size: 1.05rem;
+    line-height: 1.15;
   }
-  .topbar-actions { width: 100%; justify-content: flex-start; }
-  .btn-primary, .btn-ghost { flex: 1; }
+  /* Le sous-titre prend de la place précieuse sur petit écran. */
+  .tagline { display: none; }
+  .topbar-actions {
+    width: 100%;
+    justify-content: stretch;
+    gap: 0.35rem;
+  }
+  .btn-primary, .btn-ghost {
+    flex: 1;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.92rem;
+  }
 
-  /* Le panneau devient un bottom sheet */
+  .banner {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.3rem 0.35rem 0.6rem;
+  }
+  .banner code { font-size: 0.85em; }
+
+  /* Le panneau devient un bottom sheet. Hauteur réduite pour laisser
+     une bonne partie de la carte visible derrière (sinon on a l'impression
+     d'avoir perdu la carte). */
   .panel {
     top: auto;
     bottom: 0;
     right: 0;
     left: 0;
     width: 100%;
-    height: 75vh;
-    max-height: 85vh;
+    height: 60vh;
+    max-height: 75vh;
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
     transform: translateY(100%);
-    padding: 1.2rem 1rem 3rem;
+    padding: 1.1rem 1rem 3rem;
   }
   .panel[aria-hidden="false"] {
     transform: translateY(0);
@@ -634,6 +672,11 @@ dialog .actions {
   /* Pousse un peu la carte vers le haut pour laisser la place au panneau */
   body.panel-open #map {
     filter: brightness(0.92);
+  }
+  /* Quand on consulte un contenu, on rend le bandeau invisible pour
+     rendre tout l'espace à la lecture. Il réapparaît à la fermeture. */
+  body.panel-open .banner {
+    display: none;
   }
 
   /* Dialogs : pleine largeur confortable sur mobile */
