@@ -50,6 +50,23 @@ des liens parent-enfant.
 
 ![Arbre généalogique 3 générations](docs/screenshots/04-full-tree-desktop.png)
 
+### Capture audio in-browser + upload fichier
+
+Pour un aîné au coin du feu comme pour un enquêteur avec micro pro, deux
+parcours cohabitent dans le formulaire d'ajout de contenu :
+
+- **🎙️ Enregistrer depuis le navigateur** (MediaRecorder API) : bouton
+  rouge « Commencer », timer en direct, arrêt, écoute de la prise,
+  « Refaire » si besoin. Zéro manipulation de fichier.
+- **📎 Importer un fichier** (ou plusieurs) : pour les enregistrements
+  faits au micro pro, les photos d'archives déjà numérisées, les vidéos…
+
+Selon le type de contenu choisi (photo / vidéo), l'attribut `capture` du
+file input passe sur `environment` — sur mobile, le picker ouvre
+directement l'appareil photo ou le caméscope.
+
+![Dialog avec le widget d'enregistrement audio](docs/screenshots/10-add-story-audio-recorder.png)
+
 ### Proposer une modification (style Wikipédia)
 
 N'importe qui peut proposer une correction sur un lieu ou une personne

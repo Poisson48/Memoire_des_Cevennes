@@ -68,6 +68,25 @@ async function runDesktop(browser) {
   await page.waitForTimeout(800);
   await shot(page, '04-full-tree-desktop');
 
+  // 4. Dialog « Ajouter un contenu » avec le widget d'enregistrement audio
+  await page.evaluate(() => { location.hash = '#/lieu/mas-de-la-coste'; });
+  await page.waitForTimeout(600);
+  const addBtnEl = await page.$('.btn-add-story');
+  if (addBtnEl) {
+    await addBtnEl.click();
+    await page.waitForTimeout(400);
+    // Type audio → affiche le recorder. Passe par evaluate car playwright
+    // ne sait pas bien interagir avec un <dialog> modal.
+    await page.evaluate(() => {
+      const sel = document.getElementById('story-type');
+      sel.value = 'audio';
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await page.waitForTimeout(200);
+    await shot(page, '10-add-story-audio-recorder');
+    await page.evaluate(() => document.getElementById('dlg-story').close('cancel'));
+  }
+
   await ctx.close();
 }
 

@@ -14,6 +14,10 @@
 
 * { box-sizing: border-box; }
 
+/* L'attribut `hidden` doit l'emporter sur display:flex/grid, sinon les
+   éléments masqués réapparaissent (MediaRecorder live/preview/error…). */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -380,6 +384,76 @@ main {
   font-size: 0.88rem;
   color: var(--banner-fg);
   border-radius: 0 4px 4px 0;
+}
+
+/* ── Enregistreur audio in-browser ─────────────────────────── */
+.recorder {
+  margin: 0.8rem 0 0.3rem;
+  padding: 0.8rem 0.9rem;
+  background: rgba(140, 90, 43, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.recorder-label {
+  font-weight: 600;
+  color: var(--accent-dark);
+  margin-bottom: 0.55rem;
+}
+.recorder-body > * + * { margin-top: 0.5rem; }
+.rec-live {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.rec-dot {
+  width: 14px;
+  height: 14px;
+  background: #cc3333;
+  border-radius: 50%;
+  animation: pulse 1s infinite alternate;
+}
+@keyframes pulse {
+  from { transform: scale(0.85); opacity: 0.7; }
+  to   { transform: scale(1.1);  opacity: 1;   }
+}
+.rec-timer {
+  font-family: Consolas, Menlo, monospace;
+  font-size: 1rem;
+  color: var(--fg);
+  flex: 1;
+}
+.rec-preview audio {
+  width: 100%;
+}
+.rec-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+}
+.rec-ready {
+  color: #4a7a4a;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.rec-error {
+  color: #a14040;
+  background: rgba(161, 64, 64, 0.08);
+  border: 1px solid rgba(161, 64, 64, 0.3);
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.88rem;
+}
+.recorder-or {
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0.6rem 0 -0.3rem;
+  font-size: 0.88rem;
 }
 
 /* ── Arbre généalogique ────────────────────────────────────── */
