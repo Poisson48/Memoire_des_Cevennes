@@ -24,8 +24,11 @@ const TARGETS = { places, people, stories };
 const EDITABLE_FIELDS = {
   places: ['primaryName', 'description', 'lat', 'lng', 'aliases'],
   people: ['primaryName', 'maidenName', 'gender', 'aliases', 'birth', 'death', 'bio'],
-  stories: ['title', 'body', 'memoryDate'],
-  // mentions et mediaFiles ont leur propre flow (post-tagging UI / upload)
+  // `mentions` est éditable via le post-tagging : la proposition envoie
+  // l'array mentions complet mis à jour. L'admin valide → le tableau est
+  // remplacé en bloc sur l'entité cible.
+  stories: ['title', 'body', 'memoryDate', 'mentions'],
+  // mediaFiles garde son propre flow (/api/stories/:id/media).
 };
 
 function str(v, maxLen = 10000) {

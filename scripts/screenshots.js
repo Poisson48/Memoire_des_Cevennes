@@ -87,6 +87,42 @@ async function runDesktop(browser) {
     await page.evaluate(() => document.getElementById('dlg-story').close('cancel'));
   }
 
+  // 5. Post-tagging : on simule une sélection de « Céleste » dans le récit
+  //    des châtaignes, puis on ouvre la dialog et on laisse la recherche
+  //    remonter les candidats.
+  await page.evaluate(() => { location.hash = '#/lieu/mas-de-la-coste'; });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => {
+    const body = document.querySelector('article.story[data-story-id="chataignes-maquis"] .body');
+    if (!body) return;
+    // Sélectionne "maquis" (pas encore tagué → démo du cas heureux).
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const i = node.textContent.indexOf('maquis');
+      if (i !== -1) {
+        const range = document.createRange();
+        range.setStart(node, i);
+        range.setEnd(node, i + 'maquis'.length);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        break;
+      }
+    }
+  });
+  await page.waitForTimeout(400);
+  await shot(page, '11-tagger-popover');
+
+  // Clique le bouton du popover → ouvre la dialog
+  const tagBtnEl = await page.$('#tag-btn:not([disabled])');
+  if (tagBtnEl) {
+    await tagBtnEl.click();
+    await page.waitForTimeout(600);
+    await shot(page, '12-tagger-dialog');
+    await page.evaluate(() => document.getElementById('dlg-tag').close('cancel'));
+  }
+
   await ctx.close();
 }
 
