@@ -32,12 +32,9 @@ let pendingTag = null;       // { storyId, start, end, text, bodyEl }
 let chosenEntity = null;     // { type, id, name } ou null
 
 // ── Détection de la sélection ─────────────────────────────────────────
+// En mode statique (preview), on montre aussi le popover — seule la
+// soumission finale affiche un message "aperçu, pas d'envoi".
 document.addEventListener('selectionchange', () => {
-  // En mode statique : pas d'écriture possible, on masque le widget.
-  if (state && state.mode === 'static') {
-    tagPopover.hidden = true;
-    return;
-  }
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed) {
     tagPopover.hidden = true;
@@ -178,6 +175,7 @@ formTag.addEventListener('submit', async (e) => {
   if (!pendingTag || !chosenEntity) return;
   const story = state.stories.find(s => s.id === pendingTag.storyId);
   if (!story) return;
+  if (typeof blockedByStaticMode === 'function' && blockedByStaticMode('le tag d\'une mention')) return;
 
   const newMention = {
     start: pendingTag.start,
