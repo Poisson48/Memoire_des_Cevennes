@@ -317,19 +317,18 @@ main {
   font-size: 0.95rem;
 }
 
-/* Actions de bas de récit (compléter / modifier) */
+/* Actions de récit — placées juste après l'entête pour rester visibles
+   sans scroller, y compris dans le bottom-sheet mobile. */
 .story-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
-  border-top: 1px dashed var(--border);
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.6rem;
 }
 .story-actions button {
-  font-size: 0.88rem;
-  padding: 0.35rem 0.7rem;
-  min-height: 36px;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  min-height: 34px;
 }
 
 /* ── Fieldset "contributor-id" ──────────────────────────────── */
@@ -866,17 +865,18 @@ dialog .actions {
   }
   .banner code { font-size: 0.85em; }
 
-  /* Le panneau devient un bottom sheet. Hauteur réduite pour laisser
-     une bonne partie de la carte visible derrière (sinon on a l'impression
-     d'avoir perdu la carte). */
+  /* Le panneau devient un bottom sheet. 72vh : assez haut pour que les
+     actions d'un récit (Compléter / Modifier) soient visibles sans
+     scroller, assez court pour qu'on voie encore une bonne part de la
+     carte en arrière-plan. */
   .panel {
     top: auto;
     bottom: 0;
     right: 0;
     left: 0;
     width: 100%;
-    height: 60vh;
-    max-height: 75vh;
+    height: 72vh;
+    max-height: 85vh;
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;

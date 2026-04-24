@@ -8,11 +8,10 @@
 //     via le hash, donc boutons ← → du navigateur marchent nativement).
 
 // ─── Config ─────────────────────────────────────────────────────────────
-// Le projet démarre focalisé sur Saint-Roman-de-Codières et ses alentours
-// (vallée de la Crenze, versant sud de l'Aigoual). Une ouverture plus large
-// sur l'ensemble des Cévennes viendra plus tard.
-const DEFAULT_CENTER = [43.9881, 3.7439];   // Saint-Roman-de-Codières
-const DEFAULT_ZOOM = 13;
+// Le projet démarre focalisé sur Saint-Roman-de-Codières et ses alentours.
+// Coordonnées du clocher : 43° 59′ 16″ N, 3° 43′ 25″ E.
+const DEFAULT_CENTER = [43.9878, 3.7236];   // Saint-Roman-de-Codières
+const DEFAULT_ZOOM = 14;
 
 const state = {
   mode: 'live',           // 'live' (API) ou 'static' (GitHub Pages)
@@ -449,10 +448,13 @@ function renderStoryCard(s, { full = false } = {}) {
     .filter(c => c.status === 'approved')
     .map(renderCompletion).join('');
 
+  // Actions compactes placées juste après l'entête, pour qu'elles soient
+  // visibles sans scroller — surtout sur mobile où le panel est un bottom
+  // sheet court et où le corps du récit peut être long.
   const actions = `
     <div class="story-actions">
-      <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}">➕ Compléter cette histoire</button>
-      <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}">✏️ Proposer une modification</button>
+      <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}" title="Ajouter un souvenir ou une précision à cette histoire">➕ Compléter</button>
+      <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}" title="Proposer une correction du texte">✏️ Modifier</button>
     </div>
   `;
 
@@ -464,10 +466,10 @@ function renderStoryCard(s, { full = false } = {}) {
       </h3>
       ${contribBlock}
       ${dateBits ? `<div class="meta">${dateBits}</div>` : ''}
+      ${actions}
       ${s.body ? `<div class="body">${renderBodyWithMentions(s.body, s.mentions)}</div>` : ''}
       ${media}
       ${completions}
-      ${actions}
     </article>
   `;
 }
