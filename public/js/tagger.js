@@ -190,7 +190,7 @@ formTag.addEventListener('submit', async (e) => {
   const payload = {
     changes: { mentions: updated },
     note: `Tag « ${pendingTag.text} » → ${chosenEntity.type === 'person' ? 'personne' : 'lieu'} « ${chosenEntity.name} »`,
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
+    submittedBy: typeof extractSubmittedBy === 'function' ? extractSubmittedBy(fd) : undefined,
   };
 
   try {

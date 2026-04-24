@@ -293,6 +293,75 @@ main {
   line-height: 1.8;
 }
 
+/* ── Complétions attribuées ─────────────────────────────────── */
+.completion {
+  margin: 0.7rem 0 0.3rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(122, 58, 106, 0.05);
+  border-left: 3px solid #7a3a6a;
+  border-radius: 0 4px 4px 0;
+}
+.completion-head {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.completion-head strong { color: var(--fg); }
+.completion-head .rel {
+  font-style: italic;
+}
+.completion-date { color: var(--muted); }
+.completion-body {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+/* Actions de bas de récit (compléter / modifier) */
+.story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+.story-actions button {
+  font-size: 0.88rem;
+  padding: 0.35rem 0.7rem;
+  min-height: 36px;
+}
+
+/* ── Fieldset "contributor-id" ──────────────────────────────── */
+fieldset.contributor-id {
+  margin: 0.9rem 0 0.3rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.015);
+}
+fieldset.contributor-id legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+}
+fieldset.contributor-id legend small {
+  font-weight: normal;
+  color: var(--muted);
+  font-style: italic;
+}
+fieldset.contributor-id label {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
+}
+fieldset.contributor-id label em {
+  font-weight: normal;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
 /* ── Entête d'entité (lieu / personne / récit) ─────────────── */
 .entity-header {
   margin: 0 0 0.6rem;

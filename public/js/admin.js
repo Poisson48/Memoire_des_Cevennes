@@ -88,10 +88,11 @@ async function refresh() {
 function renderCounts(counts) {
   if (!counts) { countsEl.innerHTML = ''; return; }
   const rows = [
-    ['Lieux',       counts.places],
-    ['Personnes',   counts.people],
-    ['Récits',      counts.stories],
+    ['Lieux',         counts.places],
+    ['Personnes',     counts.people],
+    ['Récits',        counts.stories],
     ['Modifications', counts.edits],
+    ['Complétions',   counts.completions],
   ];
   countsEl.innerHTML = rows.map(([label, c]) => c ? `
     <div class="count-card">
@@ -104,6 +105,7 @@ function renderCounts(counts) {
 function renderQueue(items) {
   const filtered = items.filter(i => {
     if (currentFilter === 'all') return true;
+    if (currentFilter === 'edit') return i.kind === 'edit' || i.kind === 'completion';
     return i.kind === currentFilter;
   });
   if (filtered.length === 0) {
@@ -120,7 +122,33 @@ function renderQueue(items) {
 
 function renderItem(qi) {
   if (qi.kind === 'edit') return renderEdit(qi);
+  if (qi.kind === 'completion') return renderCompletion(qi);
   return renderCreate(qi);
+}
+
+function renderCompletion(qi) {
+  const comp = qi.item;
+  const who = comp.submittedBy || {};
+  const whoLine = [
+    who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>',
+    who.writtenFrom ? `depuis ${escapeHtml(who.writtenFrom)}` : null,
+    who.relationship ? `<em>(${escapeHtml(who.relationship)})</em>` : null,
+  ].filter(Boolean).join(' · ');
+  const date = comp.submittedAt ? new Date(comp.submittedAt).toLocaleString('fr-FR') : '';
+  return `
+    <article class="queue-item kind-edit" data-kind="completion" data-story-id="${escapeAttr(qi.storyId)}" data-id="${escapeAttr(comp.id)}">
+      <div class="item-head">
+        <span class="kind-badge edit">Complétion</span>
+        <span class="kind-badge type">Récit</span>
+        <h3>sur « ${escapeHtml(qi.storyTitle || qi.storyId)} »</h3>
+        <span class="item-meta">${whoLine} · ${date}</span>
+      </div>
+      <div class="item-preview">
+        <div>${escapeHtml(comp.body)}</div>
+      </div>
+      ${renderActions()}
+    </article>
+  `;
 }
 
 function renderCreate(qi) {
@@ -234,9 +262,14 @@ async function handleAction(btn) {
     if (reason === null) return;
   }
 
-  const url = kind === 'edit'
-    ? `/api/admin/edits/${encodeURIComponent(id)}/${action}`
-    : `/api/admin/${type}/${encodeURIComponent(id)}/${action}`;
+  let url;
+  if (kind === 'edit') {
+    url = `/api/admin/edits/${encodeURIComponent(id)}/${action}`;
+  } else if (kind === 'completion') {
+    url = `/api/admin/stories/${encodeURIComponent(card.dataset.storyId)}/completions/${encodeURIComponent(id)}/${action}`;
+  } else {
+    url = `/api/admin/${type}/${encodeURIComponent(id)}/${action}`;
+  }
 
   try {
     await fetchJson(url, {

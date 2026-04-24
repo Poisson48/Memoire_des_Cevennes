@@ -57,4 +57,36 @@ router.post('/edits/:id/reject', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Modération des complétions attachées à un récit.
+const stories = require('../stories');
+
+router.post('/stories/:storyId/completions/:completionId/approve', async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const out = await stories.patchCompletion(req.params.storyId, req.params.completionId, () => ({
+      status: 'approved',
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: reviewer,
+      rejectionReason: undefined,
+    }));
+    if (!out) return res.status(404).json({ error: 'Complétion introuvable' });
+    res.json({ completion: out });
+  } catch (err) { next(err); }
+});
+
+router.post('/stories/:storyId/completions/:completionId/reject', async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const reason = (req.body && req.body.reason) || '';
+    const out = await stories.patchCompletion(req.params.storyId, req.params.completionId, () => ({
+      status: 'rejected',
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: reviewer,
+      rejectionReason: String(reason).slice(0, 2000),
+    }));
+    if (!out) return res.status(404).json({ error: 'Complétion introuvable' });
+    res.json({ completion: out });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

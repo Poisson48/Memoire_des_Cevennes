@@ -193,8 +193,19 @@ function openPanel(html) {
     btn.addEventListener('click', () => {
       const type = btn.dataset.entityType;
       const id = btn.dataset.entityId;
-      const entity = type === 'places' ? state.places.get(id) : state.people.get(id);
+      const entity =
+        type === 'places' ? state.places.get(id)
+        : type === 'people' ? state.people.get(id)
+        : type === 'stories' ? state.stories.find(s => s.id === id)
+        : null;
       if (entity) openEditDialog(type, entity);
+    });
+  });
+  panelContent.querySelectorAll('.btn-complete-story').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.storyId;
+      const story = state.stories.find(s => s.id === id);
+      if (story) openCompleteDialog(story);
     });
   });
 }
@@ -433,6 +444,18 @@ function renderStoryCard(s, { full = false } = {}) {
     return `<p><a href="${f.url}" target="_blank" rel="noopener">Ouvrir le document</a></p>`;
   }).join('');
 
+  // Complétions approuvées — chaque ajout attribué à son auteur·rice.
+  const completions = (s.completions || [])
+    .filter(c => c.status === 'approved')
+    .map(renderCompletion).join('');
+
+  const actions = `
+    <div class="story-actions">
+      <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}">➕ Compléter cette histoire</button>
+      <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}">✏️ Proposer une modification</button>
+    </div>
+  `;
+
   return `
     <article class="story" data-story-id="${escapeAttr(s.id)}">
       <h3>
@@ -443,7 +466,25 @@ function renderStoryCard(s, { full = false } = {}) {
       ${dateBits ? `<div class="meta">${dateBits}</div>` : ''}
       ${s.body ? `<div class="body">${renderBodyWithMentions(s.body, s.mentions)}</div>` : ''}
       ${media}
+      ${completions}
+      ${actions}
     </article>
+  `;
+}
+
+function renderCompletion(c) {
+  const who = c.submittedBy || {};
+  const byline = [
+    who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>',
+    who.writtenFrom ? `depuis ${escapeHtml(who.writtenFrom)}` : null,
+    who.relationship ? `<span class="rel">${escapeHtml(who.relationship)}</span>` : null,
+  ].filter(Boolean).join(' · ');
+  const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('fr-FR') : '';
+  return `
+    <div class="completion">
+      <div class="completion-head">✍️ ${byline}${date ? ` · <span class="completion-date">${date}</span>` : ''}</div>
+      <div class="completion-body">${escapeHtml(c.body)}</div>
+    </div>
   `;
 }
 
