@@ -16,6 +16,7 @@ const DEFAULT_ZOOM = 13;
 
 const state = {
   mode: 'live',           // 'live' (API) ou 'static' (GitHub Pages)
+  addMode: false,         // true quand l'utilisateur prépare la pose d'un lieu
   places: new Map(),      // id -> place
   people: new Map(),      // id -> person
   stories: [],            // liste ordonnée
@@ -99,7 +100,19 @@ function refreshMarkers() {
   for (const p of state.places.values()) {
     const marker = L.marker([p.lat, p.lng], { title: p.primaryName });
     marker.bindTooltip(p.primaryName);
-    marker.on('click', () => navigateTo('lieu', p.id));
+    marker.on('click', (e) => {
+      // En mode ajout d'un lieu, on laisse le clic « traverser » le
+      // marqueur — l'utilisateur pose sa nouvelle épingle même s'il a
+      // tapé tout près d'un marqueur existant. Sinon, Leaflet stoppe
+      // la propagation et l'événement 'click' de la carte ne se déclenche
+      // jamais (bug observé sur mobile près de Saint-Roman).
+      if (state.addMode) {
+        map.fire('click', { latlng: e.latlng || marker.getLatLng() });
+        L.DomEvent.stop(e);
+        return;
+      }
+      navigateTo('lieu', p.id);
+    });
     marker.addTo(map);
     state.markers.set(p.id, marker);
   }
