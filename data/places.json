@@ -5,9 +5,9 @@
     {
       "id": "saint-roman-de-codieres",
       "primaryName": "Saint-Roman-de-Codières",
-      "lat": 43.9878,
-      "lng": 3.7236,
-      "description": "Village du piémont cévenol, en Gard, au pied du col du Mercou et du massif de la Fage. Point de départ du projet Mémoire des Cévennes : on commence ici, on s'élargira aux vallées voisines ensuite.",
+      "lat": 44.0027,
+      "lng": 3.7786,
+      "description": "Village du piémont cévenol, en Gard, dans la vallée de la Crenze entre Sumène et Le Vigan. Point de départ du projet Mémoire des Cévennes : on commence ici, on s'élargira aux vallées voisines ensuite.",
       "aliases": [
         { "name": "Sant Roman de Codièras", "context": "occitan" },
         { "name": "Saint-Roman",            "context": "usuel" },
@@ -20,14 +20,12 @@
       "reviewedBy": "bootstrap"
     },
     {
-      "id": "col-du-mercou",
-      "primaryName": "Col du Mercou",
-      "lat": 43.9955,
-      "lng": 3.7180,
-      "description": "Col sur la crête au nord du village, sur l'ancien chemin muletier qui reliait Saint-Roman au bassin du Vigan. Point de passage historique pour les troupeaux de transhumance.",
-      "aliases": [
-        { "name": "Lo Mercó", "context": "occitan" }
-      ],
+      "id": "les-combes",
+      "primaryName": "Les Combes",
+      "lat": 44.0040,
+      "lng": 3.7750,
+      "description": "Hameau contigu à Saint-Roman-de-Codières, sur la même rive de la Crenze. Point de repère historique : la place de la mairie y est située.",
+      "aliases": [],
       "status": "approved",
       "createdAt": "2026-04-24T00:00:00.000Z",
       "submittedAt": "2026-04-24T00:00:00.000Z",
@@ -37,9 +35,9 @@
     {
       "id": "mas-de-la-coste",
       "primaryName": "Mas de la Coste",
-      "lat": 43.9935,
-      "lng": 3.7170,
-      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, un peu au-dessus du village, près du col du Mercou. Aliases multiples dans le temps et selon les personnes.",
+      "lat": 44.0100,
+      "lng": 3.7750,
+      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, sur la crête au-dessus de Saint-Roman-de-Codières. Aliases multiples dans le temps et selon les personnes.",
       "aliases": [
         {
           "name": "La Ferme Vieille",

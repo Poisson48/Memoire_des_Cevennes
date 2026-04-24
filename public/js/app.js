@@ -9,8 +9,8 @@
 
 // ─── Config ─────────────────────────────────────────────────────────────
 // Le projet démarre focalisé sur Saint-Roman-de-Codières et ses alentours.
-// Coordonnées du clocher : 43° 59′ 16″ N, 3° 43′ 25″ E.
-const DEFAULT_CENTER = [43.9878, 3.7236];   // Saint-Roman-de-Codières
+// Coordonnées de la Place de la Mairie (Nominatim/OSM 2026-04).
+const DEFAULT_CENTER = [44.0027, 3.7786];   // Saint-Roman-de-Codières
 const DEFAULT_ZOOM = 14;
 
 const state = {
