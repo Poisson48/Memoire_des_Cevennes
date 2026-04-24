@@ -112,6 +112,56 @@ function resetRecorderIfAvailable() {
   if (typeof resetRecorder === 'function') resetRecorder();
 }
 
+// ── UI de compression ────────────────────────────────────────────────
+const compressStatus = document.getElementById('compress-status');
+const compressText   = document.getElementById('compress-text');
+const compressBar    = document.getElementById('compress-bar-fill');
+
+function showCompressUI(label) {
+  compressText.textContent = label;
+  compressBar.style.width = '0%';
+  compressStatus.hidden = false;
+}
+function updateCompressUI(percent, status) {
+  if (typeof percent === 'number') {
+    compressBar.style.width = `${Math.round(percent * 100)}%`;
+  }
+  if (status) compressText.textContent = status;
+}
+function hideCompressUI() {
+  compressStatus.hidden = true;
+  compressBar.style.width = '0%';
+}
+
+async function runCompression(file, label) {
+  if (!window.Compress) {
+    return { blob: file, filename: file.name };
+  }
+  showCompressUI(label);
+  try {
+    const result = await window.Compress.compressIfNeeded(file, {
+      onProgress: (p) => updateCompressUI(p),
+      onStatus: (s) => updateCompressUI(null, `${label} — ${s}`),
+    });
+    // Petit récap visuel avant de passer au suivant
+    if (!result.skipped) {
+      const ratio = Math.round((1 - result.compressed / result.original) * 100);
+      const from = Math.round(result.original / 1024);
+      const to   = Math.round(result.compressed / 1024);
+      updateCompressUI(1, `${label} — compressé : ${from} Ko → ${to} Ko (-${ratio}%)`);
+      await sleep(400);
+    }
+    return result;
+  } catch (err) {
+    console.warn('compression error:', err);
+    updateCompressUI(null, `${label} — compression ignorée (${err.message}), envoi du fichier original`);
+    await sleep(600);
+    return { blob: file, filename: file.name };
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 // ── Capture caméra / micro selon le type ───────────────────────────────
 function updateStoryMediaVisibility() {
   const t = storyType.value;
@@ -156,19 +206,26 @@ formStory.addEventListener('submit', async (e) => {
     if (!res.ok) throw new Error(data.error || res.statusText);
 
     // Fichiers sélectionnés (plusieurs possibles) + enregistrement in-browser.
+    // On passe chaque fichier dans le compresseur client avant upload.
     const mediaForm = new FormData();
     let added = 0;
-    for (const file of storyMediaInput.files || []) {
-      if (file && file.size > 0) {
-        mediaForm.append('media', file);
-        added++;
-      }
+    const filesToProcess = [...(storyMediaInput.files || [])];
+    for (let idx = 0; idx < filesToProcess.length; idx++) {
+      const file = filesToProcess[idx];
+      if (!file || file.size <= 0) continue;
+      const label = filesToProcess.length > 1
+        ? `Fichier ${idx + 1}/${filesToProcess.length} — ${file.name}`
+        : `${file.name}`;
+      const result = await runCompression(file, label);
+      mediaForm.append('media', result.blob, result.filename || file.name);
+      added++;
     }
     if (recordedBlob) {
       const ext = (recordedBlob.type.includes('webm') ? 'webm' : 'ogg');
       mediaForm.append('media', recordedBlob, `enregistrement-${Date.now()}.${ext}`);
       added++;
     }
+    hideCompressUI();
     if (added > 0) {
       const mres = await fetch(`/api/stories/${encodeURIComponent(data.story.id)}/media`, {
         method: 'POST',
