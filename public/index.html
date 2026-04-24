@@ -17,7 +17,10 @@
     </div>
     <div class="topbar-actions">
       <button id="btn-add-place" class="btn-primary" type="button">+ Ajouter un lieu</button>
-      <span id="add-hint" class="hint" hidden>Touche la carte pour placer le nouveau lieu</span>
+      <span id="add-hint" class="hint" hidden>
+        Touche la carte pour placer le nouveau lieu,
+        ou <button type="button" id="btn-locate-me" class="btn-link">📍 utilise ma position</button>.
+      </span>
       <a href="admin.html" class="btn-ghost" title="Page d'administration">🛡️ Admin</a>
     </div>
   </header>
@@ -32,6 +35,19 @@
   <main>
     <div id="map" role="application" aria-label="Carte des Cévennes"></div>
 
+    <!-- Recherche d'adresse (Nominatim/OSM). Surimpression sur la carte. -->
+    <div id="map-search" class="map-search" role="search">
+      <div class="map-search-row">
+        <input type="search" id="map-search-input"
+               placeholder="Chercher une adresse, un village, un lieu-dit…"
+               autocomplete="off"
+               aria-label="Chercher une adresse sur la carte" />
+        <button type="button" id="map-search-clear" class="map-search-clear"
+                aria-label="Effacer la recherche" hidden>×</button>
+      </div>
+      <ul id="map-search-results" class="map-search-results" role="listbox" hidden></ul>
+    </div>
+
     <aside id="panel" class="panel" aria-hidden="true">
       <button class="panel-close" id="panel-close" aria-label="Fermer le panneau">
         <span aria-hidden="true">×</span>
@@ -44,7 +60,12 @@
   <dialog id="dlg-place">
     <form method="dialog" id="form-place">
       <h2>Nouveau lieu</h2>
-      <p class="coords" id="place-coords"></p>
+      <div class="place-position">
+        <p class="coords" id="place-coords"></p>
+        <button type="button" id="btn-locate-me-dialog" class="btn-ghost btn-small" formnovalidate>
+          📍 Utiliser ma position
+        </button>
+      </div>
       <label>Nom du lieu
         <input type="text" name="title" required maxlength="120" />
       </label>
@@ -310,6 +331,7 @@
   <script src="js/compress.js"></script>
   <script src="js/app.js"></script>
   <script src="js/forms.js"></script>
+  <script src="js/geo.js"></script>
   <script src="js/tagger.js"></script>
   <script src="js/autocomplete.js"></script>
 </body>
