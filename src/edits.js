@@ -18,6 +18,29 @@ const stories = require('./stories');
 
 const TARGETS = { places, people, stories };
 
+// Résout une cible d'édition (entité top-level OU complétion) en objet
+// manipulable { read, patch } pour mutualiser propose/approve/diff.
+function resolveTarget(targetType, targetId) {
+  if (TARGETS[targetType]) {
+    return {
+      read: () => TARGETS[targetType].get(targetId),
+      patch: (fn) => TARGETS[targetType].patch(targetId, fn),
+    };
+  }
+  if (targetType === 'completion') {
+    const [sid, cid] = String(targetId).split(':');
+    if (!sid || !cid) throw new Error(`targetId de complétion invalide : ${targetId}`);
+    return {
+      read: () => {
+        const story = stories.get(sid);
+        return story ? (story.completions || []).find(c => c.id === cid) || null : null;
+      },
+      patch: (fn) => stories.patchCompletion(sid, cid, fn),
+    };
+  }
+  throw new Error(`type de cible inconnu : ${targetType}`);
+}
+
 // Champs qu'on autorise à éditer par type. Les autres sont ignorés.
 // Exclut volontairement : id, status, submittedBy/At, reviewedBy/At,
 // createdAt, parents/spouses (touché via UI dédiée plus tard).
@@ -28,6 +51,10 @@ const EDITABLE_FIELDS = {
   // l'array mentions complet mis à jour. L'admin valide → le tableau est
   // remplacé en bloc sur l'entité cible.
   stories: ['title', 'body', 'memoryDate', 'mentions'],
+  // Sous-ressource : une complétion attachée à un récit. targetId a la
+  // forme composite "storyId:completionId". Seul le corps est éditable
+  // (le signataire reste celui qui l'a écrit).
+  completion: ['body'],
   // mediaFiles garde son propre flow (/api/stories/:id/media).
 };
 
@@ -69,8 +96,8 @@ function get(id) {
 }
 
 async function propose({ targetType, targetId, changes, note, submittedBy }) {
-  if (!TARGETS[targetType]) throw new Error(`type inconnu : ${targetType}`);
-  const target = TARGETS[targetType].get(targetId);
+  const handle = resolveTarget(targetType, targetId);
+  const target = handle.read();
   if (!target) throw new Error(`cible introuvable : ${targetType}/${targetId}`);
   const clean = sanitizeChanges(targetType, changes);
 
@@ -93,7 +120,10 @@ async function propose({ targetType, targetId, changes, note, submittedBy }) {
 // Calcule un diff : pour chaque champ des `changes`, donne la valeur actuelle
 // et la valeur proposée. Utile pour l'UI admin.
 function diff(edit) {
-  const target = TARGETS[edit.targetType]?.get(edit.targetId);
+  let handle;
+  try { handle = resolveTarget(edit.targetType, edit.targetId); }
+  catch { return null; }
+  const target = handle.read();
   if (!target) return null;
   const rows = [];
   for (const [field, next] of Object.entries(edit.changes || {})) {
@@ -110,11 +140,10 @@ async function approve(id, { reviewer = 'admin' } = {}) {
   const edit = get(id);
   if (!edit) throw new Error('édition introuvable');
   if (edit.status !== 'pending') throw new Error(`édition déjà ${edit.status}`);
-  const target = TARGETS[edit.targetType];
-  if (!target) throw new Error(`type inconnu : ${edit.targetType}`);
+  const handle = resolveTarget(edit.targetType, edit.targetId);
 
-  // Applique le delta sur l'entité cible
-  await target.patch(edit.targetId, () => ({ ...edit.changes }));
+  // Applique le delta sur la cible
+  await handle.patch(() => ({ ...edit.changes }));
 
   // Marque l'édit comme approuvé
   return storage.mutate('edits', (edits) => {

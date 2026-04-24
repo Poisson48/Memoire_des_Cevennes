@@ -1,6 +1,7 @@
 // Routes /api/places/* (lecture publique, création → pending).
 const express = require('express');
 const places = require('../places');
+const { resolveContributor } = require('../contributor');
 
 const router = express.Router();
 
@@ -20,7 +21,12 @@ router.get('/:id', (req, res) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const place = await places.create(req.body || {});
+    const payload = { ...(req.body || {}) };
+    payload.submittedBy = await resolveContributor({
+      submittedBy: req.body?.submittedBy,
+      newPerson: req.body?.newPerson,
+    });
+    const place = await places.create(payload);
     res.status(201).json({ place, message: 'Ajout reçu — en attente de validation.' });
   } catch (err) { next(err); }
 });

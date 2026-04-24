@@ -71,6 +71,11 @@ function normSubmittedBy(sb) {
   if (sb.writtenFrom)  out.writtenFrom  = str(sb.writtenFrom, 120);
   if (sb.relationship) out.relationship = str(sb.relationship, 200);
   if (sb.email)        out.email        = str(sb.email, 160);
+  // Lien vers une Personne du graphe — renseigné quand le contributeur
+  // pioche son nom dans l'autocomplétion. Permet d'afficher le nom comme
+  // lien cliquable partout où la contribution est citée (récits, fiches,
+  // file admin…).
+  if (sb.personId)     out.personId     = str(sb.personId, 80);
   return Object.keys(out).length ? out : null;
 }
 

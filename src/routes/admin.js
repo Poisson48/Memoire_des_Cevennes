@@ -1,8 +1,13 @@
 // Routes d'administration : file de modération, approve/reject.
 // Toutes sous /api/admin/*, protégées par middleware requireAdmin.
+//
+// Ordre important : les routes spécifiques (/edits/*, /stories/*/completions/*)
+// doivent être déclarées AVANT la wildcard /:type/:id/*, sinon Express
+// matche la wildcard en premier et on se retrouve avec targetType='edits'.
 const express = require('express');
 const moderation = require('../moderation');
 const edits = require('../edits');
+const stories = require('../stories');
 const { requireAdmin } = require('../middleware');
 
 const router = express.Router();
@@ -13,27 +18,7 @@ router.get('/queue', (req, res) => {
   res.json({ queue: moderation.queue({ type }), counts: moderation.counts() });
 });
 
-// Modération des créations (Place / Person / Story pending → approved).
-router.post('/:type/:id/approve', async (req, res, next) => {
-  try {
-    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
-    const updated = await moderation.approve(req.params.type, req.params.id, { reviewer });
-    if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
-    res.json({ item: updated });
-  } catch (err) { next(err); }
-});
-
-router.post('/:type/:id/reject', async (req, res, next) => {
-  try {
-    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
-    const reason = (req.body && req.body.reason) || '';
-    const updated = await moderation.reject(req.params.type, req.params.id, { reviewer, reason });
-    if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
-    res.json({ item: updated });
-  } catch (err) { next(err); }
-});
-
-// Modération des propositions de modification.
+// ─── Propositions de modification ─────────────────────────────────────
 router.get('/edits/:id', (req, res) => {
   const edit = edits.get(req.params.id);
   if (!edit) return res.status(404).json({ error: 'introuvable' });
@@ -57,9 +42,7 @@ router.post('/edits/:id/reject', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// Modération des complétions attachées à un récit.
-const stories = require('../stories');
-
+// ─── Complétions (sous-records d'un récit) ────────────────────────────
 router.post('/stories/:storyId/completions/:completionId/approve', async (req, res, next) => {
   try {
     const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
@@ -86,6 +69,28 @@ router.post('/stories/:storyId/completions/:completionId/reject', async (req, re
     }));
     if (!out) return res.status(404).json({ error: 'Complétion introuvable' });
     res.json({ completion: out });
+  } catch (err) { next(err); }
+});
+
+// ─── Créations (Place / Person / Story pending → approved) ────────────
+// Wildcard en dernier — contrainte via regex pour que 'edits' / 'stories'
+// avec un sous-path ne tombent PAS ici par erreur.
+router.post('/:type(places|people|stories)/:id/approve', async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const updated = await moderation.approve(req.params.type, req.params.id, { reviewer });
+    if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
+    res.json({ item: updated });
+  } catch (err) { next(err); }
+});
+
+router.post('/:type(places|people|stories)/:id/reject', async (req, res, next) => {
+  try {
+    const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
+    const reason = (req.body && req.body.reason) || '';
+    const updated = await moderation.reject(req.params.type, req.params.id, { reviewer, reason });
+    if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
+    res.json({ item: updated });
   } catch (err) { next(err); }
 });
 

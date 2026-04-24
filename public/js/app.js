@@ -207,6 +207,15 @@ function openPanel(html) {
       if (story) openCompleteDialog(story);
     });
   });
+  panelContent.querySelectorAll('.btn-edit-completion').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sid = btn.dataset.storyId;
+      const cid = btn.dataset.completionId;
+      const story = state.stories.find(s => s.id === sid);
+      const comp = (story?.completions || []).find(c => c.id === cid);
+      if (story && comp) openEditCompletionDialog(story, comp);
+    });
+  });
 }
 
 function closePanel() {
@@ -446,7 +455,7 @@ function renderStoryCard(s, { full = false } = {}) {
   // Complétions approuvées — chaque ajout attribué à son auteur·rice.
   const completions = (s.completions || [])
     .filter(c => c.status === 'approved')
-    .map(renderCompletion).join('');
+    .map(c => renderCompletion(c, s.id)).join('');
 
   // Actions compactes placées juste après l'entête, pour qu'elles soient
   // visibles sans scroller — surtout sur mobile où le panel est un bottom
@@ -474,17 +483,27 @@ function renderStoryCard(s, { full = false } = {}) {
   `;
 }
 
-function renderCompletion(c) {
+function renderCompletion(c, storyId) {
   const who = c.submittedBy || {};
+  // Si submittedBy.personId est renseigné, on lie le nom à la fiche de la
+  // Personne correspondante — le graphe reste cohérent.
+  const nameHtml = who.personId
+    ? inlineEntity('personne', who.personId)
+    : (who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>');
   const byline = [
-    who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>',
+    nameHtml,
     who.writtenFrom ? `depuis ${escapeHtml(who.writtenFrom)}` : null,
     who.relationship ? `<span class="rel">${escapeHtml(who.relationship)}</span>` : null,
   ].filter(Boolean).join(' · ');
   const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('fr-FR') : '';
   return `
-    <div class="completion">
-      <div class="completion-head">✍️ ${byline}${date ? ` · <span class="completion-date">${date}</span>` : ''}</div>
+    <div class="completion" data-completion-id="${escapeAttr(c.id)}">
+      <div class="completion-head">
+        <span class="completion-byline">✍️ ${byline}${date ? ` · <span class="completion-date">${date}</span>` : ''}</span>
+        <button type="button" class="btn-ghost btn-edit-completion btn-inline"
+                data-story-id="${escapeAttr(storyId || '')}" data-completion-id="${escapeAttr(c.id)}"
+                title="Proposer une modification de ce texte">✏️</button>
+      </div>
       <div class="completion-body">${escapeHtml(c.body)}</div>
     </div>
   `;
