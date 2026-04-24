@@ -50,6 +50,28 @@ des liens parent-enfant.
 
 ![Arbre généalogique 3 générations](docs/screenshots/04-full-tree-desktop.png)
 
+### Compression client avant upload
+
+Les témoignages sortent souvent des téléphones en très gros (une vidéo 4K
+de 2 min = 100 Mo). Pour ne pas saturer le serveur ni la bande passante
+des contributeurs, **la compression se fait côté client** avant l'envoi :
+
+- **Images** → WebP via Canvas (qualité 0.82, redimensionnement 2560 px
+  max côté long). Test réel : 20 Mo → 2,5 Mo (-87 %). Pas de lib.
+- **Audio** → Opus 48 kbps dans WebM via `ffmpeg.wasm` (profil `voip`,
+  optimisé pour la voix humaine). ~1 Mo pour 3 minutes d'enregistrement.
+- **Vidéo** → H.265 (libx265) si le build ffmpeg le permet, sinon
+  fallback H.264 (libx264), redescendu à 720p max, CRF 28, preset
+  ultrafast, MP4 avec faststart.
+
+`ffmpeg.wasm` est **chargé à la demande** (~25 Mo, une seule fois par
+session) — uniquement quand on rencontre un audio ou une vidéo, pour ne
+pas alourdir le premier chargement de la carte.
+
+Si la compression échoue (navigateur trop ancien, pas de connexion vers
+le CDN…), on uploade le fichier original en silence — aucune perte de
+fonctionnalité.
+
 ### Capture audio in-browser + upload fichier
 
 Pour un aîné au coin du feu comme pour un enquêteur avec micro pro, deux

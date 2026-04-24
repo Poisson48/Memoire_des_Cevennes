@@ -135,6 +135,10 @@
       <label id="story-media-label">Fichier à joindre (photo, audio, vidéo, PDF — plusieurs possibles)
         <input type="file" name="media" id="story-media-input" multiple accept="image/*,audio/*,video/*,application/pdf" />
       </label>
+      <div id="compress-status" class="compress-status" hidden>
+        <div class="compress-label"><span id="compress-text">Compression…</span></div>
+        <div class="compress-bar"><div id="compress-bar-fill"></div></div>
+      </div>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
         avant d'apparaître sur la carte publique.
@@ -183,6 +187,7 @@
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
   <script src="js/tree.js"></script>
+  <script src="js/compress.js"></script>
   <script src="js/app.js"></script>
   <script src="js/forms.js"></script>
   <script src="js/tagger.js"></script>

@@ -386,6 +386,33 @@ main {
   border-radius: 0 4px 4px 0;
 }
 
+/* ── UI de compression ─────────────────────────────────────── */
+.compress-status {
+  margin: 0.7rem 0;
+  padding: 0.6rem 0.8rem;
+  background: rgba(140, 90, 43, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.compress-label {
+  font-size: 0.9rem;
+  color: var(--accent-dark);
+  margin-bottom: 0.35rem;
+}
+.compress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.compress-bar #compress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
 /* ── Post-tagging des mentions ─────────────────────────────── */
 .tag-popover {
   position: absolute;
