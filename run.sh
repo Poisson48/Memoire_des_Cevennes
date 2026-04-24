@@ -41,6 +41,20 @@ else
   say "skip git pull (--no-pull)"
 fi
 
+# ── 1bis. charge .env s'il existe ─────────────────────────────────────────────
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+  say ".env chargé"
+fi
+
+if [ -z "${JWT_SECRET:-}" ]; then
+  warn "JWT_SECRET non défini — l'authentification membres sera désactivée."
+  warn "Ajoute-le dans .env (voir .env.example)."
+fi
+
 # ── 2. npm install si package.json a bougé ────────────────────────────────────
 if [ -f package.json ]; then
   if [ ! -d node_modules ] || [ package.json -nt node_modules/.package-lock.json ] 2>/dev/null; then
