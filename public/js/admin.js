@@ -13,12 +13,23 @@ const queueEl = document.getElementById('queue');
 const countsEl = document.getElementById('admin-counts');
 
 let currentFilter = 'all';
+let currentTab = 'queue';
+const queueSection    = document.getElementById('queue');
+const membersSection  = document.getElementById('members');
+const activitySection = document.getElementById('activity');
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    renderQueue(lastQueue);
+    currentTab = btn.dataset.tab || 'queue';
+    if (btn.dataset.filter) currentFilter = btn.dataset.filter;
+    queueSection.hidden    = currentTab !== 'queue';
+    membersSection.hidden  = currentTab !== 'members';
+    activitySection.hidden = currentTab !== 'activity';
+    if (currentTab === 'queue')    renderQueue(lastQueue);
+    if (currentTab === 'members')  refreshMembers();
+    if (currentTab === 'activity') refreshActivity();
   });
 });
 
@@ -302,6 +313,100 @@ function escapeHtml(str) {
   })[c]);
 }
 function escapeAttr(str) { return escapeHtml(str); }
+
+// ── Membres ────────────────────────────────────────────────────────────
+async function refreshMembers() {
+  document.getElementById('members-pending').innerHTML = '<p class="empty">Chargement…</p>';
+  document.getElementById('members-active').innerHTML  = '';
+  try {
+    const { members } = await fetchJson('/api/admin/members',
+      { headers: { 'X-Admin-Token': token() } });
+    const pending = members.filter(m => m.status !== 'active');
+    const active  = members.filter(m => m.status === 'active');
+    renderMembers(document.getElementById('members-pending'), pending, true);
+    renderMembers(document.getElementById('members-active'),  active,  false);
+  } catch (err) {
+    document.getElementById('members-pending').innerHTML =
+      `<p class="empty">Erreur : ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function renderMembers(container, members, showApprove) {
+  if (!members.length) {
+    container.innerHTML = '<p class="empty">— aucun —</p>';
+    return;
+  }
+  container.innerHTML = members.map(m => `
+    <article class="queue-item" data-member-id="${escapeAttr(m.id)}">
+      <header>
+        <strong>${escapeHtml(m.name || '(sans nom)')}</strong>
+        · <code>${escapeHtml(m.email)}</code>
+        · <span class="status">${escapeHtml(m.status)}</span>
+        · rôle : <strong>${escapeHtml(m.role)}</strong>
+      </header>
+      <p class="meta">
+        inscrit le ${escapeHtml(new Date(m.createdAt).toLocaleString('fr-FR'))}
+        ${m.approvedAt ? ` · approuvé le ${escapeHtml(new Date(m.approvedAt).toLocaleString('fr-FR'))}` : ''}
+      </p>
+      <div class="actions">
+        ${showApprove ? `<button type="button" class="btn-primary" data-member-action="approve">✓ Approuver</button>` : ''}
+        <select data-member-action="role" aria-label="Rôle">
+          <option value="member"       ${m.role === 'member' ? 'selected' : ''}>Membre</option>
+          <option value="contributor"  ${m.role === 'contributor' ? 'selected' : ''}>Contributeur</option>
+          <option value="admin"        ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
+        </select>
+      </div>
+    </article>
+  `).join('');
+  container.querySelectorAll('[data-member-action]').forEach(el => {
+    const card = el.closest('[data-member-id]');
+    const id = card.dataset.memberId;
+    if (el.tagName === 'BUTTON' && el.dataset.memberAction === 'approve') {
+      el.addEventListener('click', () => handleMemberApprove(id, card));
+    } else if (el.tagName === 'SELECT') {
+      el.addEventListener('change', () => handleMemberRole(id, el.value, card));
+    }
+  });
+}
+
+async function handleMemberApprove(id, card) {
+  try {
+    await fetchJson(`/api/admin/members/${encodeURIComponent(id)}/approve`,
+      { method: 'POST', headers: authHeaders() });
+    card.style.opacity = '0.5';
+    setTimeout(refreshMembers, 300);
+  } catch (err) { alert('Erreur : ' + err.message); }
+}
+
+async function handleMemberRole(id, role, card) {
+  try {
+    await fetchJson(`/api/admin/members/${encodeURIComponent(id)}/role`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ role }),
+    });
+  } catch (err) { alert('Erreur : ' + err.message); refreshMembers(); }
+}
+
+// ── Journal d'activité ─────────────────────────────────────────────────
+async function refreshActivity() {
+  const el = document.getElementById('activity-list');
+  el.innerHTML = '<p class="empty">Chargement…</p>';
+  try {
+    const { activity } = await fetchJson('/api/admin/activity',
+      { headers: { 'X-Admin-Token': token() } });
+    if (!activity.length) { el.innerHTML = '<p class="empty">— journal vide —</p>'; return; }
+    el.innerHTML = activity.map(a => `
+      <div class="activity-row">
+        <time>${escapeHtml(new Date(a.timestamp).toLocaleString('fr-FR'))}</time>
+        · membre <code>${escapeHtml(a.memberId || '—')}</code>
+        · ${escapeHtml(a.action)} ${escapeHtml(a.entityType || '')}
+        ${a.entityId ? `<code>${escapeHtml(a.entityId)}</code>` : ''}
+        ${a.ip ? `<small>(${escapeHtml(a.ip)})</small>` : ''}
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<p class="empty">Erreur : ${escapeHtml(err.message)}</p>`;
+  }
+}
 
 // ── Boot ───────────────────────────────────────────────────────────────
 if (token()) {

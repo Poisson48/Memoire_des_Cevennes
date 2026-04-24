@@ -20,7 +20,17 @@ const state = {
   people: new Map(),      // id -> person
   stories: [],            // liste ordonnée
   markers: new Map(),     // placeId -> Leaflet marker
+  member: null,           // null ou { id, name, email, role, status } si connecté
 };
+
+// ─── Rôles ──────────────────────────────────────────────────────────────
+const ROLES_ORDER = ['member', 'contributor', 'admin'];
+
+/** Retourne true si le membre connecté a au moins le rôle minRole. */
+function hasRole(minRole) {
+  if (!state.member || state.member.status !== 'active') return false;
+  return ROLES_ORDER.indexOf(state.member.role) >= ROLES_ORDER.indexOf(minRole);
+}
 
 // ─── Carte ──────────────────────────────────────────────────────────────
 const map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
@@ -35,6 +45,7 @@ const panelContent = document.getElementById('panel-content');
 const readonlyBanner = document.getElementById('readonly-banner');
 const addBtn = document.getElementById('btn-add-place');
 const addHint = document.getElementById('add-hint');
+const authNav = document.getElementById('auth-nav'); // peut être null si absent du HTML
 
 document.getElementById('panel-close').addEventListener('click', closePanel);
 // Les dialogs (add-place / add-story / propose-edit) et leur logique vivent
@@ -47,6 +58,54 @@ document.getElementById('banner-close').addEventListener('click', () => {
   readonlyBanner.hidden = true;
   try { localStorage.setItem(BANNER_DISMISSED_KEY, '1'); } catch {}
 });
+
+// ─── Authentification ───────────────────────────────────────────────────
+/**
+ * Interroge /api/auth/me (cookie httpOnly envoyé automatiquement).
+ * Remplit state.member ou le remet à null si non connecté / API absente.
+ */
+async function fetchMe() {
+  if (state.mode === 'static') {
+    state.member = null;
+    return;
+  }
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      state.member = data.member || null;
+    } else {
+      state.member = null;
+    }
+  } catch {
+    state.member = null;
+  }
+}
+
+/**
+ * Met à jour le bloc de navigation auth (#auth-nav) :
+ *   - non connecté → lien « Se connecter »
+ *   - connecté     → nom + bouton « Déconnexion »
+ */
+function renderAuthNav() {
+  if (!authNav) return;
+  if (!state.member) {
+    authNav.innerHTML = `<a href="/login.html" class="btn-ghost btn-sm">Se connecter</a>`;
+    return;
+  }
+  authNav.innerHTML = `
+    <span class="auth-name">${escapeHtml(state.member.name)}</span>
+    <button type="button" class="btn-ghost btn-sm" id="btn-logout">Déconnexion</button>
+  `;
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch { /* ignore */ }
+    state.member = null;
+    renderAuthNav();
+    applyMode();
+  });
+}
 
 // ─── Chargement données ─────────────────────────────────────────────────
 async function fetchJson(url) {
@@ -82,7 +141,12 @@ async function fetchAll() {
 }
 
 async function reload() {
-  const { places, people, stories } = await fetchAll();
+  // fetchMe en parallèle avec fetchAll pour ne pas ajouter de latence
+  const [dataResult] = await Promise.all([
+    fetchAll(),
+    fetchMe(),
+  ]);
+  const { places, people, stories } = dataResult;
   state.places.clear();
   state.people.clear();
   places.forEach(p => state.places.set(p.id, p));
@@ -90,6 +154,7 @@ async function reload() {
   state.stories = stories;
   refreshMarkers();
   applyMode();
+  renderAuthNav();
   routeFromHash();
 }
 
@@ -118,15 +183,21 @@ function refreshMarkers() {
 }
 
 function applyMode() {
-  // Que l'on soit en mode statique (preview) ou live, on affiche les mêmes
-  // fonctionnalités. Seule la soumission finale est bloquée en statique
-  // avec un message explicatif, pour que la preview serve vraiment de
-  // preview.
+  // Bandeau lecture seule (mode statique GitHub Pages)
   if (state.mode === 'static') {
     const dismissed = (() => { try { return localStorage.getItem(BANNER_DISMISSED_KEY) === '1'; } catch { return false; } })();
     readonlyBanner.hidden = dismissed;
   } else {
     readonlyBanner.hidden = true;
+  }
+
+  // Bouton « + Ajouter un lieu » : visible uniquement pour contributor / admin
+  // et uniquement en mode live.
+  if (addBtn) {
+    addBtn.hidden = !(state.mode === 'live' && hasRole('contributor'));
+  }
+  if (addHint) {
+    addHint.hidden = !(state.mode === 'live' && hasRole('contributor'));
   }
 }
 
@@ -136,6 +207,25 @@ function applyMode() {
 function blockedByStaticMode(what = 'Cette action') {
   if (state.mode === 'static') {
     alert(`Aperçu en lecture seule — ${what} est visible pour montrer le design, mais aucun envoi n'est effectué.\n\nPour contribuer vraiment : clone le dépôt et lance \`./run.sh\` en local.`);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Garde d'authentification côté frontend.
+ * Retourne true (et affiche un message) si l'utilisateur n'a pas le rôle
+ * requis. L'appelant doit abandonner dans ce cas.
+ */
+function blockedByAuth(minRole = 'contributor', what = 'Cette action') {
+  if (!state.member) {
+    if (confirm(`${what} nécessite d'être connecté.\n\nAller à la page de connexion ?`)) {
+      window.location.href = '/login.html';
+    }
+    return true;
+  }
+  if (!hasRole(minRole)) {
+    alert(`${what} nécessite le rôle « ${minRole} » ou supérieur.\nVotre rôle actuel : ${state.member.role}.`);
     return true;
   }
   return false;
@@ -239,9 +329,11 @@ function openPlacePanel(placeId) {
     return `<span class="chip">${escapeHtml(a.name)}${ctx ? ` <em>(${escapeHtml(ctx)})</em>` : ''}</span>`;
   }).join('');
 
+  // Bouton d'ajout de contenu uniquement pour contributor/admin
+  const canContribute = state.mode === 'live' && hasRole('contributor');
   const actions = `
     <div class="entity-actions">
-      <button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>
+      ${canContribute ? `<button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>` : ''}
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
     </div>`;
 

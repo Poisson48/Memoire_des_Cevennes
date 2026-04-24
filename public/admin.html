@@ -6,6 +6,7 @@
   <title>Administration — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/legal.css" />
 </head>
 <body class="admin-body">
   <header class="topbar admin-topbar">
@@ -42,14 +43,36 @@
       <div class="admin-counts" id="admin-counts"></div>
 
       <div class="admin-tabs">
-        <button type="button" class="tab-btn active" data-filter="all">Tout</button>
-        <button type="button" class="tab-btn" data-filter="create">Créations</button>
-        <button type="button" class="tab-btn" data-filter="edit">Modifications</button>
+        <button type="button" class="tab-btn active" data-tab="queue" data-filter="all">File de modération</button>
+        <button type="button" class="tab-btn" data-tab="queue" data-filter="create">Créations</button>
+        <button type="button" class="tab-btn" data-tab="queue" data-filter="edit">Modifications</button>
+        <button type="button" class="tab-btn" data-tab="members">Membres</button>
+        <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
       </div>
 
       <div id="queue" class="queue"></div>
+
+      <div id="members" class="queue" hidden>
+        <h3>Inscriptions en attente</h3>
+        <div id="members-pending"></div>
+        <h3>Membres actifs</h3>
+        <div id="members-active"></div>
+      </div>
+
+      <div id="activity" class="queue" hidden>
+        <h3>Journal d'activité (200 dernières)</h3>
+        <div id="activity-list"></div>
+      </div>
     </section>
   </main>
+
+  <footer class="site-footer" style="position: static;">
+    <a href="legal/mentions.html">Mentions légales</a>
+    <span class="sep">·</span>
+    <a href="legal/confidentialite.html">Confidentialité</a>
+    <span class="sep">·</span>
+    <a href="signaler.html">Signalements reçus via /api/reports — à traiter ici</a>
+  </footer>
 
   <script src="js/admin.js"></script>
 </body>
