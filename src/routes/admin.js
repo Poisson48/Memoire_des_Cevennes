@@ -8,10 +8,43 @@ const express = require('express');
 const moderation = require('../moderation');
 const edits = require('../edits');
 const stories = require('../stories');
+const auth = require('../auth');
+const activityLog = require('../activityLog');
 const { requireAdmin } = require('../middleware');
 
 const router = express.Router();
 router.use(requireAdmin);
+
+// ─── Membres ──────────────────────────────────────────────────────────
+// Liste, approbation, changement de rôle, journal d'activité.
+router.get('/members', (req, res) => {
+  const members = auth.loadMembers().map(m => {
+    const { passwordHash: _ph, ...safe } = m;
+    return safe;
+  });
+  res.json({ members });
+});
+
+router.post('/members/:id/approve', (req, res, next) => {
+  try {
+    const member = auth.approveMember(req.params.id);
+    res.json({ member });
+  } catch (err) { next(err); }
+});
+
+router.post('/members/:id/role', (req, res, next) => {
+  try {
+    const role = req.body && req.body.role;
+    const member = auth.setRole(req.params.id, role);
+    res.json({ member });
+  } catch (err) { next(err); }
+});
+
+router.get('/activity', (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 200, 2000);
+  const log = activityLog.readLog().slice(-limit).reverse();
+  res.json({ activity: log });
+});
 
 router.get('/queue', (req, res) => {
   const type = req.query.type;

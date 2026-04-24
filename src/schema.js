@@ -90,6 +90,13 @@ function freshModerationFields(input) {
   return out;
 }
 
+// Visibilité "public" (accessible aux visiteurs non-connectés) ou "members"
+// (exige un compte connecté). Défaut "members" — plus strict, RGPD-friendly,
+// particulièrement pour les personnes vivantes.
+function normVisibility(v) {
+  return v === 'public' ? 'public' : 'members';
+}
+
 // --- Place ---------------------------------------------------------------
 function makePlace(input, existingIds) {
   const lat = num(input.lat);
@@ -109,6 +116,7 @@ function makePlace(input, existingIds) {
     lng,
     description: str(input.description, 5000),
     aliases: normAliases(input.aliases),
+    visibility: normVisibility(input.visibility),
     createdAt: new Date().toISOString(),
     ...freshModerationFields(input),
   };
@@ -157,6 +165,10 @@ function makePerson(input, existingIds) {
     throw new Error(`id déjà pris : ${id}`);
   }
   const gender = ['M', 'F', 'X'].includes(input.gender) ? input.gender : undefined;
+  // Personne vivante : on force visibility="members", toujours. Pas de
+  // bascule publique sans accord explicite (traité via un flux admin dédié).
+  const livingPerson = input.isLiving === true || input.isLiving === 'true';
+  const visibility = livingPerson ? 'members' : normVisibility(input.visibility);
   return {
     id,
     primaryName,
@@ -168,6 +180,8 @@ function makePerson(input, existingIds) {
     ...(input.bio ? { bio: str(input.bio, 5000) } : {}),
     parents: normParents(input.parents),
     spouses: normSpouses(input.spouses),
+    visibility,
+    ...(livingPerson ? { isLiving: true } : {}),
     createdAt: new Date().toISOString(),
     ...freshModerationFields(input),
   };
@@ -221,6 +235,7 @@ function makeStory(input, existingIds) {
     mentions: normMentions(input.mentions, body.length),
     mediaFiles: (Array.isArray(input.mediaFiles) ? input.mediaFiles : [])
       .map(normMediaFile).filter(Boolean),
+    visibility: normVisibility(input.visibility),
     createdAt: new Date().toISOString(),
     ...freshModerationFields(input),
   };

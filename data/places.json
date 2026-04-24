@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updatedAt": "2026-04-23T00:00:00.000Z",
+  "updatedAt": "2026-04-24T21:54:14.351Z",
   "places": [
     {
       "id": "saint-roman-de-codieres",
@@ -9,34 +9,45 @@
       "lng": 3.7786,
       "description": "Village du piémont cévenol, en Gard, dans la vallée de la Crenze entre Sumène et Le Vigan. Point de départ du projet Mémoire des Cévennes : on commence ici, on s'élargira aux vallées voisines ensuite.",
       "aliases": [
-        { "name": "Sant Roman de Codièras", "context": "occitan" },
-        { "name": "Saint-Roman",            "context": "usuel" },
-        { "name": "Codières",               "context": "ancien" }
+        {
+          "name": "Sant Roman de Codièras",
+          "context": "occitan"
+        },
+        {
+          "name": "Saint-Roman",
+          "context": "usuel"
+        },
+        {
+          "name": "Codières",
+          "context": "ancien"
+        }
       ],
       "status": "approved",
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
       "id": "les-combes",
       "primaryName": "Les Combes",
-      "lat": 44.0040,
-      "lng": 3.7750,
+      "lat": 44.004,
+      "lng": 3.775,
       "description": "Hameau contigu à Saint-Roman-de-Codières, sur la même rive de la Crenze. Point de repère historique : la place de la mairie y est située.",
       "aliases": [],
       "status": "approved",
       "createdAt": "2026-04-24T00:00:00.000Z",
       "submittedAt": "2026-04-24T00:00:00.000Z",
       "reviewedAt": "2026-04-24T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
       "id": "mas-de-la-coste",
       "primaryName": "Mas de la Coste",
-      "lat": 44.0100,
-      "lng": 3.7750,
+      "lat": 44.01,
+      "lng": 3.775,
       "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, sur la crête au-dessus de Saint-Roman-de-Codières. Aliases multiples dans le temps et selon les personnes.",
       "aliases": [
         {
@@ -64,7 +75,8 @@
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
       "id": "mont-aigoual",
@@ -86,7 +98,24 @@
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
+    },
+    {
+      "id": "test-lieu",
+      "primaryName": "Test Lieu",
+      "lat": 44,
+      "lng": 3.8,
+      "description": "",
+      "aliases": [],
+      "visibility": "members",
+      "createdAt": "2026-04-24T21:54:14.351Z",
+      "status": "pending",
+      "submittedAt": "2026-04-24T21:54:14.351Z",
+      "submittedBy": {
+        "name": "Test User",
+        "personId": "test-user"
+      }
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-24T00:00:00.000Z",
+  "updatedAt": "2026-04-24T21:46:48.487Z",
   "stories": [
     {
       "id": "saint-roman-magnanaries",
@@ -22,7 +22,8 @@
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
       "id": "reboisement-aigoual",
@@ -50,7 +51,8 @@
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
       "id": "chataignes-maquis",
@@ -61,10 +63,30 @@
       "memoryDate": "1943-1944",
       "contributorId": "pierre-duval",
       "mentions": [
-        { "start": 0,   "end": 7,   "type": "person", "entityId": "suzanne-duval" },
-        { "start": 29,  "end": 44,  "type": "place",  "entityId": "mas-de-la-coste" },
-        { "start": 75,  "end": 90,  "type": "person", "entityId": "joseph-boissier" },
-        { "start": 129, "end": 136, "type": "person", "entityId": "celeste-roumieux" }
+        {
+          "start": 0,
+          "end": 7,
+          "type": "person",
+          "entityId": "suzanne-duval"
+        },
+        {
+          "start": 29,
+          "end": 44,
+          "type": "place",
+          "entityId": "mas-de-la-coste"
+        },
+        {
+          "start": 75,
+          "end": 90,
+          "type": "person",
+          "entityId": "joseph-boissier"
+        },
+        {
+          "start": 129,
+          "end": 136,
+          "type": "person",
+          "entityId": "celeste-roumieux"
+        }
       ],
       "mediaFiles": [],
       "completions": [
@@ -87,7 +109,8 @@
       "createdAt": "2026-04-23T00:00:00.000Z",
       "submittedAt": "2026-04-23T00:00:00.000Z",
       "reviewedAt": "2026-04-23T00:00:00.000Z",
-      "reviewedBy": "bootstrap"
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     }
   ]
 }

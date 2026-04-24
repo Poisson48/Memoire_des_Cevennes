@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
+  <style>
+    body { overflow: auto; }
+    .auth-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+    .auth-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem 2.2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow);
+    }
+    .auth-card h2 {
+      margin: 0 0 1.4rem;
+      font-size: 1.35rem;
+      color: var(--accent-dark);
+    }
+    .auth-card label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .auth-card input[type="email"],
+    .auth-card input[type="password"],
+    .auth-card input[type="text"] {
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--fg);
+    }
+    .auth-card input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .auth-card .actions {
+      margin-top: 1.2rem;
+    }
+    .auth-error {
+      background: #fde8e8;
+      color: #8b1a1a;
+      border: 1px solid #f5c6c6;
+      border-radius: 4px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .auth-switch {
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .auth-switch a {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1><a href="index.html" style="color:inherit;text-decoration:none">Mémoire des Cévennes</a></h1>
+      <p class="tagline">Une carte pour recueillir les récits, les voix et les images de nos vallées.</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <h2>Connexion</h2>
+      <div id="auth-error" class="auth-error" hidden></div>
+      <form id="form-login" novalidate>
+        <label>Adresse e-mail
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>Mot de passe
+          <input type="password" name="password" required autocomplete="current-password" />
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Se connecter</button>
+        </div>
+      </form>
+      <p class="auth-switch">Pas encore de compte ? <a href="register.html">S'inscrire</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="position: static;">
+    <a href="legal/mentions.html">Mentions légales</a>
+    <span class="sep">·</span>
+    <a href="legal/confidentialite.html">Confidentialité</a>
+    <span class="sep">·</span>
+    <a href="signaler.html">Signaler un contenu</a>
+  </footer>
+
+  <script>
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('auth-error');
+      errEl.hidden = true;
+      const fd = new FormData(e.target);
+      const data = { email: fd.get('email'), password: fd.get('password') };
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          errEl.textContent = json.error || 'Identifiants incorrects.';
+          errEl.hidden = false;
+          return;
+        }
+        window.location.href = 'index.html';
+      } catch {
+        errEl.textContent = 'Impossible de joindre le serveur.';
+        errEl.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>
