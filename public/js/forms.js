@@ -25,12 +25,17 @@ const storyRecorder = document.getElementById('story-recorder');
 const storyMediaInput = document.getElementById('story-media-input');
 const dlgEdit = document.getElementById('dlg-edit');
 const formEdit = document.getElementById('form-edit');
+const dlgComplete = document.getElementById('dlg-complete');
+const formComplete = document.getElementById('form-complete');
 
 dlgStory.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => dlgStory.close('cancel'))
 );
 dlgEdit.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => dlgEdit.close('cancel'))
+);
+dlgComplete.querySelectorAll('[data-close]').forEach(b =>
+  b.addEventListener('click', () => dlgComplete.close('cancel'))
 );
 storyType.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
@@ -70,7 +75,7 @@ formPlace.addEventListener('close', async () => {
     description: fd.get('description'),
     lat: pendingLatLng.lat,
     lng: pendingLatLng.lng,
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
+    submittedBy: extractSubmittedBy(fd),
   };
   try {
     const res = await fetch('/api/places', {
@@ -164,6 +169,23 @@ async function runCompression(file, label) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Extraction cohérente de l'identité du contributeur depuis un FormData.
+// Tous les dialogs utilisent les mêmes noms de champs (name, writtenFrom,
+// relationship, email) — voir le fieldset.contributor-id dans index.html.
+function extractSubmittedBy(fd) {
+  const out = {};
+  for (const k of ['name', 'writtenFrom', 'relationship', 'email']) {
+    const v = fd.get(k);
+    if (v) out[k] = String(v).trim();
+  }
+  // Champ legacy `pseudo` pour les dialogs qui ne l'auraient pas encore migré.
+  if (!out.name) {
+    const p = fd.get('pseudo');
+    if (p) out.name = String(p).trim();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 // ── Capture caméra / micro selon le type ───────────────────────────────
 function updateStoryMediaVisibility() {
   const t = storyType.value;
@@ -197,7 +219,7 @@ formStory.addEventListener('submit', async (e) => {
     type: fd.get('type'),
     title: fd.get('title'),
     body: fd.get('body'),
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
+    submittedBy: extractSubmittedBy(fd),
   };
   try {
     const res = await fetch('/api/stories', {
@@ -410,6 +432,41 @@ function openEditDialog(entityType, entity) {
   dlgEdit.showModal();
 }
 
+// ── Flux 4 : compléter une histoire ────────────────────────────────────
+function openCompleteDialog(story) {
+  formComplete.reset();
+  formComplete.dataset.storyId = story.id;
+  const title = story.title || '(sans titre)';
+  document.getElementById('complete-story-title').textContent = `Pour : ${title}`;
+  dlgComplete.showModal();
+}
+
+formComplete.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const storyId = formComplete.dataset.storyId;
+  if (!storyId) return;
+  const fd = new FormData(formComplete);
+  if (blockedByStaticMode('la complétion d\'une histoire')) return;
+
+  const payload = {
+    body: fd.get('body') || '',
+    submittedBy: extractSubmittedBy(fd),
+  };
+  try {
+    const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    dlgComplete.close('submit');
+    alert(data.message || 'Complétion reçue — en attente de validation.');
+  } catch (err) {
+    alert('Erreur : ' + err.message);
+  }
+});
+
 formEdit.addEventListener('submit', async (e) => {
   e.preventDefault();
   const entityType = formEdit.dataset.entityType;
@@ -434,7 +491,7 @@ formEdit.addEventListener('submit', async (e) => {
   const payload = {
     changes,
     note: fd.get('note') || '',
-    submittedBy: fd.get('pseudo') ? { pseudo: fd.get('pseudo') } : undefined,
+    submittedBy: extractSubmittedBy(fd),
   };
 
   try {

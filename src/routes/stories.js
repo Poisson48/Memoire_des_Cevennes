@@ -35,6 +35,27 @@ router.post('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Compléter une histoire existante : n'importe qui peut ajouter un
+// chapitre qui vient s'attacher au récit. La complétion tombe en
+// pending, l'admin valide.
+router.post('/:id/completions', async (req, res, next) => {
+  try {
+    const body = (req.body && req.body.body) || '';
+    if (!String(body).trim()) {
+      return res.status(400).json({ error: 'Le champ body est requis.' });
+    }
+    const completion = await stories.addCompletion(req.params.id, {
+      body,
+      submittedBy: req.body && req.body.submittedBy,
+    });
+    if (!completion) return res.status(404).json({ error: 'Récit introuvable' });
+    res.status(201).json({
+      completion,
+      message: 'Complétion reçue — en attente de validation admin.',
+    });
+  } catch (err) { next(err); }
+});
+
 // Upload d'un ou plusieurs médias rattachés à un récit existant.
 router.post('/:id/media', (req, res, next) => {
   upload.array('media', 10)(req, res, async (err) => {

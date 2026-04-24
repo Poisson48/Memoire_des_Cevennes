@@ -51,9 +51,23 @@
       <label>Description (optionnel)
         <textarea name="description" rows="3" maxlength="2000"></textarea>
       </label>
-      <label>Ton pseudo (optionnel — utile pour te recontacter)
-        <input type="text" name="pseudo" maxlength="80" />
-      </label>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120"
+                 placeholder="Saint-Roman, le mas, Montpellier…" />
+        </label>
+        <label>Ton lien avec ce lieu <em>(facultatif)</em>
+          <input type="text" name="relationship" maxlength="200"
+                 placeholder="j'y ai grandi, voisin·e, historien·ne…" />
+        </label>
+        <label>Email <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
         avant d'apparaître sur la carte publique.
@@ -61,6 +75,44 @@
       <div class="actions">
         <button value="cancel" class="btn-ghost">Annuler</button>
         <button value="submit" class="btn-primary">Envoyer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal : compléter une histoire existante -->
+  <dialog id="dlg-complete">
+    <form id="form-complete">
+      <h2>➕ Compléter cette histoire</h2>
+      <p class="coords" id="complete-story-title"></p>
+      <label>Ton ajout, précision, souvenir lié à cette histoire
+        <textarea name="body" rows="5" required maxlength="20000"
+                  placeholder="Ce que tu veux ajouter à ce récit…"></textarea>
+      </label>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120"
+                 placeholder="Montpellier, Saint-Roman, le mas…" />
+        </label>
+        <label>Ton lien avec cette histoire <em>(facultatif)</em>
+          <input type="text" name="relationship" maxlength="200"
+                 placeholder="petit-fils de Suzanne, voisine, historien·ne…" />
+        </label>
+        <label>Email de contact <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
+      <p class="dialog-note">
+        📝 Ton ajout est <strong>soumis à validation</strong> par les admins.
+        Une fois approuvé il apparaîtra sous l'histoire d'origine, avec ton
+        nom et l'endroit d'où tu l'as écrit.
+      </p>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close>Annuler</button>
+        <button type="submit" class="btn-primary">Envoyer</button>
       </div>
     </form>
   </dialog>
@@ -74,9 +126,21 @@
       <label>Résumé de la modification (pourquoi ce changement ?)
         <input type="text" name="note" maxlength="500" placeholder="Ex. « corrige l'orthographe du nom » ou « ajoute une date » — visible par l'admin"/>
       </label>
-      <label>Ton pseudo (optionnel — pour te recontacter)
-        <input type="text" name="pseudo" maxlength="80" />
-      </label>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120" />
+        </label>
+        <label>Ton lien avec ce contenu <em>(facultatif)</em>
+          <input type="text" name="relationship" maxlength="200" />
+        </label>
+        <label>Email <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
       <p class="dialog-note">
         📝 Ta proposition est <strong>soumise à validation</strong> par les admins.
         Tu pourras voir les anciens et les nouveaux textes côte à côte dans la
@@ -105,9 +169,6 @@
       </label>
       <label>Titre
         <input type="text" name="title" maxlength="160" />
-      </label>
-      <label>Ton pseudo (optionnel)
-        <input type="text" name="pseudo" maxlength="80" />
       </label>
       <label>Texte (récit, légende, transcription…)
         <textarea name="body" rows="5" maxlength="20000"></textarea>
@@ -139,6 +200,21 @@
         <div class="compress-label"><span id="compress-text">Compression…</span></div>
         <div class="compress-bar"><div id="compress-bar-fill"></div></div>
       </div>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120" />
+        </label>
+        <label>Ton lien avec cette histoire <em>(facultatif)</em>
+          <input type="text" name="relationship" maxlength="200" />
+        </label>
+        <label>Email <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
         avant d'apparaître sur la carte publique.
@@ -169,9 +245,18 @@
       </label>
       <ul id="tag-results" class="tag-results"></ul>
       <p id="tag-chosen" class="tag-chosen" hidden></p>
-      <label>Ton pseudo (optionnel)
-        <input type="text" name="pseudo" maxlength="80" />
-      </label>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120" />
+        </label>
+        <label>Email <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
       <p class="dialog-note">
         📝 Ton tag est soumis à validation par l'admin comme toute
         proposition de modification.

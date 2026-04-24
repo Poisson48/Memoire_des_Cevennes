@@ -1,5 +1,6 @@
 const storage = require('./storage');
-const { makeStory } = require('./schema');
+const { makeStory, normSubmittedBy } = require('./schema');
+const { randomUUID } = require('crypto');
 
 function list({ status, placeId, personId } = {}) {
   let all = storage.list('stories');
@@ -54,4 +55,55 @@ function rolesForEntity(story, { personId, placeId }) {
   return roles;
 }
 
-module.exports = { list, get, create, patch, rolesForEntity };
+// ── Complétions (commentaires/ajouts attribués) ──────────────────
+// Chaque complétion est une sous-ressource du Récit : un bout de texte
+// ajouté après coup par un contributeur ou un membre de la famille pour
+// enrichir un récit existant. Elle passe par la même modération : une
+// complétion tombe en status=pending à la création, l'admin valide.
+function str(v, maxLen) { return String(v ?? '').slice(0, maxLen).trim(); }
+
+async function addCompletion(storyId, { body, submittedBy } = {}) {
+  return storage.mutate('stories', (stories) => {
+    const story = stories.find(s => s.id === storyId);
+    if (!story) return null;
+    const completion = {
+      id: randomUUID().slice(0, 10),
+      body: str(body, 20000),
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+    };
+    const nb = normSubmittedBy(submittedBy);
+    if (nb) completion.submittedBy = nb;
+    if (!story.completions) story.completions = [];
+    story.completions.push(completion);
+    return completion;
+  });
+}
+
+async function patchCompletion(storyId, completionId, patchFn) {
+  return storage.mutate('stories', (stories) => {
+    const story = stories.find(s => s.id === storyId);
+    if (!story) return null;
+    const comp = (story.completions || []).find(c => c.id === completionId);
+    if (!comp) return null;
+    Object.assign(comp, patchFn(comp));
+    return comp;
+  });
+}
+
+// Renvoie toutes les complétions pending, annotées du parent story.
+function pendingCompletions() {
+  const out = [];
+  for (const story of storage.list('stories')) {
+    for (const comp of story.completions || []) {
+      if (comp.status === 'pending') out.push({ story, completion: comp });
+    }
+  }
+  return out;
+}
+
+module.exports = {
+  list, get, create, patch, rolesForEntity,
+  addCompletion, patchCompletion, pendingCompletions,
+};

@@ -20,6 +20,17 @@ function queue({ type } = {}) {
       out.push({ kind: 'edit', entityType: edit.targetType, item: edit, diff: edits.diff(edit) });
     }
   }
+  if (!type || type === 'completions') {
+    for (const { story, completion } of stories.pendingCompletions()) {
+      out.push({
+        kind: 'completion',
+        entityType: 'stories',
+        storyId: story.id,
+        storyTitle: story.title || story.id,
+        item: completion,
+      });
+    }
+  }
   out.sort((a, b) => {
     const ta = a.item.submittedAt || '';
     const tb = b.item.submittedAt || '';
@@ -68,6 +79,17 @@ function counts() {
     approved: allEdits.filter(x => x.status === 'approved').length,
     rejected: allEdits.filter(x => x.status === 'rejected').length,
   };
+  // Complétions (sous-records attachés aux stories)
+  const comps = { total: 0, pending: 0, approved: 0, rejected: 0 };
+  for (const story of stories.list({ status: 'all' })) {
+    for (const c of story.completions || []) {
+      comps.total++;
+      if (c.status === 'pending') comps.pending++;
+      else if (c.status === 'approved') comps.approved++;
+      else if (c.status === 'rejected') comps.rejected++;
+    }
+  }
+  out.completions = comps;
   return out;
 }
 

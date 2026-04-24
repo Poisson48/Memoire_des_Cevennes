@@ -57,11 +57,20 @@ function normAliases(list) {
 // Le champ `submittedBy` est libre (pseudo + email optionnel, non vérifiés —
 // la vérification se fait manuellement par les admins au moment de la
 // validation).
+// Identité d'un·e contributeur·rice. Schéma unifié pour tous les flux
+// (ajout de lieu/récit/personne, proposition de modif, complétion d'une
+// histoire, tag de mention…). L'idée : qui tu es, d'où tu écris, ton
+// lien avec le contenu — donner du contexte à chaque contribution
+// plutôt qu'un pseudo sec.
 function normSubmittedBy(sb) {
   if (!sb) return null;
   const out = {};
-  if (sb.pseudo) out.pseudo = str(sb.pseudo, 80);
-  if (sb.email)  out.email  = str(sb.email, 120);
+  // `pseudo` reste accepté en entrée pour compat — on renormalise en `name`.
+  const name = sb.name || sb.pseudo;
+  if (name)            out.name         = str(name, 120);
+  if (sb.writtenFrom)  out.writtenFrom  = str(sb.writtenFrom, 120);
+  if (sb.relationship) out.relationship = str(sb.relationship, 200);
+  if (sb.email)        out.email        = str(sb.email, 160);
   return Object.keys(out).length ? out : null;
 }
 
@@ -216,6 +225,7 @@ module.exports = {
   makePlace,
   makePerson,
   makeStory,
+  normSubmittedBy,
   slugify,
   STORY_TYPES,
 };
