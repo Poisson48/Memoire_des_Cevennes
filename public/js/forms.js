@@ -36,18 +36,20 @@ storyType.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
 
 // ── Flux 1 : ajouter un lieu ───────────────────────────────────────────
-let addMode = false;
+// `state.addMode` est partagé (défini dans app.js) — on en lit la valeur
+// aussi depuis refreshMarkers() pour que les marqueurs existants ne
+// captent pas le clic en phase de pose d'un nouveau lieu.
 let pendingLatLng = null;
 
 addBtn.addEventListener('click', () => {
-  addMode = !addMode;
-  addHint.hidden = !addMode;
-  addBtn.textContent = addMode ? '✕ Annuler' : '+ Ajouter un lieu';
-  map.getContainer().style.cursor = addMode ? 'crosshair' : '';
+  state.addMode = !state.addMode;
+  addHint.hidden = !state.addMode;
+  addBtn.textContent = state.addMode ? '✕ Annuler' : '+ Ajouter un lieu';
+  map.getContainer().style.cursor = state.addMode ? 'crosshair' : '';
 });
 
 map.on('click', (e) => {
-  if (!addMode) return;
+  if (!state.addMode) return;
   pendingLatLng = e.latlng;
   document.getElementById('place-coords').textContent =
     `📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
@@ -87,7 +89,8 @@ formPlace.addEventListener('close', async () => {
 });
 
 function resetAddMode() {
-  addMode = false; pendingLatLng = null;
+  state.addMode = false;
+  pendingLatLng = null;
   addHint.hidden = true;
   addBtn.textContent = '+ Ajouter un lieu';
   map.getContainer().style.cursor = '';
