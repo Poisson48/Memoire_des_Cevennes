@@ -2,6 +2,7 @@
 const express = require('express');
 const stories = require('../stories');
 const { upload } = require('../upload');
+const { resolveContributor } = require('../contributor');
 
 const router = express.Router();
 
@@ -30,7 +31,16 @@ router.post('/', async (req, res, next) => {
     if (!req.body || !req.body.placeId) {
       return res.status(400).json({ error: 'placeId requis' });
     }
-    const story = await stories.create(req.body);
+    const payload = { ...req.body };
+    payload.submittedBy = await resolveContributor({
+      submittedBy: req.body.submittedBy,
+      newPerson: req.body.newPerson,
+    });
+    // contributorId pointe vers la Personne du contributeur (si lié).
+    if (payload.submittedBy?.personId && !payload.contributorId) {
+      payload.contributorId = payload.submittedBy.personId;
+    }
+    const story = await stories.create(payload);
     res.status(201).json({ story, message: 'Ajout reçu — en attente de validation.' });
   } catch (err) { next(err); }
 });
@@ -44,10 +54,11 @@ router.post('/:id/completions', async (req, res, next) => {
     if (!String(body).trim()) {
       return res.status(400).json({ error: 'Le champ body est requis.' });
     }
-    const completion = await stories.addCompletion(req.params.id, {
-      body,
+    const submittedBy = await resolveContributor({
       submittedBy: req.body && req.body.submittedBy,
+      newPerson: req.body && req.body.newPerson,
     });
+    const completion = await stories.addCompletion(req.params.id, { body, submittedBy });
     if (!completion) return res.status(404).json({ error: 'Récit introuvable' });
     res.status(201).json({
       completion,

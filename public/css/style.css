@@ -361,6 +361,72 @@ fieldset.contributor-id label em {
   font-size: 0.85rem;
 }
 
+/* ── Autocompletion des noms ───────────────────────────────── */
+.autocomplete-menu {
+  position: absolute;
+  z-index: 3000;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+.autocomplete-menu li {
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.autocomplete-menu li:last-child { border-bottom: none; }
+.autocomplete-menu li:hover { background: rgba(140,90,43,0.1); }
+.autocomplete-menu .ac-alias {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* ── Nouvelle fiche (création à la volée) ──────────────────── */
+details.new-person {
+  margin: 0.4rem 0 0.8rem;
+  padding: 0.4rem 0.7rem;
+  background: rgba(122, 58, 106, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+details.new-person > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--accent-dark);
+  padding: 0.2rem 0;
+  user-select: none;
+}
+details.new-person[open] > summary {
+  margin-bottom: 0.4rem;
+}
+details.new-person .new-person-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0.25rem 0 0.4rem;
+}
+
+/* Boutons inline sur le header d'une complétion */
+.completion-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.completion-byline { flex: 1; }
+.btn-inline {
+  padding: 0.15rem 0.4rem;
+  min-height: 28px;
+  font-size: 0.85rem;
+}
+
 /* ── Entête d'entité (lieu / personne / récit) ─────────────── */
 .entity-header {
   margin: 0 0 0.6rem;

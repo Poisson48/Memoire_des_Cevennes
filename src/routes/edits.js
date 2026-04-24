@@ -3,18 +3,23 @@
 // GET  /api/:type/:id/edits — historique des propositions pour cette cible.
 const express = require('express');
 const edits = require('../edits');
+const { resolveContributor } = require('../contributor');
 
 const router = express.Router({ mergeParams: true });
 
 // Le pattern :type(places|people|stories) verrouille les types autorisés.
 router.post('/:type(places|people|stories)/:id/edits', async (req, res, next) => {
   try {
+    const submittedBy = await resolveContributor({
+      submittedBy: req.body?.submittedBy,
+      newPerson: req.body?.newPerson,
+    });
     const edit = await edits.propose({
       targetType: req.params.type,
       targetId: req.params.id,
       changes: (req.body && req.body.changes) || {},
       note: (req.body && req.body.note) || '',
-      submittedBy: req.body && req.body.submittedBy,
+      submittedBy,
     });
     res.status(201).json({ edit, message: 'Proposition reçue — en attente de validation admin.' });
   } catch (err) { next(err); }
@@ -25,6 +30,25 @@ router.get('/:type(places|people|stories)/:id/edits', (req, res) => {
   res.json({
     edits: edits.list({ targetType: type, targetId: id, status: req.query.status || 'all' }),
   });
+});
+
+// Proposition d'édition sur une complétion (sous-ressource d'un récit).
+// targetId composite storyId:completionId.
+router.post('/stories/:sid/completions/:cid/edits', async (req, res, next) => {
+  try {
+    const submittedBy = await resolveContributor({
+      submittedBy: req.body?.submittedBy,
+      newPerson: req.body?.newPerson,
+    });
+    const edit = await edits.propose({
+      targetType: 'completion',
+      targetId: `${req.params.sid}:${req.params.cid}`,
+      changes: (req.body && req.body.changes) || {},
+      note: (req.body && req.body.note) || '',
+      submittedBy,
+    });
+    res.status(201).json({ edit, message: 'Proposition reçue — en attente de validation admin.' });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

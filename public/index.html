@@ -54,7 +54,7 @@
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" />
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
         </label>
         <label>D'où tu écris <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120"
@@ -79,6 +79,41 @@
     </form>
   </dialog>
 
+  <!-- Modal : modifier une complétion existante -->
+  <dialog id="dlg-edit-completion">
+    <form id="form-edit-completion">
+      <h2>✏️ Modifier cette complétion</h2>
+      <p class="coords" id="edit-completion-info"></p>
+      <label>Nouveau texte
+        <textarea name="body" rows="5" required maxlength="20000"></textarea>
+      </label>
+      <label>Résumé de la modification (pourquoi ce changement ?)
+        <input type="text" name="note" maxlength="500"
+               placeholder="Ex. « corrige une date », « précise le contexte »…" />
+      </label>
+      <fieldset class="contributor-id">
+        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
+        <label>Nom ou prénom <em>(obligatoire)</em>
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
+        </label>
+        <label>D'où tu écris <em>(facultatif)</em>
+          <input type="text" name="writtenFrom" maxlength="120" />
+        </label>
+        <label>Email <em>(facultatif, reste privé)</em>
+          <input type="email" name="email" maxlength="160" />
+        </label>
+      </fieldset>
+      <p class="dialog-note">
+        📝 Ta proposition est <strong>soumise à validation admin</strong>.
+        Une fois approuvée, elle remplacera le texte d'origine.
+      </p>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close>Annuler</button>
+        <button type="submit" class="btn-primary">Envoyer</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Modal : compléter une histoire existante -->
   <dialog id="dlg-complete">
     <form id="form-complete">
@@ -91,7 +126,7 @@
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" />
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
         </label>
         <label>D'où tu écris <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120"
@@ -129,7 +164,7 @@
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" />
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
         </label>
         <label>D'où tu écris <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120" />
@@ -203,7 +238,7 @@
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" />
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
         </label>
         <label>D'où tu écris <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120" />
@@ -248,7 +283,7 @@
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" />
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" />
         </label>
         <label>D'où tu écris <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120" />
@@ -276,5 +311,6 @@
   <script src="js/app.js"></script>
   <script src="js/forms.js"></script>
   <script src="js/tagger.js"></script>
+  <script src="js/autocomplete.js"></script>
 </body>
 </html>

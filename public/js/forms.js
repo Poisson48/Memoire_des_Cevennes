@@ -76,6 +76,7 @@ formPlace.addEventListener('close', async () => {
     lat: pendingLatLng.lat,
     lng: pendingLatLng.lng,
     submittedBy: extractSubmittedBy(fd),
+    newPerson: extractNewPerson(fd),
   };
   try {
     const res = await fetch('/api/places', {
@@ -172,17 +173,39 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // Extraction cohérente de l'identité du contributeur depuis un FormData.
 // Tous les dialogs utilisent les mêmes noms de champs (name, writtenFrom,
 // relationship, email) — voir le fieldset.contributor-id dans index.html.
+// Retourne `personId` si l'utilisateur a piqué son nom dans l'autocomplétion.
 function extractSubmittedBy(fd) {
   const out = {};
   for (const k of ['name', 'writtenFrom', 'relationship', 'email']) {
     const v = fd.get(k);
     if (v) out[k] = String(v).trim();
   }
+  const pid = fd.get('personId');
+  if (pid) out.personId = String(pid).trim();
   // Champ legacy `pseudo` pour les dialogs qui ne l'auraient pas encore migré.
   if (!out.name) {
     const p = fd.get('pseudo');
     if (p) out.name = String(p).trim();
   }
+  return Object.keys(out).length ? out : undefined;
+}
+
+// Extrait l'objet newPerson (création à la volée d'une Personne dans le
+// graphe) si l'utilisateur a rempli au moins un champ optionnel. N'est
+// exploité par le serveur que si submittedBy.personId est vide — sinon
+// le nom est déjà lié à une fiche existante.
+function extractNewPerson(fd) {
+  const out = {};
+  const year = fd.get('newPerson.birthYear');
+  if (year && /^\d{3,4}$/.test(String(year))) out.birth = { year: Number(year) };
+  const parents = [];
+  const p1 = fd.get('newPerson.parent1Id');
+  const p2 = fd.get('newPerson.parent2Id');
+  if (p1) parents.push({ id: String(p1), kind: 'bio' });
+  if (p2) parents.push({ id: String(p2), kind: 'bio' });
+  if (parents.length) out.parents = parents;
+  const bio = fd.get('newPerson.bio');
+  if (bio && String(bio).trim()) out.bio = String(bio).trim();
   return Object.keys(out).length ? out : undefined;
 }
 
@@ -220,6 +243,7 @@ formStory.addEventListener('submit', async (e) => {
     title: fd.get('title'),
     body: fd.get('body'),
     submittedBy: extractSubmittedBy(fd),
+    newPerson: extractNewPerson(fd),
   };
   try {
     const res = await fetch('/api/stories', {
@@ -451,6 +475,7 @@ formComplete.addEventListener('submit', async (e) => {
   const payload = {
     body: fd.get('body') || '',
     submittedBy: extractSubmittedBy(fd),
+    newPerson: extractNewPerson(fd),
   };
   try {
     const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/completions`, {
@@ -462,6 +487,51 @@ formComplete.addEventListener('submit', async (e) => {
     if (!res.ok) throw new Error(data.error || res.statusText);
     dlgComplete.close('submit');
     alert(data.message || 'Complétion reçue — en attente de validation.');
+  } catch (err) {
+    alert('Erreur : ' + err.message);
+  }
+});
+
+// Dialog : modifier une complétion
+function openEditCompletionDialog(story, completion) {
+  const form = document.getElementById('form-edit-completion');
+  const dlg = document.getElementById('dlg-edit-completion');
+  form.reset();
+  form.dataset.storyId = story.id;
+  form.dataset.completionId = completion.id;
+  document.getElementById('edit-completion-info').textContent =
+    `Complétion sur « ${story.title || story.id} » par ${completion.submittedBy?.name || 'Anonyme'}`;
+  form.querySelector('textarea[name="body"]').value = completion.body || '';
+  dlg.showModal();
+}
+document.getElementById('dlg-edit-completion').querySelectorAll('[data-close]').forEach(b =>
+  b.addEventListener('click', () => document.getElementById('dlg-edit-completion').close('cancel'))
+);
+document.getElementById('form-edit-completion').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const sid = form.dataset.storyId;
+  const cid = form.dataset.completionId;
+  if (!sid || !cid) return;
+  if (blockedByStaticMode('la modification d\'une complétion')) return;
+  const fd = new FormData(form);
+  const newBody = (fd.get('body') || '').trim();
+  const payload = {
+    changes: { body: newBody },
+    note: fd.get('note') || '',
+    submittedBy: extractSubmittedBy(fd),
+    newPerson: extractNewPerson(fd),
+  };
+  try {
+    const res = await fetch(`/api/stories/${encodeURIComponent(sid)}/completions/${encodeURIComponent(cid)}/edits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    document.getElementById('dlg-edit-completion').close('submit');
+    alert(data.message || 'Proposition envoyée — en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }
@@ -492,6 +562,7 @@ formEdit.addEventListener('submit', async (e) => {
     changes,
     note: fd.get('note') || '',
     submittedBy: extractSubmittedBy(fd),
+    newPerson: extractNewPerson(fd),
   };
 
   try {
