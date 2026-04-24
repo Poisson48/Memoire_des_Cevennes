@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signaler un contenu — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
+</head>
+<body class="legal-body">
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1>Signaler un contenu</h1>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <article>
+      <p>
+        Si un contenu porte atteinte à vos droits (image, nom, vie privée,
+        droit d'auteur) ou enfreint la loi, vous pouvez le signaler via
+        ce formulaire. L'association <strong data-todo>[nom]</strong>
+        étudiera votre demande et répondra sous <strong>72 heures ouvrées</strong>.
+      </p>
+
+      <form id="form-report" class="legal-form">
+        <label>URL ou identifiant du contenu concerné
+          <input type="text" name="target" required maxlength="500"
+                 placeholder="Ex. https://…/lieu/mas-de-la-coste, ou « fiche de Jean Dupont »" />
+        </label>
+        <label>Nature du problème
+          <select name="category" required>
+            <option value="">— choisir —</option>
+            <option value="privacy">Atteinte à la vie privée / à l'image</option>
+            <option value="defamation">Diffamation / propos injurieux</option>
+            <option value="copyright">Droit d'auteur (contenu non autorisé)</option>
+            <option value="minor">Contenu concernant un mineur</option>
+            <option value="other">Autre</option>
+          </select>
+        </label>
+        <label>Description précise
+          <textarea name="description" rows="5" required maxlength="5000"
+                    placeholder="Expliquez la raison du signalement — l'association en a besoin pour statuer."></textarea>
+        </label>
+        <label>Votre identité (facultatif mais utile pour vous recontacter)
+          <input type="text" name="name" maxlength="120" placeholder="Nom / prénom" />
+        </label>
+        <label>Votre e-mail (facultatif)
+          <input type="email" name="email" maxlength="160" />
+        </label>
+        <p class="dialog-note">
+          📩 Votre signalement sera traité par l'équipe d'administration de
+          l'association. Les données restent confidentielles et ne sont pas
+          publiées.
+        </p>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Envoyer le signalement</button>
+        </div>
+      </form>
+
+      <div id="form-result" hidden></div>
+    </article>
+  </main>
+
+  <footer class="legal-footer">
+    <p><a href="legal/mentions.html">Mentions légales</a> · <a href="legal/confidentialite.html">Confidentialité</a></p>
+  </footer>
+
+  <script>
+    document.getElementById('form-report').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const payload = Object.fromEntries(fd.entries());
+      const result = document.getElementById('form-result');
+      try {
+        const res = await fetch('/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        e.target.hidden = true;
+        result.hidden = false;
+        result.innerHTML = '<p class="success">✓ Signalement enregistré. Nous revenons vers vous sous 72&nbsp;heures ouvrées.</p>';
+      } catch (err) {
+        result.hidden = false;
+        result.innerHTML = '<p class="error">✖ Erreur : ' + err.message + '</p>';
+      }
+    });
+  </script>
+</body>
+</html>

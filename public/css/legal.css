@@ -1,0 +1,121 @@
+/* Pages légales — rendu typographique lisible en lecture longue. */
+.legal-body {
+  background: var(--bg);
+  color: var(--fg);
+  overflow: auto;
+}
+.legal-main {
+  max-width: 760px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
+  line-height: 1.55;
+  font-size: 1rem;
+}
+.legal-main article > h2 {
+  margin-top: 2rem;
+  color: var(--accent-dark);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2rem;
+}
+.legal-main ul,
+.legal-main ol { padding-left: 1.4rem; }
+.legal-main li { margin: 0.25rem 0; }
+
+.rgpd-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 2rem;
+  font-size: 0.92rem;
+}
+.rgpd-table th,
+.rgpd-table td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.6rem;
+  vertical-align: top;
+  text-align: left;
+}
+.rgpd-table thead th { background: var(--panel-bg); }
+
+[data-todo] {
+  background: #fff6c9;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  border: 1px dashed #b5964a;
+  font-style: italic;
+}
+
+.legal-footer {
+  max-width: 760px;
+  margin: 0 auto 2rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.legal-footer a { color: var(--accent-dark); }
+
+.legal-version {
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 2rem;
+}
+
+.legal-form label {
+  display: block;
+  margin: 0.8rem 0;
+  font-weight: 600;
+}
+.legal-form input,
+.legal-form select,
+.legal-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-bg);
+  color: var(--fg);
+  font-weight: normal;
+}
+.legal-form .actions { margin-top: 1rem; }
+
+.legal-main p.success {
+  color: #2a6e40;
+  background: #e3f5ea;
+  border: 1px solid #b3dcc2;
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+}
+.legal-main p.error {
+  color: #7a2c2c;
+  background: #fbe7e7;
+  border: 1px solid #e1b3b3;
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+}
+
+/* Bandeau footer commun ajouté sur les pages principales. */
+.site-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(251, 247, 239, 0.92);
+  border-top: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  z-index: 400;
+  pointer-events: none;
+}
+.site-footer a {
+  color: var(--accent-dark);
+  text-decoration: none;
+  pointer-events: auto;
+}
+.site-footer a:hover { text-decoration: underline; }
+.site-footer .sep { margin: 0 0.5rem; color: var(--border); }
+@media (max-width: 600px) {
+  .site-footer { font-size: 0.72rem; padding: 0.3rem 0.5rem; }
+}

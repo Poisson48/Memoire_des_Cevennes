@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consentement témoin — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/legal.css" />
+  <style>
+    @media print {
+      .topbar, .legal-footer, .btn-ghost { display: none !important; }
+      body { color: #000; background: #fff; }
+      .legal-main { max-width: none; padding: 0; }
+      .consent-fields { page-break-inside: avoid; }
+    }
+    .consent-fields { border: 1px solid var(--border); padding: 1rem; margin-top: 1rem; }
+    .consent-fields .field { margin: 0.7rem 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .consent-fields label { min-width: 180px; }
+    .consent-fields .fill { flex: 1; min-width: 220px; border-bottom: 1px solid #333; min-height: 1.4em; }
+    .consent-fields .choice { display: flex; gap: 1rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body class="legal-body">
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1>Formulaire de consentement — Témoin</h1>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" onclick="window.print()" class="btn-primary">🖨️ Imprimer</button>
+      <a href="../index.html" class="btn-ghost">← Retour</a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <article>
+      <p>
+        À imprimer et faire signer <strong>avant</strong> tout enregistrement
+        audio ou vidéo d'une personne, ou toute publication d'une photographie
+        l'identifiant nommément. À conserver dans les archives de
+        l'association.
+      </p>
+
+      <section class="consent-fields">
+        <h2>Identité du témoin</h2>
+        <div class="field"><label>Nom et prénom :</label><span class="fill"></span></div>
+        <div class="field"><label>Né·e le :</label><span class="fill"></span></div>
+        <div class="field"><label>Adresse :</label><span class="fill"></span></div>
+        <div class="field"><label>Téléphone / e-mail :</label><span class="fill"></span></div>
+
+        <h2>Contenu collecté</h2>
+        <div class="field"><label>Description (sujet, forme) :</label><span class="fill"></span></div>
+        <div class="field"><label>Date de l'enregistrement :</label><span class="fill"></span></div>
+        <div class="field"><label>Lieu :</label><span class="fill"></span></div>
+        <div class="field"><label>Personne qui recueille :</label><span class="fill"></span></div>
+
+        <h2>Autorisation de publication</h2>
+        <p>Je consens à la publication de ce contenu par l'association Mémoire des Cévennes :</p>
+        <div class="choice">
+          <label><input type="checkbox" /> <strong>En visibilité publique</strong> (accessible à toute personne visitant le site)</label>
+          <label><input type="checkbox" /> <strong>En visibilité membres</strong> (réservée aux membres connectés de l'association)</label>
+          <label><input type="checkbox" /> <strong>Usage interne uniquement</strong> (archivage, aucune publication)</label>
+        </div>
+
+        <h2>Droit de retrait</h2>
+        <p>
+          Je peux demander à tout moment le retrait partiel ou total de ce
+          contenu, sur simple demande écrite à
+          <strong data-todo>contact@memoiredescevennes.fr</strong>. L'association
+          procédera au retrait dans un délai maximal de 30 jours.
+        </p>
+
+        <h2>Signature</h2>
+        <div class="field"><label>Fait à :</label><span class="fill"></span><label>le</label><span class="fill"></span></div>
+        <div class="field"><label>Signature du témoin :</label><span class="fill" style="min-height: 3em"></span></div>
+        <div class="field"><label>Signature du recueilleur :</label><span class="fill" style="min-height: 3em"></span></div>
+        <p><small>Pour un témoin mineur : signature du représentant légal obligatoire.</small></p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="legal-footer">
+    <p>Version 1.0 — Mémoire des Cévennes.</p>
+  </footer>
+</body>
+</html>
