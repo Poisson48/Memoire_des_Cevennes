@@ -56,11 +56,25 @@ addBtn.addEventListener('click', () => {
 map.on('click', (e) => {
   if (!state.addMode) return;
   pendingLatLng = e.latlng;
-  document.getElementById('place-coords').textContent =
-    `📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
-  formPlace.reset();
-  dlgPlace.showModal();
+  renderPlaceCoords(e.latlng);
+  if (!dlgPlace.open) {
+    formPlace.reset();
+    dlgPlace.showModal();
+  }
 });
+
+// Exposé (hoisted, scope script) pour que js/geo.js puisse corriger la
+// position pendant que la modale est ouverte — bouton « Utiliser ma
+// position » à l'intérieur du dialogue.
+function setPendingLatLng(latlng) {
+  pendingLatLng = latlng;
+  renderPlaceCoords(latlng);
+}
+
+function renderPlaceCoords(latlng) {
+  document.getElementById('place-coords').textContent =
+    `📍 ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+}
 
 formPlace.addEventListener('close', async () => {
   if (dlgPlace.returnValue !== 'submit' || !pendingLatLng) {
