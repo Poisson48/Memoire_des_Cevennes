@@ -106,15 +106,27 @@ function refreshMarkers() {
 }
 
 function applyMode() {
+  // Que l'on soit en mode statique (preview) ou live, on affiche les mêmes
+  // fonctionnalités. Seule la soumission finale est bloquée en statique
+  // avec un message explicatif, pour que la preview serve vraiment de
+  // preview.
   if (state.mode === 'static') {
     const dismissed = (() => { try { return localStorage.getItem(BANNER_DISMISSED_KEY) === '1'; } catch { return false; } })();
     readonlyBanner.hidden = dismissed;
-    addBtn.textContent = '🔒 Lecture seule';
-    addBtn.classList.add('btn-locked');
   } else {
     readonlyBanner.hidden = true;
-    addBtn.classList.remove('btn-locked');
   }
+}
+
+// Garde partagée : en mode statique, aucune écriture n'aboutit ; on
+// affiche un message explicite au lieu de feindre. Retourne true si
+// on est en statique (l'appelant doit abandonner).
+function blockedByStaticMode(what = 'Cette action') {
+  if (state.mode === 'static') {
+    alert(`Aperçu en lecture seule — ${what} est visible pour montrer le design, mais aucun envoi n'est effectué.\n\nPour contribuer vraiment : clone le dépôt et lance \`./run.sh\` en local.`);
+    return true;
+  }
+  return false;
 }
 
 // ─── Routage hash ───────────────────────────────────────────────────────
@@ -195,12 +207,11 @@ function openPlacePanel(placeId) {
     return `<span class="chip">${escapeHtml(a.name)}${ctx ? ` <em>(${escapeHtml(ctx)})</em>` : ''}</span>`;
   }).join('');
 
-  const actions = state.mode === 'live'
-    ? `<div class="entity-actions">
-         <button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>
-         <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
-       </div>`
-    : '';
+  const actions = `
+    <div class="entity-actions">
+      <button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>
+      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
+    </div>`;
 
   openPanel(`
     <div class="entity-header">
@@ -266,11 +277,10 @@ function openPersonPanel(personId) {
   ].filter(Boolean).join(' · ');
 
   const hasFamily = parentLinks || spouseLinks || childLinks;
-  const actions = state.mode === 'live'
-    ? `<div class="entity-actions">
-         <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
-       </div>`
-    : '';
+  const actions = `
+    <div class="entity-actions">
+      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
+    </div>`;
 
   openPanel(`
     <div class="entity-header">

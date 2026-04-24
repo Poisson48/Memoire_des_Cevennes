@@ -40,10 +40,6 @@ let addMode = false;
 let pendingLatLng = null;
 
 addBtn.addEventListener('click', () => {
-  if (state.mode === 'static') {
-    alert('Cette page est un aperçu en lecture seule. Lance l\'application localement (./run.sh) pour contribuer.');
-    return;
-  }
   addMode = !addMode;
   addHint.hidden = !addMode;
   addBtn.textContent = addMode ? '✕ Annuler' : '+ Ajouter un lieu';
@@ -61,6 +57,9 @@ map.on('click', (e) => {
 
 formPlace.addEventListener('close', async () => {
   if (dlgPlace.returnValue !== 'submit' || !pendingLatLng) {
+    resetAddMode(); return;
+  }
+  if (blockedByStaticMode('l\'ajout d\'un lieu')) {
     resetAddMode(); return;
   }
   const fd = new FormData(formPlace);
@@ -188,6 +187,7 @@ formStory.addEventListener('submit', async (e) => {
   e.preventDefault();
   const placeId = formStory.dataset.placeId;
   if (!placeId) return;
+  if (blockedByStaticMode('l\'ajout d\'un contenu')) return;
   const fd = new FormData(formStory);
   const payload = {
     placeId,
@@ -426,6 +426,7 @@ formEdit.addEventListener('submit', async (e) => {
     alert('Aucun changement détecté.');
     return;
   }
+  if (blockedByStaticMode('la proposition de modification')) return;
 
   const payload = {
     changes,
