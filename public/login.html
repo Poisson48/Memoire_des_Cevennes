@@ -72,6 +72,23 @@
     .auth-switch a {
       color: var(--accent);
     }
+    .auth-intro {
+      color: var(--muted);
+      margin: 0 0 1rem;
+      font-size: 0.92rem;
+    }
+    .auth-sep {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.4rem 0 0.8rem;
+    }
+    .auth-admin-note {
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-align: center;
+      margin: 0;
+    }
+    .auth-admin-note a { color: var(--accent-dark); }
   </style>
 </head>
 <body>
@@ -87,7 +104,10 @@
 
   <main class="auth-main">
     <div class="auth-card">
-      <h2>Connexion</h2>
+      <h2>Espace membre</h2>
+      <p class="auth-intro">
+        Connecte-toi pour consulter le contenu réservé aux membres et contribuer aux récits.
+      </p>
       <div id="auth-error" class="auth-error" hidden></div>
       <form id="form-login" novalidate>
         <label>Adresse e-mail
@@ -101,6 +121,10 @@
         </div>
       </form>
       <p class="auth-switch">Pas encore de compte ? <a href="register.html">S'inscrire</a></p>
+      <hr class="auth-sep" />
+      <p class="auth-admin-note">
+        🛡️ Tu es administrateur ? L'accès se fait sur la <a href="admin.html">page d'administration</a>.
+      </p>
     </div>
   </main>
 
@@ -128,7 +152,12 @@
         });
         const json = await res.json();
         if (!res.ok) {
-          errEl.textContent = json.error || 'Identifiants incorrects.';
+          if (json.adminLoginUrl) {
+            errEl.innerHTML = (json.error || 'Compte admin — utilise la page admin.')
+              + ' <a href="' + json.adminLoginUrl + '">Aller sur /admin.html</a>';
+          } else {
+            errEl.textContent = json.error || 'Identifiants incorrects.';
+          }
           errEl.hidden = false;
           return;
         }

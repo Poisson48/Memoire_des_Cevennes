@@ -16,21 +16,37 @@ const ADMIN_TOKEN = () => process.env.ADMIN_TOKEN || '';
 // ── Admin (compat X-Admin-Token) ──────────────────────────────────────────
 
 function requireAdmin(req, res, next) {
-  const token = ADMIN_TOKEN();
-  if (!token) {
+  // 1) Compte admin via cookie admin_jwt (séparé du cookie membre "token")
+  const cookieHeader = req.header('cookie') || '';
+  const adminJwtPart = cookieHeader.split(';').map(s => s.trim())
+    .find(s => s.startsWith('admin_jwt='));
+  const adminJwt = adminJwtPart ? decodeURIComponent(adminJwtPart.slice('admin_jwt='.length)) : '';
+  if (adminJwt) {
+    const payload = verifyToken(adminJwt);
+    if (payload && payload.role === 'admin') {
+      req.member = normalizeMember(payload);
+      return next();
+    }
+  }
+
+  // 2) Compatibilité ascendante : ADMIN_TOKEN partagé (header X-Admin-Token
+  // ou cookie admin_token=). Utile pour bootstrap sans login.
+  const sharedToken = ADMIN_TOKEN();
+  if (!sharedToken && !adminJwt) {
     return res.status(503).json({
       error: 'Aucun ADMIN_TOKEN configuré côté serveur — définir ADMIN_TOKEN=… avant de lancer.',
     });
   }
   const header = req.header('x-admin-token') || '';
-  const cookieHeader = req.header('cookie') || '';
-  const cookiePart = cookieHeader.split(';').map(s => s.trim())
+  const sharedCookiePart = cookieHeader.split(';').map(s => s.trim())
     .find(s => s.startsWith('admin_token='));
-  const cookieToken = cookiePart ? decodeURIComponent(cookiePart.slice('admin_token='.length)) : '';
-  if (header !== token && cookieToken !== token) {
-    return res.status(401).json({ error: 'Token admin invalide' });
+  const sharedCookieToken = sharedCookiePart
+    ? decodeURIComponent(sharedCookiePart.slice('admin_token='.length))
+    : '';
+  if (sharedToken && (header === sharedToken || sharedCookieToken === sharedToken)) {
+    return next();
   }
-  next();
+  return res.status(401).json({ error: 'Authentification admin requise.' });
 }
 
 // ── Auth membre (JWT cookie "token") ──────────────────────────────────────

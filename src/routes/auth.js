@@ -7,6 +7,7 @@
 // GET  /api/auth/me        — profil du membre connecté
 
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { createMember, login } = require('../auth');
 const { optionalAuth } = require('../middleware');
 
@@ -46,6 +47,9 @@ router.post('/register', async (req, res, next) => {
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────
+// Login membre — refuse les comptes admin (séparation des deux espaces).
+// Les admins se connectent via /admin.html avec X-Admin-Token, ou via
+// /api/auth/admin-login s'ils veulent leur cookie JWT admin.
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
@@ -58,8 +62,39 @@ router.post('/login', async (req, res, next) => {
         error: 'Identifiants invalides ou compte non approuvé.',
       });
     }
+    const payload = jwt.decode(token);
+    if (payload && payload.role === 'admin') {
+      return res.status(403).json({
+        error: 'Compte administrateur — connecte-toi via /admin.html',
+        adminLoginUrl: '/admin.html',
+      });
+    }
     res.cookie('token', token, cookieOpts());
-    res.json({ ok: true });
+    res.json({ ok: true, role: payload && payload.role });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /api/auth/admin-login ────────────────────────────────────────────
+// Login admin par email + mot de passe. N'accepte QUE role==admin.
+// Pose un cookie séparé "admin_jwt" pour que les sessions ne se mélangent pas.
+router.post('/admin-login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email et password sont requis.' });
+    }
+    const token = await login(email, password);
+    if (!token) {
+      return res.status(401).json({ error: 'Identifiants invalides ou compte non approuvé.' });
+    }
+    const payload = jwt.decode(token);
+    if (!payload || payload.role !== 'admin') {
+      return res.status(403).json({ error: "Ce compte n'a pas le rôle administrateur." });
+    }
+    res.cookie('admin_jwt', token, cookieOpts());
+    res.json({ ok: true, member: { id: payload.sub, email: payload.email, name: payload.name, role: payload.role } });
   } catch (err) {
     next(err);
   }
@@ -67,7 +102,8 @@ router.post('/login', async (req, res, next) => {
 
 // ── POST /api/auth/logout ─────────────────────────────────────────────────
 router.post('/logout', (_req, res) => {
-  res.clearCookie('token', { path: '/' });
+  res.clearCookie('token',     { path: '/' });
+  res.clearCookie('admin_jwt', { path: '/' });
   res.json({ ok: true });
 });
 

@@ -88,23 +88,36 @@ async function fetchMe() {
  *   - connecté     → nom + bouton « Déconnexion »
  */
 function renderAuthNav() {
-  if (!authNav) return;
-  if (!state.member) {
-    authNav.innerHTML = `<a href="/login.html" class="btn-ghost btn-sm">Se connecter</a>`;
+  // Cible les boutons du topbar de index.html.
+  const loginBtn   = document.getElementById('btn-member-login');
+  const logoutBtn  = document.getElementById('btn-member-logout');
+  const greeting   = document.getElementById('member-greeting');
+
+  if (!loginBtn || !logoutBtn || !greeting) {
+    // Page sans ces hooks (login/register/admin) — rien à faire.
     return;
   }
-  authNav.innerHTML = `
-    <span class="auth-name">${escapeHtml(state.member.name)}</span>
-    <button type="button" class="btn-ghost btn-sm" id="btn-logout">Déconnexion</button>
-  `;
-  document.getElementById('btn-logout').addEventListener('click', async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-    } catch { /* ignore */ }
+
+  if (!state.member) {
+    loginBtn.hidden  = false;
+    logoutBtn.hidden = true;
+    greeting.hidden  = true;
+    return;
+  }
+
+  loginBtn.hidden  = true;
+  logoutBtn.hidden = false;
+  greeting.hidden  = false;
+  greeting.textContent = `👤 ${state.member.name}`;
+
+  // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
+  logoutBtn.onclick = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
     state.member = null;
     renderAuthNav();
     applyMode();
-  });
+    location.reload();
+  };
 }
 
 // ─── Chargement données ─────────────────────────────────────────────────
