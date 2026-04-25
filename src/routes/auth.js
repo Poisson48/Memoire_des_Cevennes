@@ -8,10 +8,39 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { rateLimit } = require('express-rate-limit');
 const { createMember, login } = require('../auth');
 const { optionalAuth } = require('../middleware');
 
 const router = express.Router();
+
+// ── Rate limiters ─────────────────────────────────────────────────────────
+// Pour qu'ils soient corrects derrière un reverse proxy (Caddy en prod), il
+// faut que le serveur Express ait `app.set("trust proxy", 1)` pour récupérer
+// la vraie IP. C'est fait dans server.js si NODE_ENV=production.
+//
+// Limites volontairement strictes — on accepte de gêner un user honnête qui
+// se trompe 5 fois plutôt que d'autoriser un brute-force en ligne.
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,            // 15 minutes
+  limit: 5,                            // 5 tentatives par fenêtre
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives — réessaie dans 15 minutes.' },
+  // Ne compte que les échecs : si le user se connecte du premier coup,
+  // ses 4 essais "réussis" précédents (en SSO multi-onglets par ex.) ne
+  // déclenchent pas le verrou.
+  skipSuccessfulRequests: true,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,            // 1 heure
+  limit: 5,                            // 5 inscriptions max / IP / heure
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Trop d\'inscriptions depuis cette adresse — réessaie plus tard.' },
+});
 
 /** Options du cookie JWT. */
 const cookieOpts = () => ({
@@ -23,7 +52,7 @@ const cookieOpts = () => ({
 });
 
 // ── POST /api/auth/register ───────────────────────────────────────────────
-router.post('/register', async (req, res, next) => {
+router.post('/register', registerLimiter, async (req, res, next) => {
   try {
     const { name, email, password, consentGiven } = req.body || {};
     if (!name || !email || !password) {
@@ -50,7 +79,7 @@ router.post('/register', async (req, res, next) => {
 // Login membre — refuse les comptes admin (séparation des deux espaces).
 // Les admins se connectent via /admin.html avec X-Admin-Token, ou via
 // /api/auth/admin-login s'ils veulent leur cookie JWT admin.
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
@@ -79,7 +108,7 @@ router.post('/login', async (req, res, next) => {
 // ── POST /api/auth/admin-login ────────────────────────────────────────────
 // Login admin par email + mot de passe. N'accepte QUE role==admin.
 // Pose un cookie séparé "admin_jwt" pour que les sessions ne se mélangent pas.
-router.post('/admin-login', async (req, res, next) => {
+router.post('/admin-login', loginLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
