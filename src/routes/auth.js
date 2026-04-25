@@ -122,7 +122,12 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     if (!payload || payload.role !== 'admin') {
       return res.status(403).json({ error: "Ce compte n'a pas le rôle administrateur." });
     }
+    // Double cookie : un admin est techniquement aussi un membre — il peut
+    // contribuer comme un contributeur. On pose donc admin_jwt (pour les
+    // routes /api/admin/*) ET token (pour optionalAuth / requireAuth sur
+    // les routes membres).
     res.cookie('admin_jwt', token, cookieOpts());
+    res.cookie('token',     token, cookieOpts());
     res.json({ ok: true, member: { id: payload.sub, email: payload.email, name: payload.name, role: payload.role } });
   } catch (err) {
     next(err);

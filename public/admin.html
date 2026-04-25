@@ -78,6 +78,34 @@
       <div id="queue" class="queue"></div>
 
       <div id="members" class="queue" hidden>
+        <details class="member-create">
+          <summary>➕ Créer un compte (membre, contributeur ou admin)</summary>
+          <form id="form-create-member" class="legal-form" style="margin-top:0.8rem;">
+            <label>Nom
+              <input type="text" name="name" required maxlength="120" />
+            </label>
+            <label>Adresse e-mail
+              <input type="email" name="email" required maxlength="160" />
+            </label>
+            <label>Mot de passe initial
+              <input type="text" name="password" required minlength="8"
+                     placeholder="8 caractères minimum" />
+              <span class="hint">À communiquer au membre, qui pourra le changer.</span>
+            </label>
+            <label>Rôle
+              <select name="role">
+                <option value="member">Membre (lecteur)</option>
+                <option value="contributor" selected>Contributeur (peut ajouter du contenu)</option>
+                <option value="admin">Admin (toutes permissions)</option>
+              </select>
+            </label>
+            <div id="create-member-error" class="auth-error" hidden></div>
+            <div id="create-member-success" class="hint" hidden style="color:#2a6e40;"></div>
+            <div class="actions">
+              <button type="submit" class="btn-primary">Créer le compte</button>
+            </div>
+          </form>
+        </details>
         <h3>Inscriptions en attente</h3>
         <div id="members-pending"></div>
         <h3>Membres actifs</h3>

@@ -376,6 +376,42 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str); }
 
 // ── Membres ────────────────────────────────────────────────────────────
+// Formulaire de création directe d'un compte (admin seulement, route protégée)
+const formCreateMember = document.getElementById('form-create-member');
+if (formCreateMember) {
+  formCreateMember.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('create-member-error');
+    const okEl  = document.getElementById('create-member-success');
+    errEl.hidden = true; okEl.hidden = true;
+    const fd = new FormData(formCreateMember);
+    try {
+      const res = await fetch('/api/admin/members', authFetchOpts({
+        method: 'POST',
+        body: JSON.stringify({
+          name:     fd.get('name'),
+          email:    fd.get('email'),
+          password: fd.get('password'),
+          role:     fd.get('role'),
+        }),
+      }));
+      const j = await res.json();
+      if (!res.ok) {
+        errEl.textContent = j.error || 'Erreur';
+        errEl.hidden = false;
+        return;
+      }
+      okEl.textContent = `✓ Compte créé : ${j.member.email} (${j.member.role})`;
+      okEl.hidden = false;
+      formCreateMember.reset();
+      refreshMembers();
+    } catch (err) {
+      errEl.textContent = 'Serveur injoignable : ' + err.message;
+      errEl.hidden = false;
+    }
+  });
+}
+
 async function refreshMembers() {
   document.getElementById('members-pending').innerHTML = '<p class="empty">Chargement…</p>';
   document.getElementById('members-active').innerHTML  = '';

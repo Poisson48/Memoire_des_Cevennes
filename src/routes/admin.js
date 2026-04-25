@@ -25,6 +25,33 @@ router.get('/members', (req, res) => {
   res.json({ members });
 });
 
+// Création d'un compte directement par un admin — déjà actif, rôle au choix.
+// L'admin choisit un mot de passe initial (à changer par le membre ensuite).
+router.post('/members', async (req, res, next) => {
+  try {
+    const { name, email, password, role } = req.body || {};
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'name, email et password sont requis.' });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères.' });
+    }
+    const validRoles = ['member', 'contributor', 'admin'];
+    const wantedRole = validRoles.includes(role) ? role : 'member';
+    const member = await auth.createMember(email, password, name, {
+      role: wantedRole,
+      status: 'active',
+      createdByAdmin: req.member ? req.member.id : null,
+    });
+    res.status(201).json({ ok: true, member, message: 'Compte créé et activé.' });
+  } catch (err) {
+    if (err.message && err.message.includes('existe déjà')) {
+      return res.status(409).json({ error: err.message });
+    }
+    next(err);
+  }
+});
+
 router.post('/members/:id/approve', (req, res, next) => {
   try {
     const member = auth.approveMember(req.params.id);
