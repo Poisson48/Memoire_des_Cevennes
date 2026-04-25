@@ -137,6 +137,14 @@
   font-style: italic;
 }
 
+.btn-delete {
+  border-color: #b85a5a;
+  color: #b85a5a;
+}
+.btn-delete:hover {
+  background: rgba(184, 90, 90, 0.10);
+}
+
 .member-create {
   background: var(--panel-bg);
   border: 1px solid var(--border);

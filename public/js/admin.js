@@ -318,7 +318,8 @@ function renderEdit(qi) {
 function renderActions() {
   return `
     <div class="item-actions">
-      <button type="button" class="btn-ghost btn-reject" data-action="reject">✗ Refuser</button>
+      <button type="button" class="btn-ghost btn-delete"  data-action="delete">🗑️ Supprimer</button>
+      <button type="button" class="btn-ghost btn-reject"  data-action="reject">✗ Refuser</button>
       <button type="button" class="btn-primary btn-approve" data-action="approve">✓ Approuver</button>
     </div>
   `;
@@ -336,9 +337,23 @@ async function handleAction(btn) {
     reason = prompt('Motif du refus (sera visible dans les archives) :', '');
     if (reason === null) return;
   }
+  if (action === 'delete') {
+    if (!confirm('Suppression DÉFINITIVE — cette contribution sera retirée de la base et ses médias effacés du serveur. Continuer ?')) return;
+  }
 
-  let url;
-  if (kind === 'edit') {
+  let url, method = 'POST';
+  if (action === 'delete') {
+    method = 'DELETE';
+    if (kind === 'completion') {
+      url = `/api/admin/stories/${encodeURIComponent(card.dataset.storyId)}/completions/${encodeURIComponent(id)}`;
+    } else if (kind === 'edit') {
+      // Pour les propositions de modification, "supprimer" = "rejeter" sans motif.
+      url = `/api/admin/edits/${encodeURIComponent(id)}/reject`;
+      method = 'POST';
+    } else {
+      url = `/api/admin/${type}/${encodeURIComponent(id)}`;
+    }
+  } else if (kind === 'edit') {
     url = `/api/admin/edits/${encodeURIComponent(id)}/${action}`;
   } else if (kind === 'completion') {
     url = `/api/admin/stories/${encodeURIComponent(card.dataset.storyId)}/completions/${encodeURIComponent(id)}/${action}`;
@@ -347,11 +362,10 @@ async function handleAction(btn) {
   }
 
   try {
-    await fetchJson(url, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ reviewer: reviewer(), reason }),
-    });
+    await fetchJson(url, authFetchOpts({
+      method,
+      body: method === 'DELETE' ? undefined : JSON.stringify({ reviewer: reviewer(), reason }),
+    }));
     card.style.opacity = '0.5';
     setTimeout(refresh, 300);
   } catch (err) {

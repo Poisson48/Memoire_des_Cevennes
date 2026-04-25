@@ -103,7 +103,25 @@ function pendingCompletions() {
   return out;
 }
 
+async function remove(id) {
+  return storage.mutate('stories', (stories) => {
+    const i = stories.findIndex(s => s.id === id);
+    if (i < 0) return null;
+    return stories.splice(i, 1)[0];
+  });
+}
+
+async function removeCompletion(storyId, completionId) {
+  return storage.mutate('stories', (stories) => {
+    const story = stories.find(s => s.id === storyId);
+    if (!story || !Array.isArray(story.completions)) return null;
+    const i = story.completions.findIndex(c => c.id === completionId);
+    if (i < 0) return null;
+    return story.completions.splice(i, 1)[0];
+  });
+}
+
 module.exports = {
-  list, get, create, patch, rolesForEntity,
-  addCompletion, patchCompletion, pendingCompletions,
+  list, get, create, patch, remove, rolesForEntity,
+  addCompletion, patchCompletion, removeCompletion, pendingCompletions,
 };

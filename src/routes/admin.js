@@ -5,12 +5,27 @@
 // doivent être déclarées AVANT la wildcard /:type/:id/*, sinon Express
 // matche la wildcard en premier et on se retrouve avec targetType='edits'.
 const express = require('express');
+const fs   = require('fs');
+const path = require('path');
 const moderation = require('../moderation');
 const edits = require('../edits');
 const stories = require('../stories');
+const places = require('../places');
+const people = require('../people');
 const auth = require('../auth');
 const activityLog = require('../activityLog');
 const { requireAdmin } = require('../middleware');
+
+const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
+
+// Supprime récursivement le dossier d'uploads d'un récit (médias attachés).
+function removeStoryMedia(storyId) {
+  const dir = path.join(UPLOADS_DIR, storyId);
+  if (fs.existsSync(dir)) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); }
+    catch (e) { console.warn(`[admin/delete] échec rm uploads/${storyId} :`, e.message); }
+  }
+}
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -151,6 +166,42 @@ router.post('/:type(places|people|stories)/:id/reject', async (req, res, next) =
     const updated = await moderation.reject(req.params.type, req.params.id, { reviewer, reason });
     if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
     res.json({ item: updated });
+  } catch (err) { next(err); }
+});
+
+// ─── Suppression définitive ──────────────────────────────────────────
+// Différent du "Refuser" qui passe juste status=rejected. Ici on retire
+// l'entrée de la base + médias sur disque (pour les récits).
+router.delete('/places/:id',  async (req, res, next) => {
+  try {
+    const removed = await places.remove(req.params.id);
+    if (!removed) return res.status(404).json({ error: 'Lieu introuvable' });
+    res.json({ ok: true, removed });
+  } catch (err) { next(err); }
+});
+
+router.delete('/people/:id',  async (req, res, next) => {
+  try {
+    const removed = await people.remove(req.params.id);
+    if (!removed) return res.status(404).json({ error: 'Personne introuvable' });
+    res.json({ ok: true, removed });
+  } catch (err) { next(err); }
+});
+
+router.delete('/stories/:id', async (req, res, next) => {
+  try {
+    const removed = await stories.remove(req.params.id);
+    if (!removed) return res.status(404).json({ error: 'Récit introuvable' });
+    removeStoryMedia(req.params.id);
+    res.json({ ok: true, removed });
+  } catch (err) { next(err); }
+});
+
+router.delete('/stories/:storyId/completions/:completionId', async (req, res, next) => {
+  try {
+    const removed = await stories.removeCompletion(req.params.storyId, req.params.completionId);
+    if (!removed) return res.status(404).json({ error: 'Complétion introuvable' });
+    res.json({ ok: true, removed });
   } catch (err) { next(err); }
 });
 
