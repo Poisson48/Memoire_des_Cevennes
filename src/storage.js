@@ -19,8 +19,13 @@ const KEY = {
 };
 
 function load(name) {
-  const raw = fs.readFileSync(FILES[name], 'utf8');
-  return JSON.parse(raw);
+  try {
+    const raw = fs.readFileSync(FILES[name], 'utf8');
+    return JSON.parse(raw);
+  } catch (e) {
+    if (e.code === 'ENOENT') return { [KEY[name]]: [], updatedAt: null };
+    throw e;
+  }
 }
 
 function save(name, db) {
