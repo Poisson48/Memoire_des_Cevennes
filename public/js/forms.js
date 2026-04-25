@@ -40,6 +40,53 @@ dlgComplete.querySelectorAll('[data-close]').forEach(b =>
 storyType.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
 
+// Rendu dynamique des prévisualisations + champ « Légende » par fichier
+// sélectionné. Mis à jour à chaque changement de l'input fichier.
+storyMediaInput.addEventListener('change', renderMediaCaptions);
+function renderMediaCaptions() {
+  const div = document.getElementById('story-media-captions');
+  if (!div) return;
+  div.innerHTML = '';
+  const files = Array.from(storyMediaInput.files || []);
+  if (!files.length) return;
+  files.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.className = 'media-caption-row';
+
+    const thumb = document.createElement('div');
+    thumb.className = 'media-thumb';
+    if (f.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      img.onload = () => URL.revokeObjectURL(img.src);
+      thumb.appendChild(img);
+    } else {
+      const icon =
+        f.type.startsWith('audio/') ? '🎙️' :
+        f.type.startsWith('video/') ? '🎬' : '📎';
+      thumb.textContent = icon;
+    }
+
+    const right = document.createElement('div');
+    right.className = 'media-cap-right';
+    const fname = document.createElement('div');
+    fname.className = 'media-fname';
+    fname.textContent = f.name;
+    const cap = document.createElement('input');
+    cap.type = 'text';
+    cap.name = `caption_${i}`;
+    cap.placeholder = 'Légende (facultatif)';
+    cap.maxLength = 500;
+    cap.className = 'media-caption-input';
+
+    right.appendChild(fname);
+    right.appendChild(cap);
+    row.appendChild(thumb);
+    row.appendChild(right);
+    div.appendChild(row);
+  });
+}
+
 // ── Flux 1 : ajouter un lieu ───────────────────────────────────────────
 // `state.addMode` est partagé (défini dans app.js) — on en lit la valeur
 // aussi depuis refreshMarkers() pour que les marqueurs existants ne
@@ -120,6 +167,10 @@ function resetAddMode() {
 // ── Flux 2 : ajouter un contenu (texte / photo / audio / vidéo / …) ────
 function openStoryDialog(placeId) {
   formStory.reset();
+  // formStory.reset() vide l'input fichier mais ne déclenche pas 'change' :
+  // on nettoie manuellement la liste des légendes.
+  const capsDiv = document.getElementById('story-media-captions');
+  if (capsDiv) capsDiv.innerHTML = '';
   resetRecorderIfAvailable();
   updateStoryMediaVisibility();
   formStory.dataset.placeId = placeId;
@@ -290,6 +341,8 @@ formStory.addEventListener('submit', async (e) => {
 
     // Fichiers sélectionnés (plusieurs possibles) + enregistrement in-browser.
     // On passe chaque fichier dans le compresseur client avant upload.
+    // Les légendes saisies sont envoyées dans des champs `captions[]` du
+    // même ordre que les fichiers — multer les récupère via req.body.
     const mediaForm = new FormData();
     let added = 0;
     const filesToProcess = [...(storyMediaInput.files || [])];
@@ -301,11 +354,14 @@ formStory.addEventListener('submit', async (e) => {
         : `${file.name}`;
       const result = await runCompression(file, label);
       mediaForm.append('media', result.blob, result.filename || file.name);
+      const cap = document.querySelector(`#dlg-story input[name="caption_${idx}"]`)?.value || '';
+      mediaForm.append('captions', cap);
       added++;
     }
     if (recordedBlob) {
       const ext = (recordedBlob.type.includes('webm') ? 'webm' : 'ogg');
       mediaForm.append('media', recordedBlob, `enregistrement-${Date.now()}.${ext}`);
+      mediaForm.append('captions', '');   // pas de légende sur enregistrement direct
       added++;
     }
     hideCompressUI();

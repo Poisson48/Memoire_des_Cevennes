@@ -915,6 +915,58 @@ dialog .coords {
 .btn-link:hover { color: var(--accent); }
 .btn-link:disabled { cursor: wait; opacity: 0.6; }
 
+/* ── Liste de fichiers à uploader avec légende ──────────────── */
+.media-captions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.4rem;
+}
+.media-caption-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem;
+}
+.media-thumb {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  overflow: hidden;
+}
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-cap-right {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.media-fname {
+  font-size: 0.82rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.media-caption-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.92rem;
+}
+
 /* ── Popover de mentions inline @nom ─────────────────────────── */
 .mention-popover {
   position: absolute;
