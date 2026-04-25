@@ -241,8 +241,11 @@ function applyMode() {
       };
     }
   }
+  // L'astuce « Touche la carte… » ne doit s'afficher QUE quand on a basculé
+  // en mode addMode (clic sur « + Ajouter un lieu »), pas en permanence —
+  // elle prend trop de place dans le topbar mobile.
   if (addHint) {
-    addHint.hidden = !(state.mode === 'live' && hasRole('contributor'));
+    addHint.hidden = !state.addMode;
   }
 }
 
