@@ -1067,12 +1067,19 @@ dialog .actions {
     width: 100%;
     justify-content: stretch;
     gap: 0.35rem;
+    flex-wrap: wrap;
   }
-  .btn-primary, .btn-ghost {
-    flex: 1;
-    padding: 0.45rem 0.5rem;
-    font-size: 0.92rem;
+  .topbar-actions .btn-primary,
+  .topbar-actions .btn-ghost {
+    flex: 1 1 auto;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 36px;
   }
+  /* Salutation membre : masquée en mobile (le bouton Déconnexion suffit). */
+  #member-greeting { display: none !important; }
+  /* Astuce d'ajout en pleine largeur quand le mode addMode est actif. */
+  #add-hint { flex: 1 0 100%; font-size: 0.82rem; line-height: 1.2; }
 
   .banner {
     font-size: 0.78rem;
