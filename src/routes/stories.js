@@ -1,10 +1,12 @@
 // Routes /api/stories/* + upload de média attaché à un récit.
 const express = require('express');
+const path = require('path');
 const stories = require('../stories');
 const { upload } = require('../upload');
 const { resolveContributor } = require('../contributor');
 const { requireAuth } = require('../middleware');
 const { logActivity } = require('../activityLog');
+const audioNorm = require('../audio-normalize');
 
 const router = express.Router();
 
@@ -103,6 +105,17 @@ router.post('/:id/media', requireAuth('contributor'), (req, res, next) => {
     try {
       const story = stories.get(req.params.id);
       if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+
+      // Normalise le gain audio des fichiers audio/vidéo via ffmpeg avant
+      // d'enregistrer le média dans le récit. Skip silencieux si ffmpeg
+      // n'est pas dispo ou si le mime n'est pas concerné.
+      for (const f of (req.files || [])) {
+        if (audioNorm.isAudio(f.mimetype) || audioNorm.isVideo(f.mimetype)) {
+          const r = await audioNorm.normalize(f.path, f.mimetype);
+          if (r.ok) console.log(`[audio-normalize] ${path.basename(f.path)} normalisé`);
+        }
+      }
+
       const files = (req.files || []).map(f => ({
         url: `/uploads/${req.params.id}/${f.filename}`,
         mime: f.mimetype,
