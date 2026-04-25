@@ -60,11 +60,21 @@
   color: var(--accent-dark);
 }
 
-.admin-tabs {
+.admin-tabs,
+.admin-login-tabs {
   display: flex;
   gap: 0.4rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border);
+}
+.auth-error {
+  color: #7a2c2c;
+  background: #fbe7e7;
+  border: 1px solid #e1b3b3;
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px;
+  margin: 0.6rem 0;
+  font-size: 0.92rem;
 }
 .tab-btn {
   padding: 0.5rem 1rem;

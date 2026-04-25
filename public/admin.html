@@ -23,15 +23,40 @@
   <main id="admin-main">
     <!-- Login -->
     <section id="login" class="admin-login">
-      <h2>Connexion</h2>
-      <p>Saisis le token partagé entre les admins (variable <code>ADMIN_TOKEN</code> du serveur).</p>
-      <form id="form-login">
+      <h2>Espace administrateur</h2>
+      <p>Réservé au bureau de l'association. Pour un compte membre, va sur <a href="login.html">/login.html</a>.</p>
+
+      <div class="admin-login-tabs">
+        <button type="button" class="tab-btn active" data-login="account">Compte admin</button>
+        <button type="button" class="tab-btn"        data-login="token">Token partagé</button>
+      </div>
+
+      <!-- Onglet 1 : email + mot de passe (compte admin personnel) -->
+      <form id="form-login-account">
+        <label>Adresse e-mail
+          <input type="email" name="email" autocomplete="email" required />
+        </label>
+        <label>Mot de passe
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <div id="auth-error-account" class="auth-error" hidden></div>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Se connecter</button>
+        </div>
+      </form>
+
+      <!-- Onglet 2 : token historique partagé entre admins -->
+      <form id="form-login-token" hidden>
+        <p style="color:var(--muted);font-size:0.9rem;">
+          Token partagé (variable <code>ADMIN_TOKEN</code> du serveur). Utile pour le bootstrap initial ou un accès d'urgence.
+        </p>
         <label>Token
           <input type="password" name="token" autocomplete="off" required />
         </label>
         <label>Nom (pour l'historique d'audit)
           <input type="text" name="reviewer" placeholder="ton pseudo" maxlength="80" />
         </label>
+        <div id="auth-error-token" class="auth-error" hidden></div>
         <div class="actions">
           <button type="submit" class="btn-primary">Entrer</button>
         </div>

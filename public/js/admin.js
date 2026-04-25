@@ -4,13 +4,26 @@
 
 const STORAGE_KEY = 'mdc-admin-token';
 const REVIEWER_KEY = 'mdc-admin-reviewer';
+const MODE_KEY     = 'mdc-admin-mode'; // 'token' ou 'jwt'
 
 const loginSection = document.getElementById('login');
 const dashboard = document.getElementById('dashboard');
-const formLogin = document.getElementById('form-login');
+const formLoginAccount = document.getElementById('form-login-account');
+const formLoginToken   = document.getElementById('form-login-token');
 const btnLogout = document.getElementById('btn-logout');
 const queueEl = document.getElementById('queue');
 const countsEl = document.getElementById('admin-counts');
+
+// Bascule entre les deux formulaires de login (compte vs token).
+document.querySelectorAll('[data-login]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('[data-login]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const mode = b.dataset.login;
+    formLoginAccount.hidden = mode !== 'account';
+    formLoginToken.hidden   = mode !== 'token';
+  });
+});
 
 let currentFilter = 'all';
 let currentTab = 'queue';
@@ -33,25 +46,64 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-btnLogout.addEventListener('click', () => {
+btnLogout.addEventListener('click', async () => {
+  // Côté serveur : efface les cookies (admin_jwt + token membre).
+  try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch {}
+  // Côté client : oublie le token partagé en localStorage.
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(REVIEWER_KEY);
+  localStorage.removeItem(MODE_KEY);
   showLogin();
 });
 
-formLogin.addEventListener('submit', async (e) => {
+// ─── Login par compte admin (email + mdp) ──────────────────────────────
+formLoginAccount.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const fd = new FormData(formLogin);
-  const token = fd.get('token');
-  const reviewer = fd.get('reviewer') || 'admin';
-  // Teste le token
+  const errEl = document.getElementById('auth-error-account');
+  errEl.hidden = true;
+  const fd = new FormData(formLoginAccount);
   try {
-    await fetchJson('/api/admin/queue', { headers: { 'X-Admin-Token': token } });
-    localStorage.setItem(STORAGE_KEY, token);
-    localStorage.setItem(REVIEWER_KEY, reviewer);
+    const res = await fetch('/api/auth/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        email:    fd.get('email'),
+        password: fd.get('password'),
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      errEl.textContent = json.error || 'Identifiants invalides.';
+      errEl.hidden = false;
+      return;
+    }
+    localStorage.setItem(MODE_KEY, 'jwt');
+    localStorage.setItem(REVIEWER_KEY, json.member && json.member.name ? json.member.name : 'admin');
     showDashboard();
   } catch (err) {
-    alert('Token invalide ou serveur indisponible : ' + err.message);
+    errEl.textContent = 'Serveur injoignable : ' + err.message;
+    errEl.hidden = false;
+  }
+});
+
+// ─── Login par token partagé (legacy) ──────────────────────────────────
+formLoginToken.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('auth-error-token');
+  errEl.hidden = true;
+  const fd = new FormData(formLoginToken);
+  const tk = fd.get('token');
+  const rv = fd.get('reviewer') || 'admin';
+  try {
+    await fetchJson('/api/admin/queue', { headers: { 'X-Admin-Token': tk } });
+    localStorage.setItem(MODE_KEY, 'token');
+    localStorage.setItem(STORAGE_KEY, tk);
+    localStorage.setItem(REVIEWER_KEY, rv);
+    showDashboard();
+  } catch (err) {
+    errEl.textContent = 'Token invalide ou serveur indisponible : ' + err.message;
+    errEl.hidden = false;
   }
 });
 
@@ -65,10 +117,19 @@ async function fetchJson(url, opts = {}) {
   return res.json();
 }
 
-function token() { return localStorage.getItem(STORAGE_KEY) || ''; }
+function mode()     { return localStorage.getItem(MODE_KEY) || 'token'; }
+function token()    { return localStorage.getItem(STORAGE_KEY) || ''; }
 function reviewer() { return localStorage.getItem(REVIEWER_KEY) || 'admin'; }
+
+// En mode JWT, on s'appuie sur le cookie httpOnly admin_jwt (auto envoyé).
+// En mode token, on injecte X-Admin-Token dans les headers.
 function authHeaders() {
-  return { 'X-Admin-Token': token(), 'Content-Type': 'application/json' };
+  const h = { 'Content-Type': 'application/json' };
+  if (mode() === 'token') h['X-Admin-Token'] = token();
+  return h;
+}
+function authFetchOpts(opts = {}) {
+  return { credentials: 'same-origin', ...opts, headers: { ...authHeaders(), ...(opts.headers || {}) } };
 }
 
 function showLogin() {
@@ -87,7 +148,7 @@ let lastQueue = [];
 async function refresh() {
   queueEl.innerHTML = '<p class="empty">Chargement…</p>';
   try {
-    const data = await fetchJson('/api/admin/queue', { headers: { 'X-Admin-Token': token() } });
+    const data = await fetchJson('/api/admin/queue', authFetchOpts());
     lastQueue = data.queue;
     renderCounts(data.counts);
     renderQueue(data.queue);
@@ -319,8 +380,7 @@ async function refreshMembers() {
   document.getElementById('members-pending').innerHTML = '<p class="empty">Chargement…</p>';
   document.getElementById('members-active').innerHTML  = '';
   try {
-    const { members } = await fetchJson('/api/admin/members',
-      { headers: { 'X-Admin-Token': token() } });
+    const { members } = await fetchJson('/api/admin/members', authFetchOpts());
     const pending = members.filter(m => m.status !== 'active');
     const active  = members.filter(m => m.status === 'active');
     renderMembers(document.getElementById('members-pending'), pending, true);
@@ -391,8 +451,7 @@ async function refreshActivity() {
   const el = document.getElementById('activity-list');
   el.innerHTML = '<p class="empty">Chargement…</p>';
   try {
-    const { activity } = await fetchJson('/api/admin/activity',
-      { headers: { 'X-Admin-Token': token() } });
+    const { activity } = await fetchJson('/api/admin/activity', authFetchOpts());
     if (!activity.length) { el.innerHTML = '<p class="empty">— journal vide —</p>'; return; }
     el.innerHTML = activity.map(a => `
       <div class="activity-row">
@@ -409,11 +468,9 @@ async function refreshActivity() {
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────
-if (token()) {
-  // Vérifie qu'il est encore valide
-  fetchJson('/api/admin/queue', { headers: { 'X-Admin-Token': token() } })
-    .then(showDashboard)
-    .catch(() => showLogin());
-} else {
-  showLogin();
-}
+// Tentative de session existante : soit le token partagé en localStorage,
+// soit le cookie admin_jwt (httpOnly, transmis automatiquement). On
+// pingue /queue avec authFetchOpts(), si ça passe → dashboard.
+fetchJson('/api/admin/queue', authFetchOpts())
+  .then(showDashboard)
+  .catch(() => showLogin());
