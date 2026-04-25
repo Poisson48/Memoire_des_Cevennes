@@ -207,10 +207,39 @@ function applyMode() {
     readonlyBanner.hidden = true;
   }
 
-  // Bouton « + Ajouter un lieu » : visible uniquement pour contributor / admin
-  // et uniquement en mode live.
+  // Bouton « + Ajouter un lieu » : visible uniquement pour contributor / admin.
+  // Quand la personne n'a pas le rôle (anonyme ou simple member), on
+  // remplace le bouton par un lien explicite vers /login.html, plutôt
+  // que de juste le masquer (mauvaise UX, on ne sait pas pourquoi).
   if (addBtn) {
-    addBtn.hidden = !(state.mode === 'live' && hasRole('contributor'));
+    const canAdd = state.mode === 'live' && hasRole('contributor');
+    if (canAdd) {
+      addBtn.hidden = false;
+      addBtn.textContent = '+ Ajouter un lieu';
+      addBtn.classList.remove('btn-locked');
+      addBtn.disabled = false;
+      addBtn.title = '';
+      addBtn.onclick = null;       // libère pour le handler addEventListener de forms.js
+    } else if (state.mode === 'static') {
+      addBtn.hidden = true;
+    } else {
+      addBtn.hidden = false;
+      const isLogged = !!state.member;
+      addBtn.textContent = isLogged
+        ? '🔒 Compte non habilité'
+        : '🔒 Connecte-toi pour contribuer';
+      addBtn.classList.add('btn-locked');
+      addBtn.disabled = false;
+      addBtn.title = isLogged
+        ? 'Ton compte est en cours de validation par un admin.'
+        : 'Tu dois être connecté avec un compte contributeur pour ajouter un lieu.';
+      // Au clic, redirection /login.html si pas connecté.
+      addBtn.onclick = (e) => {
+        e.preventDefault();
+        if (!state.member) location.href = 'login.html';
+        else alert(addBtn.title);
+      };
+    }
   }
   if (addHint) {
     addHint.hidden = !(state.mode === 'live' && hasRole('contributor'));
