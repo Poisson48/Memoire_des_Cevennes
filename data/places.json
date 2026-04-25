@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updatedAt": "2026-04-24T21:54:14.351Z",
+  "updatedAt": "2026-04-25T07:55:43.981Z",
   "places": [
     {
       "id": "saint-roman-de-codieres",
@@ -102,20 +102,142 @@
       "visibility": "members"
     },
     {
-      "id": "test-lieu",
-      "primaryName": "Test Lieu",
-      "lat": 44,
-      "lng": 3.8,
-      "description": "",
+      "id": "pont-de-l-hopital",
+      "primaryName": "Pont de l'Hôpital",
+      "lat": 44.0058,
+      "lng": 3.7842,
+      "description": "Vieux pont de pierre enjambant la Crenze, sur l'ancien chemin muletier reliant Saint-Roman aux hameaux de l'aval. La rambarde en pierre sèche est un travail attribué aux maçons italiens des années 1890.",
+      "aliases": [
+        {
+          "name": "Pont vieux"
+        }
+      ],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "chapelle-notre-dame-codieres",
+      "primaryName": "Chapelle Notre-Dame",
+      "lat": 44.0011,
+      "lng": 3.7778,
+      "description": "Petite chapelle romane à l'écart du village, sur un mamelon dominant la vallée. Toit en lauzes restauré dans les années 1990 par l'association des amis du patrimoine.",
+      "aliases": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "moulin-de-la-crenze",
+      "primaryName": "Moulin de la Crenze",
+      "lat": 43.9981,
+      "lng": 3.7805,
+      "description": "Ancien moulin à blé puis à châtaignes, en aval du village. La meule est encore visible. Famille Pellet exploitante de 1840 à 1922.",
+      "aliases": [
+        {
+          "name": "Moulin Pellet"
+        }
+      ],
+      "visibility": "members",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "les-castagniers",
+      "primaryName": "Les Castagniers",
+      "lat": 44.0118,
+      "lng": 3.7705,
+      "description": "Hameau perché au-dessus de la vallée, entouré d'une châtaigneraie centenaire. Tradition du séchage des châtaignes encore pratiquée par deux familles.",
+      "aliases": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "source-de-la-crenze",
+      "primaryName": "Source de la Crenze",
+      "lat": 44.0185,
+      "lng": 3.7822,
+      "description": "Source de la Crenze, affluent du Vidourle. Captée pour l'alimentation du village au début du XXe siècle, le bassin de captage est encore en place.",
+      "aliases": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "mas-du-roumieu",
+      "primaryName": "Mas du Roumieu",
+      "lat": 44.005,
+      "lng": 3.7945,
+      "description": "Mas familial habité depuis le XVIIIe siècle. Récits de la famille Roumieux conservés.",
       "aliases": [],
       "visibility": "members",
-      "createdAt": "2026-04-24T21:54:14.351Z",
-      "status": "pending",
-      "submittedAt": "2026-04-24T21:54:14.351Z",
-      "submittedBy": {
-        "name": "Test User",
-        "personId": "test-user"
-      }
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "ancienne-ecole-saint-roman",
+      "primaryName": "Ancienne école communale",
+      "lat": 44.0029,
+      "lng": 3.779,
+      "description": "École de la IIIe République ouverte en 1884, fermée en 1971 quand les enfants ont rejoint le regroupement scolaire de Sumène. Le bâtiment est devenu salle communale en 1985.",
+      "aliases": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "roc-des-vautours",
+      "primaryName": "Roc des Vautours",
+      "lat": 44.0245,
+      "lng": 3.7615,
+      "description": "Falaise calcaire au nord de la commune, point d'observation des vautours fauves réintroduits dans les années 2000 dans le Causse Méjean voisin. Vue panoramique sur la vallée de la Crenze.",
+      "aliases": [
+        {
+          "name": "Roc Blanc"
+        }
+      ],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "aire-de-battage-combes",
+      "primaryName": "Aire de battage des Combes",
+      "lat": 44.0042,
+      "lng": 3.776,
+      "description": "Plateforme de pierre où l'on battait le grain à l'ancienne, encore visible derrière la place de la mairie. Tradition perdue au lendemain de la Seconde Guerre.",
+      "aliases": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-24T21:54:14.350Z",
+  "updatedAt": "2026-04-25T07:55:43.982Z",
   "people": [
     {
       "id": "georges-fabre",
@@ -387,18 +387,125 @@
       "visibility": "members"
     },
     {
-      "id": "test-user",
-      "primaryName": "Test User",
+      "id": "lucie-combes",
+      "primaryName": "Lucie Combes",
+      "gender": "F",
+      "aliases": [
+        {
+          "name": "L'institutrice",
+          "context": "fonction"
+        }
+      ],
+      "birth": {
+        "year": 1898
+      },
+      "death": {
+        "year": 1972
+      },
+      "bio": "Institutrice de Saint-Roman-de-Codières de 1925 à 1958. Connue pour avoir tenu un journal des événements du village pendant l'Occupation, conservé aux archives départementales du Gard.",
+      "parents": [],
+      "spouses": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "pierre-pellet",
+      "primaryName": "Pierre Pellet",
+      "gender": "M",
+      "aliases": [
+        {
+          "name": "Le meunier"
+        }
+      ],
+      "birth": {
+        "year": 1845
+      },
+      "death": {
+        "year": 1923
+      },
+      "bio": "Meunier au Moulin de la Crenze de 1872 à 1908. A passé l'exploitation à son fils Antoine Pellet, qui a fermé le moulin en 1922 faute de blé local.",
+      "parents": [],
+      "spouses": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "marius-pelatan",
+      "primaryName": "Marius Pelatan",
+      "gender": "M",
       "aliases": [],
+      "birth": {
+        "year": 1948
+      },
+      "bio": "Habitant actuel du Mas du Roumieu, gardien d'une mémoire orale précieuse sur la vie du village des années 1950-1970. Témoignages enregistrés en 2025.",
       "parents": [],
       "spouses": [],
       "visibility": "members",
-      "createdAt": "2026-04-24T21:54:14.350Z",
-      "status": "pending",
-      "submittedAt": "2026-04-24T21:54:14.350Z",
-      "submittedBy": {
-        "name": "Test User"
-      }
+      "isLiving": true,
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "elise-roumieux-vve",
+      "primaryName": "Élise Roumieux",
+      "maidenName": "Pelatan",
+      "gender": "F",
+      "aliases": [],
+      "birth": {
+        "year": 1972
+      },
+      "bio": "Fille de Marius Pelatan. Tient à jour le journal familial du Mas du Roumieu.",
+      "parents": [
+        {
+          "id": "marius-pelatan",
+          "kind": "bio"
+        }
+      ],
+      "spouses": [],
+      "visibility": "members",
+      "isLiving": true,
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "antoine-pellet",
+      "primaryName": "Antoine Pellet",
+      "gender": "M",
+      "aliases": [],
+      "birth": {
+        "year": 1875
+      },
+      "death": {
+        "year": 1949
+      },
+      "bio": "Fils de Pierre Pellet. Dernier meunier en activité au Moulin de la Crenze (1908-1922).",
+      "parents": [
+        {
+          "id": "pierre-pellet",
+          "kind": "bio"
+        }
+      ],
+      "spouses": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
     }
   ]
 }
