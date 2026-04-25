@@ -61,6 +61,8 @@
     </aside>
 
     <footer class="site-footer">
+      <a href="aide.html">📘 Tutoriel</a>
+      <span class="sep">·</span>
       <a href="legal/mentions.html">Mentions légales</a>
       <span class="sep">·</span>
       <a href="legal/confidentialite.html">Confidentialité</a>
@@ -68,6 +70,8 @@
       <a href="legal/charte-contributeur.html">Charte</a>
       <span class="sep">·</span>
       <a href="signaler.html">🚩 Signaler</a>
+      <span class="sep">·</span>
+      <span class="version-tag" data-version></span>
     </footer>
   </main>
 
@@ -120,7 +124,8 @@
       <h2>✏️ Modifier cette complétion</h2>
       <p class="coords" id="edit-completion-info"></p>
       <label>Nouveau texte
-        <textarea name="body" rows="5" required maxlength="20000"></textarea>
+        <textarea name="body" rows="5" required maxlength="20000" data-mentions="on"></textarea>
+        <span class="hint">Tape <code>@nom</code> pour mentionner une personne ou un lieu.</span>
       </label>
       <label>Résumé de la modification (pourquoi ce changement ?)
         <input type="text" name="note" maxlength="500"
@@ -156,7 +161,9 @@
       <p class="coords" id="complete-story-title"></p>
       <label>Ton ajout, précision, souvenir lié à cette histoire
         <textarea name="body" rows="5" required maxlength="20000"
-                  placeholder="Ce que tu veux ajouter à ce récit…"></textarea>
+                  placeholder="Ce que tu veux ajouter à ce récit…"
+                  data-mentions="on"></textarea>
+        <span class="hint">Tape <code>@nom</code> pour mentionner une personne ou un lieu.</span>
       </label>
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
@@ -241,7 +248,8 @@
         <input type="text" name="title" maxlength="160" />
       </label>
       <label>Texte (récit, légende, transcription…)
-        <textarea name="body" rows="5" maxlength="20000"></textarea>
+        <textarea name="body" rows="5" maxlength="20000" data-mentions="on"></textarea>
+        <span class="hint">Tape <code>@nom</code> pour mentionner une personne ou un lieu existants.</span>
       </label>
       <div id="story-recorder" class="recorder" hidden>
         <div class="recorder-label">🎙️ Enregistrer depuis le navigateur</div>
@@ -348,5 +356,7 @@
   <script src="js/geo.js"></script>
   <script src="js/tagger.js"></script>
   <script src="js/autocomplete.js"></script>
+  <script src="js/inline-mentions.js"></script>
+  <script src="js/version.js"></script>
 </body>
 </html>

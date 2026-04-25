@@ -28,7 +28,10 @@ const ROLES_ORDER = ['member', 'contributor', 'admin'];
 
 /** Retourne true si le membre connecté a au moins le rôle minRole. */
 function hasRole(minRole) {
-  if (!state.member || state.member.status !== 'active') return false;
+  // Si le serveur a renvoyé un membre via /api/auth/me, le JWT était valide
+  // au moment de la décodage — pas besoin de re-vérifier le status côté
+  // client (le serveur a déjà refusé si status !== 'active' au login).
+  if (!state.member) return false;
   return ROLES_ORDER.indexOf(state.member.role) >= ROLES_ORDER.indexOf(minRole);
 }
 
