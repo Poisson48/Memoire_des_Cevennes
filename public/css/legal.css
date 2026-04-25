@@ -2,7 +2,11 @@
 .legal-body {
   background: var(--bg);
   color: var(--fg);
+  /* Override le body fixe (overflow:hidden + height:100%) du layout carte */
   overflow: auto;
+  height: auto;
+  min-height: 100%;
+  display: block;
 }
 .legal-main {
   max-width: 760px;
