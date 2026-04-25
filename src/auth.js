@@ -57,7 +57,16 @@ function safe(member) {
  * Crée un nouveau membre (status: "pending").
  * Lance une erreur si l'email est déjà utilisé.
  */
-async function createMember(email, password, name, { charterVersion = '1.0' } = {}) {
+async function createMember(email, password, name, opts = {}) {
+  const {
+    charterVersion = '1.0',
+    role           = 'member',          // par défaut self-register → "member"
+    status         = 'pending',          // par défaut self-register → "pending"
+    createdByAdmin = null,               // id admin qui a créé le compte
+  } = opts;
+
+  if (!ROLES.includes(role)) throw new Error(`Rôle invalide : ${role}`);
+
   const members = loadMembers();
   const normalizedEmail = String(email).toLowerCase().trim();
 
@@ -73,12 +82,14 @@ async function createMember(email, password, name, { charterVersion = '1.0' } = 
     name: String(name).trim().slice(0, 120),
     email: normalizedEmail,
     passwordHash,
-    role: 'member',
-    status: 'pending',
+    role,
+    status,
     createdAt: now,
     charterAcceptedVersion: String(charterVersion),
     charterAcceptedAt:      now,
   };
+  if (status === 'active') member.approvedAt = now;
+  if (createdByAdmin)      member.createdByAdmin = createdByAdmin;
 
   members.push(member);
   saveMembers(members);

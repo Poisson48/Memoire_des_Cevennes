@@ -1,6 +1,107 @@
 {
-  "version": 1,
-  "updatedAt": "2026-04-25T07:55:43.982Z",
+  "$schema": "data/seeds/bootstrap.json — contenu de référence du programme",
+  "description": "Lieux, personnes et récits originaux. Injectés via 'node scripts/seed-bootstrap.js' lors du déploiement initial. Le contenu utilisateur (data/*.json) n'est pas dans git.",
+  "places": [
+    {
+      "id": "saint-roman-de-codieres",
+      "primaryName": "Saint-Roman-de-Codières",
+      "lat": 44.0027,
+      "lng": 3.7786,
+      "description": "Village du piémont cévenol, en Gard, dans la vallée de la Crenze entre Sumène et Le Vigan. Point de départ du projet Mémoire des Cévennes : on commence ici, on s'élargira aux vallées voisines ensuite.",
+      "aliases": [
+        {
+          "name": "Sant Roman de Codièras",
+          "context": "occitan"
+        },
+        {
+          "name": "Saint-Roman",
+          "context": "usuel"
+        },
+        {
+          "name": "Codières",
+          "context": "ancien"
+        }
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
+    },
+    {
+      "id": "les-combes",
+      "primaryName": "Les Combes",
+      "lat": 44.004,
+      "lng": 3.775,
+      "description": "Hameau contigu à Saint-Roman-de-Codières, sur la même rive de la Crenze. Point de repère historique : la place de la mairie y est située.",
+      "aliases": [],
+      "status": "approved",
+      "createdAt": "2026-04-24T00:00:00.000Z",
+      "submittedAt": "2026-04-24T00:00:00.000Z",
+      "reviewedAt": "2026-04-24T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
+    },
+    {
+      "id": "mas-de-la-coste",
+      "primaryName": "Mas de la Coste",
+      "lat": 44.01,
+      "lng": 3.775,
+      "description": "Exemple fictif pour illustrer le projet : un mas cévenol sur un versant exposé au midi, sur la crête au-dessus de Saint-Roman-de-Codières. Aliases multiples dans le temps et selon les personnes.",
+      "aliases": [
+        {
+          "name": "La Ferme Vieille",
+          "context": "cadastre",
+          "startYear": 1812,
+          "endYear": 1920
+        },
+        {
+          "name": "Lo Mas de la Còsta",
+          "context": "occitan"
+        },
+        {
+          "name": "Chez Suzette",
+          "context": "familial",
+          "usedBy": "pierre-duval",
+          "startYear": 1970
+        },
+        {
+          "name": "Le mazet là-haut",
+          "context": "oral local"
+        }
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
+    },
+    {
+      "id": "mont-aigoual",
+      "primaryName": "Mont Aigoual",
+      "lat": 44.1214,
+      "lng": 3.5814,
+      "description": "Sommet emblématique des Cévennes, à 1565 m. Observatoire météorologique historique, et théâtre du plus grand reboisement volontaire de France à la fin du XIXe siècle. Plus au nord de Saint-Roman — visible par beau temps depuis la crête de la Fage.",
+      "aliases": [
+        {
+          "name": "L'Aigoual",
+          "context": "local"
+        },
+        {
+          "name": "L'Agoal",
+          "context": "occitan"
+        }
+      ],
+      "status": "approved",
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
+    }
+  ],
   "people": [
     {
       "id": "georges-fabre",
@@ -385,127 +486,118 @@
       "reviewedAt": "2026-04-23T00:00:00.000Z",
       "reviewedBy": "bootstrap",
       "visibility": "members"
-    },
+    }
+  ],
+  "stories": [
     {
-      "id": "lucie-combes",
-      "primaryName": "Lucie Combes",
-      "gender": "F",
-      "aliases": [
+      "id": "saint-roman-magnanaries",
+      "placeId": "saint-roman-de-codieres",
+      "type": "text",
+      "title": "Les magnanaries et le chemin de la soie",
+      "body": "Au XIXe siècle, Saint-Roman-de-Codières comptait plusieurs magnanaries où les foyers élevaient des vers à soie pour la filature de Ganges. Chaque printemps, les mûriers bordaient les chemins menant au village.",
+      "memoryDate": "XIXe siècle",
+      "mentions": [
         {
-          "name": "L'institutrice",
-          "context": "fonction"
+          "start": 16,
+          "end": 39,
+          "type": "place",
+          "entityId": "saint-roman-de-codieres"
         }
       ],
-      "birth": {
-        "year": 1898
-      },
-      "death": {
-        "year": 1972
-      },
-      "bio": "Institutrice de Saint-Roman-de-Codières de 1925 à 1958. Connue pour avoir tenu un journal des événements du village pendant l'Occupation, conservé aux archives départementales du Gard.",
-      "parents": [],
-      "spouses": [],
-      "visibility": "public",
-      "createdAt": "2026-04-25T00:00:00.000Z",
+      "mediaFiles": [],
       "status": "approved",
-      "submittedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedBy": "bootstrap-demo"
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
-      "id": "pierre-pellet",
-      "primaryName": "Pierre Pellet",
-      "gender": "M",
-      "aliases": [
+      "id": "reboisement-aigoual",
+      "placeId": "mont-aigoual",
+      "type": "text",
+      "title": "Le reboisement de l'Aigoual",
+      "body": "Georges Fabre, conservateur des Eaux et Forêts, entreprit à partir de 1875 le reboisement du mont Aigoual. En quarante ans, il y plantera plus de 6 000 hectares, transformant un massif dévasté en l'une des plus grandes hêtraies de France.",
+      "memoryDate": "1875-1915",
+      "mentions": [
         {
-          "name": "Le meunier"
+          "start": 0,
+          "end": 13,
+          "type": "person",
+          "entityId": "georges-fabre"
+        },
+        {
+          "start": 93,
+          "end": 105,
+          "type": "place",
+          "entityId": "mont-aigoual"
         }
       ],
-      "birth": {
-        "year": 1845
-      },
-      "death": {
-        "year": 1923
-      },
-      "bio": "Meunier au Moulin de la Crenze de 1872 à 1908. A passé l'exploitation à son fils Antoine Pellet, qui a fermé le moulin en 1922 faute de blé local.",
-      "parents": [],
-      "spouses": [],
-      "visibility": "public",
-      "createdAt": "2026-04-25T00:00:00.000Z",
+      "mediaFiles": [],
       "status": "approved",
-      "submittedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedBy": "bootstrap-demo"
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     },
     {
-      "id": "marius-pelatan",
-      "primaryName": "Marius Pelatan",
-      "gender": "M",
-      "aliases": [],
-      "birth": {
-        "year": 1948
-      },
-      "bio": "Habitant actuel du Mas du Roumieu, gardien d'une mémoire orale précieuse sur la vie du village des années 1950-1970. Témoignages enregistrés en 2025.",
-      "parents": [],
-      "spouses": [],
-      "visibility": "members",
-      "isLiving": true,
-      "createdAt": "2026-04-25T00:00:00.000Z",
-      "status": "approved",
-      "submittedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedBy": "bootstrap-demo"
-    },
-    {
-      "id": "elise-roumieux-vve",
-      "primaryName": "Élise Roumieux",
-      "maidenName": "Pelatan",
-      "gender": "F",
-      "aliases": [],
-      "birth": {
-        "year": 1972
-      },
-      "bio": "Fille de Marius Pelatan. Tient à jour le journal familial du Mas du Roumieu.",
-      "parents": [
+      "id": "chataignes-maquis",
+      "placeId": "mas-de-la-coste",
+      "type": "text",
+      "title": "Les châtaignes du maquis",
+      "body": "Suzette nous racontait qu'au Mas de la Coste, pendant la guerre, son frère Joseph Boissier était parti au maquis, et que sa mère Céleste faisait griller les châtaignes toutes les nuits pour le ravitaillement.",
+      "memoryDate": "1943-1944",
+      "contributorId": "pierre-duval",
+      "mentions": [
         {
-          "id": "marius-pelatan",
-          "kind": "bio"
+          "start": 0,
+          "end": 7,
+          "type": "person",
+          "entityId": "suzanne-duval"
+        },
+        {
+          "start": 29,
+          "end": 44,
+          "type": "place",
+          "entityId": "mas-de-la-coste"
+        },
+        {
+          "start": 75,
+          "end": 90,
+          "type": "person",
+          "entityId": "joseph-boissier"
+        },
+        {
+          "start": 129,
+          "end": 136,
+          "type": "person",
+          "entityId": "celeste-roumieux"
         }
       ],
-      "spouses": [],
-      "visibility": "members",
-      "isLiving": true,
-      "createdAt": "2026-04-25T00:00:00.000Z",
-      "status": "approved",
-      "submittedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedBy": "bootstrap-demo"
-    },
-    {
-      "id": "antoine-pellet",
-      "primaryName": "Antoine Pellet",
-      "gender": "M",
-      "aliases": [],
-      "birth": {
-        "year": 1875
-      },
-      "death": {
-        "year": 1949
-      },
-      "bio": "Fils de Pierre Pellet. Dernier meunier en activité au Moulin de la Crenze (1908-1922).",
-      "parents": [
+      "mediaFiles": [],
+      "completions": [
         {
-          "id": "pierre-pellet",
-          "kind": "bio"
+          "id": "exemple-comp-1",
+          "body": "Ma grand-mère Céleste me disait que le plus difficile, c'était d'allumer le feu sans fumée — sinon on voyait le panache depuis la crête et les Allemands savaient qu'une ferme était habitée. Elle mettait toujours des feuilles vertes humides au-dessus pour étouffer la flamme.",
+          "createdAt": "2026-04-24T00:00:00.000Z",
+          "submittedAt": "2026-04-24T00:00:00.000Z",
+          "reviewedAt": "2026-04-24T00:00:00.000Z",
+          "reviewedBy": "bootstrap",
+          "status": "approved",
+          "submittedBy": {
+            "name": "Marie Duval",
+            "writtenFrom": "Montpellier",
+            "relationship": "petite-fille de Suzanne"
+          }
         }
       ],
-      "spouses": [],
-      "visibility": "public",
-      "createdAt": "2026-04-25T00:00:00.000Z",
       "status": "approved",
-      "submittedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedAt": "2026-04-25T00:00:00.000Z",
-      "reviewedBy": "bootstrap-demo"
+      "createdAt": "2026-04-23T00:00:00.000Z",
+      "submittedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedAt": "2026-04-23T00:00:00.000Z",
+      "reviewedBy": "bootstrap",
+      "visibility": "members"
     }
   ]
 }

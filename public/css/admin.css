@@ -67,6 +67,23 @@
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border);
 }
+.member-create {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.member-create summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent-dark);
+  padding: 0.2rem 0;
+  list-style: none;
+}
+.member-create summary::before { content: ''; }
+.member-create[open] summary { margin-bottom: 0.5rem; }
+
 .auth-error {
   color: #7a2c2c;
   background: #fbe7e7;
