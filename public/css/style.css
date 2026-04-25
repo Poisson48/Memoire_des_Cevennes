@@ -1159,10 +1159,11 @@ dialog .actions {
 
   .banner { font-size: 0.82rem; padding: 0.5rem 0.8rem; }
 
-  /* Sur mobile, la barre de recherche sous les contrôles Leaflet (qui
-     eux restent collés à gauche) — elle occupe toute la largeur utile. */
+  /* Sur mobile, on laisse les boutons +/- de Leaflet à gauche et la barre
+     prend l'espace restant à droite (≈ 60 px de marge à gauche pour ne
+     pas chevaucher les contrôles). */
   .map-search {
-    left: 8px;
+    left: 60px;
     right: 8px;
     top: 8px;
     max-width: none;
