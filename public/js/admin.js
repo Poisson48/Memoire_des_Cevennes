@@ -216,7 +216,7 @@ function renderCompletion(qi) {
         <span class="item-meta">${whoLine} · ${date}</span>
       </div>
       <div class="item-preview">
-        <div>${escapeHtml(comp.body)}</div>
+        <div class="story-body">${renderBodyWithMentions(comp.body, comp.mentions || [])}</div>
       </div>
       ${renderActions()}
     </article>
@@ -248,10 +248,13 @@ function renderCreate(qi) {
   } else if (type === 'stories') {
     preview = `
       ${item.title ? `<div><strong>${escapeHtml(item.title)}</strong></div>` : ''}
-      <div>${escapeHtml((item.body || '').slice(0, 400))}${(item.body || '').length > 400 ? '…' : ''}</div>
+      <div class="story-body">${renderBodyWithMentions(item.body || '', item.mentions || [])}</div>
+      ${renderMediaFiles(item.mediaFiles || [])}
       <div class="item-meta">
-        ancré sur <code>${escapeHtml(item.placeId)}</code>
+        type : <strong>${escapeHtml(item.type || 'text')}</strong>
+        · ancré sur <code>${escapeHtml(item.placeId)}</code>
         ${item.memoryDate ? ` · ${escapeHtml(item.memoryDate)}` : ''}
+        ${item.mentions?.length ? ` · ${item.mentions.length} mention${item.mentions.length>1?'s':''}` : ''}
       </div>
     `;
   }
@@ -354,6 +357,51 @@ async function handleAction(btn) {
   } catch (err) {
     alert('Erreur : ' + err.message);
   }
+}
+
+// Rend le corps d'un récit avec les mentions surlignées et cliquables.
+// Les offsets `start`/`end` correspondent à la chaîne en code units UTF-16.
+function renderBodyWithMentions(body, mentions) {
+  if (!body) return '<em>(vide)</em>';
+  const sorted = [...mentions]
+    .filter(m => m && typeof m.start === 'number' && typeof m.end === 'number')
+    .sort((a, b) => a.start - b.start);
+  if (!sorted.length) return escapeHtml(body).replace(/\n/g, '<br>');
+  let out = '';
+  let cursor = 0;
+  for (const m of sorted) {
+    if (m.start < cursor || m.end > body.length) continue;
+    out += escapeHtml(body.slice(cursor, m.start));
+    const label = body.slice(m.start, m.end);
+    const href = m.type === 'place' ? `#/lieu/${m.entityId}` : `#/personne/${m.entityId}`;
+    const icon = m.type === 'place' ? '📍' : '👤';
+    out += `<a class="mention-link" href="${escapeAttr(href)}" target="_blank" rel="noopener" title="${escapeHtml(m.type)} : ${escapeHtml(m.entityId)}">${icon} ${escapeHtml(label)}</a>`;
+    cursor = m.end;
+  }
+  out += escapeHtml(body.slice(cursor));
+  return out.replace(/\n/g, '<br>');
+}
+
+// Rend les médias attachés à un récit pour relecture en file de modération.
+// Inline preview pour images/audio/vidéo, lien pour le reste.
+function renderMediaFiles(files) {
+  if (!Array.isArray(files) || !files.length) return '';
+  const items = files.map(f => {
+    if (!f || !f.url) return '';
+    const url = escapeAttr(f.url);
+    const cap = f.caption ? `<figcaption>${escapeHtml(f.caption)}</figcaption>` : '';
+    if (f.mime?.startsWith('image/')) {
+      return `<figure class="qmedia"><img src="${url}" alt="${escapeAttr(f.caption || 'média')}" loading="lazy">${cap}</figure>`;
+    }
+    if (f.mime?.startsWith('audio/')) {
+      return `<figure class="qmedia"><audio controls preload="metadata" src="${url}"></audio>${cap}</figure>`;
+    }
+    if (f.mime?.startsWith('video/')) {
+      return `<figure class="qmedia"><video controls preload="metadata" src="${url}" style="max-width:100%;max-height:280px"></video>${cap}</figure>`;
+    }
+    return `<div class="qmedia"><a href="${url}" target="_blank" rel="noopener">📎 ${escapeHtml(f.url.split('/').pop())}</a>${cap}</div>`;
+  }).join('');
+  return `<div class="qmedia-list">${items}</div>`;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────

@@ -81,6 +81,62 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+/* Affichage du contenu en file de modération — l'admin doit voir le récit
+   complet, les mentions, et les médias attachés avant de cliquer Approuver. */
+.story-body {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.4rem 0;
+  line-height: 1.5;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.mention-link {
+  display: inline-block;
+  background: rgba(140, 90, 43, 0.10);
+  color: var(--accent-dark);
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.mention-link:hover { background: rgba(140, 90, 43, 0.20); }
+
+.qmedia-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.6rem;
+  margin: 0.6rem 0;
+}
+.qmedia {
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: stretch;
+}
+.qmedia img,
+.qmedia video {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.qmedia audio { width: 100%; }
+.qmedia figcaption {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .member-create {
   background: var(--panel-bg);
   border: 1px solid var(--border);
