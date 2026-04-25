@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-24T21:46:48.487Z",
+  "updatedAt": "2026-04-25T07:55:43.983Z",
   "stories": [
     {
       "id": "saint-roman-magnanaries",
@@ -111,6 +111,165 @@
       "reviewedAt": "2026-04-23T00:00:00.000Z",
       "reviewedBy": "bootstrap",
       "visibility": "members"
+    },
+    {
+      "id": "chataignes-automne-castagniers",
+      "placeId": "les-castagniers",
+      "type": "text",
+      "title": "Le séchage des châtaignes à l'automne",
+      "body": "Aux Castagniers, les clèdes — petites cabanes en pierre où l'on séchait les châtaignes au feu de bois pendant trois semaines — étaient encore en activité dans les années 1960. Deux familles du hameau perpétuent la tradition à titre privé. L'odeur du feu de châtaignier embaume tout le versant en novembre.",
+      "memoryDate": "XXe siècle",
+      "mentions": [
+        {
+          "start": 4,
+          "end": 17,
+          "type": "place",
+          "entityId": "les-castagniers"
+        }
+      ],
+      "mediaFiles": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "pellet-moulin-grain",
+      "placeId": "moulin-de-la-crenze",
+      "type": "text",
+      "title": "Le grain et la châtaigne",
+      "body": "Pierre Pellet ouvre son moulin en 1872. Au début, on y bat surtout du seigle et un peu de froment apporté par les Cévenols du plateau. La châtaigne prend ensuite la place quand les épidémies du XIXe siècle décourageaient la culture des céréales. Antoine Pellet, le fils, ferme le moulin en 1922 : plus assez de grain dans la vallée.",
+      "memoryDate": "1872-1922",
+      "mentions": [
+        {
+          "start": 0,
+          "end": 13,
+          "type": "person",
+          "entityId": "pierre-pellet"
+        },
+        {
+          "start": 195,
+          "end": 209,
+          "type": "person",
+          "entityId": "antoine-pellet"
+        }
+      ],
+      "mediaFiles": [],
+      "visibility": "members",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "lucie-classe-vallee",
+      "placeId": "ancienne-ecole-saint-roman",
+      "type": "text",
+      "title": "La classe unique de Lucie",
+      "body": "Lucie Combes a tenu la classe unique de l'école de Saint-Roman pendant 33 ans. Vingt-deux élèves de tous niveaux, du CP au certificat d'études. Le journal qu'elle a tenu pendant la guerre raconte les enfants venus se réfugier des villes du sud, et la solidarité des familles cévenoles.",
+      "memoryDate": "1925-1958",
+      "mentions": [
+        {
+          "start": 0,
+          "end": 12,
+          "type": "person",
+          "entityId": "lucie-combes"
+        }
+      ],
+      "mediaFiles": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "transhumance-saint-roman",
+      "placeId": "saint-roman-de-codieres",
+      "type": "text",
+      "title": "La fête de la transhumance",
+      "body": "Chaque printemps, les troupeaux montaient vers les estives de l'Aigoual. Le passage par Saint-Roman était l'occasion d'une fête qui durait toute la journée : repas commun sur la place de la mairie, musique, danses. Tradition relancée depuis 2010 par l'association des bergers du piémont cévenol.",
+      "memoryDate": "tradition annuelle",
+      "mentions": [],
+      "mediaFiles": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "vautours-retour-roc",
+      "placeId": "roc-des-vautours",
+      "type": "text",
+      "title": "Le retour des vautours",
+      "body": "Disparus du massif depuis les années 1940, les vautours fauves ont été réintroduits dans les Causses voisins à partir de 1981. Les premiers individus ont commencé à survoler le Roc à la fin des années 2000. Aujourd'hui, on en compte une trentaine en vol nuptial à la belle saison.",
+      "memoryDate": "2000-aujourd'hui",
+      "mentions": [],
+      "mediaFiles": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "roumieu-cuisinier-mas",
+      "placeId": "mas-du-roumieu",
+      "type": "text",
+      "title": "La cuisinière du Mas",
+      "body": "Marius Pelatan raconte la cuisinière en fonte du Mas du Roumieu, héritée de sa grand-mère, sur laquelle on faisait simultanément le café du matin, le pot-au-feu de midi, et la confiture de châtaignes en novembre. Élise Roumieux, sa fille, conserve encore l'habitude de l'allumer le dimanche en famille.",
+      "memoryDate": "XXe-XXIe siècle",
+      "mentions": [
+        {
+          "start": 0,
+          "end": 14,
+          "type": "person",
+          "entityId": "marius-pelatan"
+        },
+        {
+          "start": 215,
+          "end": 229,
+          "type": "person",
+          "entityId": "elise-roumieux-vve"
+        }
+      ],
+      "mediaFiles": [],
+      "visibility": "members",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
+    },
+    {
+      "id": "pont-rambarde-italiens",
+      "placeId": "pont-de-l-hopital",
+      "type": "text",
+      "title": "Les maçons italiens du pont",
+      "body": "Les rambardes en pierre sèche du pont de l'Hôpital ont été refaites en 1893 par une équipe de maçons piémontais venus travailler à la voie ferrée du Vigan. Quelques-uns ont fait souche au village et leur descendance vit encore dans la vallée.",
+      "memoryDate": "1893",
+      "mentions": [
+        {
+          "start": 36,
+          "end": 53,
+          "type": "place",
+          "entityId": "pont-de-l-hopital"
+        }
+      ],
+      "mediaFiles": [],
+      "visibility": "public",
+      "createdAt": "2026-04-25T00:00:00.000Z",
+      "status": "approved",
+      "submittedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedAt": "2026-04-25T00:00:00.000Z",
+      "reviewedBy": "bootstrap-demo"
     }
   ]
 }
