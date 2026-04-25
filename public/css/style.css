@@ -915,6 +915,34 @@ dialog .coords {
 .btn-link:hover { color: var(--accent); }
 .btn-link:disabled { cursor: wait; opacity: 0.6; }
 
+/* ── Popover de mentions inline @nom ─────────────────────────── */
+.mention-popover {
+  position: absolute;
+  z-index: 1500;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+.mention-item {
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.mention-item:last-child { border-bottom: none; }
+.mention-item:hover,
+.mention-item.active {
+  background: rgba(140, 90, 43, 0.10);
+}
+.mention-ctx {
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
 /* ── Recherche d'adresse sur la carte ────────────────────────── */
 .map-search {
   position: absolute;

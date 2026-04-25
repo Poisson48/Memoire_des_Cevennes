@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutoriel — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
+  <style>
+    body { overflow: auto; }
+    .tuto-main { flex: 1; padding: 1.5rem 1rem 4rem; max-width: 820px; margin: 0 auto; }
+    .tuto-main h1 { color: var(--accent-dark); margin-top: 0; }
+    .tuto-main h2 {
+      margin-top: 2.2rem;
+      color: var(--accent-dark);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.3rem;
+    }
+    .tuto-main h3 { color: var(--accent-dark); margin-top: 1.4rem; }
+    .tuto-main code {
+      background: rgba(0,0,0,0.05);
+      padding: 0.05rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    .tuto-main .step {
+      background: var(--panel-bg);
+      border-left: 4px solid var(--accent);
+      padding: 0.7rem 1rem;
+      margin: 0.7rem 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .tuto-main .role-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0;
+      font-size: 0.93rem;
+    }
+    .tuto-main .role-table th,
+    .tuto-main .role-table td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.7rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .tuto-main .role-table thead th { background: var(--panel-bg); }
+    .tuto-toc {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.8rem 1.2rem;
+      margin: 1rem 0 2rem;
+    }
+    .tuto-toc ul { margin: 0.4rem 0 0; padding-left: 1.4rem; }
+    .tuto-version {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.9rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1><a href="index.html" style="color:inherit;text-decoration:none">Mémoire des Cévennes</a></h1>
+      <p class="tagline">Tutoriel — comment ça marche.</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="tuto-main">
+    <h1>📘 Comment utiliser Mémoire des Cévennes</h1>
+
+    <p>
+      Mémoire des Cévennes est une carte collaborative de récits, de noms et de
+      lieux du piémont cévenol. Cette page explique comment naviguer, contribuer,
+      et qui peut faire quoi.
+    </p>
+
+    <nav class="tuto-toc">
+      <strong>Sur cette page :</strong>
+      <ul>
+        <li><a href="#decouvrir">1. Découvrir la carte sans compte</a></li>
+        <li><a href="#inscription">2. S'inscrire et devenir membre</a></li>
+        <li><a href="#contribuer">3. Contribuer un lieu, une personne, un récit</a></li>
+        <li><a href="#mentions">4. Mentionner @quelqu'un dans un récit</a></li>
+        <li><a href="#visibilites">5. Comprendre les visibilités</a></li>
+        <li><a href="#admin">6. Espace admin — bureau de l'association</a></li>
+        <li><a href="#signalement">7. Signaler un contenu problématique</a></li>
+        <li><a href="#droits">8. Tes droits (RGPD)</a></li>
+      </ul>
+    </nav>
+
+    <h2 id="decouvrir">1. Découvrir la carte sans compte</h2>
+    <p>
+      En arrivant sur la <a href="index.html">page d'accueil</a> sans être connecté·e,
+      tu vois les lieux et récits marqués <em>publics</em> par les contributeurs.
+      Le contenu plus personnel (familles vivantes, histoires intimes) reste réservé
+      aux membres connectés.
+    </p>
+    <div class="step">
+      <strong>Cherche un lieu :</strong> tape un nom de village ou d'adresse dans la
+      barre de recherche en haut de la carte. Suggestion automatique fournie par
+      OpenStreetMap.
+    </div>
+    <div class="step">
+      <strong>Centre la carte sur ta position :</strong> bouton 📍 dans la barre
+      d'ajout (autorise la géolocalisation dans ton navigateur).
+    </div>
+
+    <h2 id="inscription">2. S'inscrire et devenir membre</h2>
+    <p>
+      Va sur la <a href="register.html">page d'inscription</a>. Renseigne ton nom,
+      e-mail, mot de passe (8 caractères minimum), et accepte la
+      <a href="legal/charte-contributeur.html">charte du contributeur</a>.
+    </p>
+    <div class="step">
+      Ton compte est créé en statut <code>pending</code> — un administrateur
+      doit l'approuver avant que tu puisses contribuer. Ça prend généralement
+      moins d'une journée.
+    </div>
+    <div class="step">
+      Une fois approuvé·e, ton rôle de départ est <strong>membre</strong> (lecture
+      du contenu protégé). L'admin peut te promouvoir <strong>contributeur</strong>
+      pour que tu puisses ajouter du contenu.
+    </div>
+
+    <h2 id="contribuer">3. Contribuer un lieu, une personne, un récit</h2>
+    <p>Une fois connecté·e en tant que contributeur :</p>
+
+    <h3>Ajouter un lieu</h3>
+    <ol>
+      <li>Clique sur <strong>« + Ajouter un lieu »</strong> dans la barre du haut.</li>
+      <li>Tape sur la carte à l'endroit voulu, ou clique <em>« utilise ma position »</em>.</li>
+      <li>Renseigne le nom, une description, et les champs « qui es-tu » qui suivent.</li>
+      <li>Coche le consentement (case obligatoire) puis envoie.</li>
+    </ol>
+    <div class="step">
+      Ton lieu part en file de modération (<code>status: pending</code>). Un
+      administrateur le valide. Une fois approuvé, il apparaît sur la carte
+      avec une visibilité par défaut <strong>« membres »</strong>.
+    </div>
+
+    <h3>Ajouter un récit attaché à un lieu</h3>
+    <ol>
+      <li>Ouvre le panneau d'un lieu en cliquant sur son marqueur.</li>
+      <li>Bouton <strong>« + Ajouter un récit »</strong> en bas du panneau.</li>
+      <li>Choisis le type (texte, photo, audio, vidéo, dessin, note).</li>
+      <li>Rédige ton récit — utilise <code>@</code> pour mentionner une personne ou un lieu (voir section suivante).</li>
+      <li>Si tu as un fichier média, tu peux le joindre à l'étape suivante.</li>
+    </ol>
+
+    <h3>Compléter un récit existant</h3>
+    <p>
+      Sous chaque récit, le bouton <strong>« ➕ Compléter »</strong> ajoute un
+      chapitre qui s'attache au récit d'origine — utile pour préciser, corriger,
+      ou ajouter une perspective complémentaire. Soumis à validation aussi.
+    </p>
+
+    <h2 id="mentions">4. Mentionner <code>@</code>quelqu'un dans un récit</h2>
+    <p>
+      Dans n'importe quel champ texte d'un récit (corps, complétion), tape
+      <code>@</code> suivi des premières lettres d'un nom — d'une personne, d'un
+      lieu ou d'un de leurs alias. Une liste de suggestions s'affiche, navigue
+      avec ↑↓ et valide avec ⏎.
+    </p>
+    <div class="step">
+      <strong>Pourquoi c'est utile :</strong> chaque mention crée un lien interne
+      cliquable dans le récit. Un visiteur peut sauter d'un récit à la fiche d'une
+      personne, à un lieu, à un autre récit qui mentionne la même personne.
+    </div>
+    <div class="step">
+      <strong>Si la personne ou le lieu n'existe pas encore :</strong> au lieu d'une
+      sélection dans la liste, tu peux créer une fiche à la volée — elle partira
+      en file de modération comme les autres contributions.
+    </div>
+
+    <h2 id="visibilites">5. Comprendre les visibilités</h2>
+    <p>Chaque entité (lieu, personne, récit) a un champ <code>visibility</code> :</p>
+    <ul>
+      <li><strong><code>public</code></strong> — visible par tout le monde, même sans compte. À utiliser pour les éléments patrimoniaux qui n'engagent personne (un mas abandonné, un lieu-dit ancien, un événement historique).</li>
+      <li><strong><code>members</code></strong> (défaut) — visible uniquement aux membres connectés. Pour les histoires familiales, les personnes vivantes, les récits intimes.</li>
+    </ul>
+    <p>
+      Les fiches de <strong>personnes vivantes</strong> sont automatiquement en
+      <code>members</code> (jamais publiques sans accord explicite de la personne).
+      Les visiteurs anonymes ne voient même pas leur nom.
+    </p>
+
+    <h2 id="admin">6. Espace admin — bureau de l'association</h2>
+    <p>
+      L'<a href="admin.html">espace admin</a> est réservé aux membres du bureau
+      de l'association. C'est un espace différent de l'espace membre : on s'y
+      connecte sur <code>/admin.html</code> (et non sur <code>/login.html</code>).
+    </p>
+
+    <table class="role-table">
+      <thead>
+        <tr><th>Rôle</th><th>Peut</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Membre</strong></td>
+          <td>Se connecter, voir le contenu en visibilité <em>members</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Contributeur</strong></td>
+          <td>Tout ce qu'un membre peut faire, plus : ajouter lieux, personnes, récits, médias, complétions.</td>
+        </tr>
+        <tr>
+          <td><strong>Admin</strong></td>
+          <td>
+            Tout ce qu'un contributeur peut faire, plus : valider les inscriptions et les contributions
+            en attente, créer des comptes directement, changer le rôle des membres, consulter le journal
+            d'activité.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>L'admin a deux moyens de se connecter :</p>
+    <ul>
+      <li><strong>Compte admin personnel</strong> (recommandé) — onglet <em>Compte admin</em> sur <code>/admin.html</code>.</li>
+      <li><strong>Token partagé</strong> — onglet <em>Token partagé</em>, valeur de la variable <code>ADMIN_TOKEN</code> du serveur. Utile pour le bootstrap initial ou un accès d'urgence.</li>
+    </ul>
+
+    <h2 id="signalement">7. Signaler un contenu problématique</h2>
+    <p>
+      Si un contenu porte atteinte à tes droits (image, nom, vie privée, droit
+      d'auteur), va sur la <a href="signaler.html">page de signalement</a>.
+      L'association traite les signalements sous <strong>72 heures ouvrées</strong>.
+    </p>
+
+    <h2 id="droits">8. Tes droits (RGPD)</h2>
+    <p>
+      L'association est responsable du traitement de tes données personnelles.
+      Pour exercer tes droits (accès, rectification, suppression, portabilité),
+      contacte l'association à l'adresse indiquée dans la
+      <a href="legal/confidentialite.html">politique de confidentialité</a>.
+      Délai de réponse : 30 jours maximum.
+    </p>
+    <p>
+      Si tu quittes l'association, tu peux demander la suppression de ton compte
+      et l'anonymisation de tes contributions.
+    </p>
+
+    <p class="tuto-version">
+      Tutoriel mis à jour pour <span data-version></span>. Dernière révision : 25 avril 2026.
+    </p>
+  </main>
+
+  <footer class="site-footer" style="position: static;">
+    <a href="index.html">← Retour à la carte</a>
+    <span class="sep">·</span>
+    <a href="legal/mentions.html">Mentions légales</a>
+    <span class="sep">·</span>
+    <a href="legal/confidentialite.html">Confidentialité</a>
+    <span class="sep">·</span>
+    <a href="signaler.html">Signaler</a>
+    <span class="sep">·</span>
+    <span class="version-tag" data-version></span>
+  </footer>
+  <script src="js/version.js"></script>
+</body>
+</html>

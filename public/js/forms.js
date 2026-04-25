@@ -184,6 +184,22 @@ async function runCompression(file, label) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Lit les mentions inline @ stockées par js/inline-mentions.js dans
+// `dataset.mentions` du textarea. Filtre celles dont le texte a été
+// modifié après coup (offsets devenus invalides).
+function readMentions(textarea, currentBody) {
+  if (!textarea) return [];
+  let raw;
+  try { raw = JSON.parse(textarea.dataset.mentions || '[]'); }
+  catch { return []; }
+  if (!Array.isArray(raw) || !raw.length) return [];
+  return raw.filter(m =>
+    m && typeof m.start === 'number' && typeof m.end === 'number'
+    && m.start >= 0 && m.end <= currentBody.length && m.start < m.end
+    && (m.type === 'person' || m.type === 'place') && m.entityId
+  );
+}
+
 // Extraction cohérente de l'identité du contributeur depuis un FormData.
 // Tous les dialogs utilisent les mêmes noms de champs (name, writtenFrom,
 // relationship, email) — voir le fieldset.contributor-id dans index.html.
@@ -251,11 +267,13 @@ formStory.addEventListener('submit', async (e) => {
   if (!placeId) return;
   if (blockedByStaticMode('l\'ajout d\'un contenu')) return;
   const fd = new FormData(formStory);
+  const bodyTextarea = formStory.querySelector('textarea[name=body]');
   const payload = {
     placeId,
     type: fd.get('type'),
     title: fd.get('title'),
     body: fd.get('body'),
+    mentions: readMentions(bodyTextarea, fd.get('body') || ''),
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
   };
@@ -486,8 +504,10 @@ formComplete.addEventListener('submit', async (e) => {
   const fd = new FormData(formComplete);
   if (blockedByStaticMode('la complétion d\'une histoire')) return;
 
+  const bodyTextarea = formComplete.querySelector('textarea[name=body]');
   const payload = {
     body: fd.get('body') || '',
+    mentions: readMentions(bodyTextarea, fd.get('body') || ''),
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
   };
