@@ -55,6 +55,7 @@ function inject(name, key, items) {
 ensureFile('places.json',  'places');
 ensureFile('people.json',  'people');
 ensureFile('stories.json', 'stories');
+ensureFile('edits.json',   'edits');
 // Fichiers utilisateurs gérés par auth.js / activityLog.js / reports.js,
 // init en tableau plat — créés à la volée à la première écriture.
 for (const f of ['members.json', 'activity_log.json', 'reports.json']) {
