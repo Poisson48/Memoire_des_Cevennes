@@ -57,9 +57,12 @@ function requireAdmin(req, res, next) {
  * Ne bloque jamais la requête.
  */
 function optionalAuth(req, res, next) {
-  const raw = req.cookies && req.cookies.token
-    ? req.cookies.token
-    : _extractTokenFromCookieHeader(req);
+  // Accepte le cookie membre "token" ou le cookie admin "admin_jwt".
+  // Un admin connecté via /admin.html doit aussi être vu comme membre
+  // sur la home (il a tous les droits d'un contributeur en plus).
+  const raw = (req.cookies && (req.cookies.token || req.cookies.admin_jwt))
+    || _extractTokenFromCookieHeader(req, 'token')
+    || _extractTokenFromCookieHeader(req, 'admin_jwt');
 
   req.member = raw ? normalizeMember(verifyToken(raw)) : null;
   next();
@@ -74,9 +77,9 @@ function optionalAuth(req, res, next) {
  */
 function requireAuth(minRole) {
   return function (req, res, next) {
-    const raw = req.cookies && req.cookies.token
-      ? req.cookies.token
-      : _extractTokenFromCookieHeader(req);
+    const raw = (req.cookies && (req.cookies.token || req.cookies.admin_jwt))
+      || _extractTokenFromCookieHeader(req, 'token')
+      || _extractTokenFromCookieHeader(req, 'admin_jwt');
 
     if (!raw) {
       return res.status(401).json({ error: 'Authentification requise.' });
@@ -110,11 +113,12 @@ function errorHandler(err, _req, res, _next) {
  * Extraction de secours du token depuis le header Cookie brut
  * (utile si cookie-parser n'est pas encore monté ou absent).
  */
-function _extractTokenFromCookieHeader(req) {
+function _extractTokenFromCookieHeader(req, name = 'token') {
   const cookieHeader = req.header('cookie') || '';
+  const prefix = name + '=';
   const part = cookieHeader.split(';').map(s => s.trim())
-    .find(s => s.startsWith('token='));
-  return part ? decodeURIComponent(part.slice('token='.length)) : null;
+    .find(s => s.startsWith(prefix));
+  return part ? decodeURIComponent(part.slice(prefix.length)) : null;
 }
 
 module.exports = { requireAdmin, optionalAuth, requireAuth, errorHandler };
