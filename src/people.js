@@ -69,4 +69,12 @@ function siblingsOf(id) {
   return out;
 }
 
-module.exports = { list, get, create, patch, childrenOf, parentsOf, siblingsOf };
+async function remove(id) {
+  return storage.mutate('people', (people) => {
+    const i = people.findIndex(p => p.id === id);
+    if (i < 0) return null;
+    return people.splice(i, 1)[0];
+  });
+}
+
+module.exports = { list, get, create, patch, remove, childrenOf, parentsOf, siblingsOf };

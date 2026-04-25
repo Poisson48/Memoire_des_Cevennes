@@ -30,4 +30,12 @@ async function patch(id, patchFn) {
   });
 }
 
-module.exports = { list, get, create, patch };
+async function remove(id) {
+  return storage.mutate('places', (places) => {
+    const i = places.findIndex(p => p.id === id);
+    if (i < 0) return null;
+    return places.splice(i, 1)[0];
+  });
+}
+
+module.exports = { list, get, create, patch, remove };
