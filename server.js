@@ -24,6 +24,15 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR   = path.join(__dirname, 'data');
 
 const app = express();
+
+// En prod, on sera derrière Caddy ou un autre reverse proxy. Sans cette
+// ligne, req.ip = "127.0.0.1" pour toutes les requêtes → le rate-limiter
+// verrouille tout le monde dès qu'une IP attaque. Sécurité par défaut :
+// on ne fait confiance qu'à 1 hop (le proxy direct), pas à toute la chaîne.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
