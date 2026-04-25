@@ -76,7 +76,7 @@ function renderPlaceCoords(latlng) {
     `📍 ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
 }
 
-formPlace.addEventListener('close', async () => {
+dlgPlace.addEventListener('close', async () => {
   if (dlgPlace.returnValue !== 'submit' || !pendingLatLng) {
     resetAddMode(); return;
   }
@@ -89,6 +89,7 @@ formPlace.addEventListener('close', async () => {
     description: fd.get('description'),
     lat: pendingLatLng.lat,
     lng: pendingLatLng.lng,
+    consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
   };
@@ -274,6 +275,7 @@ formStory.addEventListener('submit', async (e) => {
     title: fd.get('title'),
     body: fd.get('body'),
     mentions: readMentions(bodyTextarea, fd.get('body') || ''),
+    consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
   };
@@ -508,6 +510,7 @@ formComplete.addEventListener('submit', async (e) => {
   const payload = {
     body: fd.get('body') || '',
     mentions: readMentions(bodyTextarea, fd.get('body') || ''),
+    consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
   };
