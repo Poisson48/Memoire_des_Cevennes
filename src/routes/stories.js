@@ -116,10 +116,23 @@ router.post('/:id/media', requireAuth('contributor'), (req, res, next) => {
         }
       }
 
-      const files = (req.files || []).map(f => ({
-        url: `/uploads/${req.params.id}/${f.filename}`,
-        mime: f.mimetype,
-      }));
+      // Légendes : multer expose req.body.captions comme tableau (ou string
+      // unique si un seul champ). On normalise en tableau et on associe
+      // par index aux fichiers.
+      const rawCaptions = req.body && req.body.captions;
+      const captions = Array.isArray(rawCaptions)
+        ? rawCaptions
+        : (rawCaptions ? [rawCaptions] : []);
+
+      const files = (req.files || []).map((f, i) => {
+        const out = {
+          url: `/uploads/${req.params.id}/${f.filename}`,
+          mime: f.mimetype,
+        };
+        const cap = captions[i] && String(captions[i]).trim().slice(0, 500);
+        if (cap) out.caption = cap;
+        return out;
+      });
       const updated = await stories.patch(req.params.id, (s) => ({
         mediaFiles: [...(s.mediaFiles || []), ...files],
       }));
