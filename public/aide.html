@@ -7,22 +7,87 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/legal.css" />
   <style>
-    body { overflow: auto; }
-    .tuto-main { flex: 1; padding: 1.5rem 1rem 4rem; max-width: 820px; margin: 0 auto; }
+    /* Override le layout fixe du body (height:100% + overflow:hidden) qui
+       empêche le scroll vertical, surtout sur mobile. Même approche que
+       les pages légales (cf. .legal-body dans legal.css). */
+    html, body {
+      height: auto;
+      min-height: 100%;
+    }
+    body {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tuto-main {
+      flex: 1;
+      padding: 1.5rem 1rem 4rem;
+      max-width: 920px;
+      margin: 0 auto;
+    }
     .tuto-main h1 { color: var(--accent-dark); margin-top: 0; }
     .tuto-main h2 {
-      margin-top: 2.2rem;
+      margin-top: 2.4rem;
       color: var(--accent-dark);
       border-bottom: 1px solid var(--border);
       padding-bottom: 0.3rem;
     }
-    .tuto-main h3 { color: var(--accent-dark); margin-top: 1.4rem; }
+    .tuto-main h3 { color: var(--accent-dark); margin-top: 1.6rem; }
     .tuto-main code {
       background: rgba(0,0,0,0.05);
       padding: 0.05rem 0.35rem;
       border-radius: 3px;
       font-size: 0.9em;
     }
+
+    /* ─── Sélecteur de rôle ──────────────────────────────────────── */
+    .role-picker {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 0.4rem;
+    }
+    .role-picker button {
+      flex: 1 1 auto;
+      min-width: 130px;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      color: var(--accent-dark);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .role-picker button:hover { background: rgba(140, 90, 43, 0.08); }
+    .role-picker button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent-dark);
+    }
+    .role-picker .role-emoji {
+      font-size: 1.15em;
+      margin-right: 0.25rem;
+    }
+    .role-banner {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 0.7rem 1rem;
+      margin: 0.7rem 0 1.6rem;
+      font-size: 0.93rem;
+      color: var(--muted);
+    }
+    .role-banner.detected { border-left-color: #4a7c2c; }
+    .role-banner strong { color: var(--accent-dark); }
+
+    /* ─── Sections par rôle ──────────────────────────────────────── */
+    .role-section { display: none; }
+    .role-section.active { display: block; }
+
+    /* ─── Étapes numérotées ──────────────────────────────────────── */
     .tuto-main .step {
       background: var(--panel-bg);
       border-left: 4px solid var(--accent);
@@ -30,6 +95,39 @@
       margin: 0.7rem 0;
       border-radius: 0 4px 4px 0;
     }
+    .tuto-main .step.warn { border-left-color: #b35a00; }
+    .tuto-main .step.tip  { border-left-color: #4a7c2c; }
+
+    /* ─── Captures d'écran ───────────────────────────────────────── */
+    .shot {
+      margin: 1rem 0 1.4rem;
+      text-align: center;
+    }
+    .shot img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background: white;
+    }
+    .shot figcaption {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-style: italic;
+    }
+    .shot-pair {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .shot-pair figure { flex: 1 1 280px; margin: 0; }
+    .shot-pair .shot-mobile img { max-height: 480px; width: auto; }
+
+    /* ─── Tableau de rôles ──────────────────────────────────────── */
     .tuto-main .role-table {
       border-collapse: collapse;
       width: 100%;
@@ -44,20 +142,34 @@
       vertical-align: top;
     }
     .tuto-main .role-table thead th { background: var(--panel-bg); }
+
     .tuto-toc {
       background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 0.8rem 1.2rem;
-      margin: 1rem 0 2rem;
+      margin: 1rem 0 1.4rem;
     }
     .tuto-toc ul { margin: 0.4rem 0 0; padding-left: 1.4rem; }
+
     .tuto-version {
       color: var(--muted);
       font-style: italic;
       font-size: 0.9rem;
-      margin-top: 2rem;
+      margin-top: 2.5rem;
     }
+
+    /* Pointeur discret vers le mémo admin (qui vit dans /admin.html). */
+    .admin-pointer {
+      margin: 0.4rem 0 1.2rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      padding: 0.4rem 0.7rem;
+      background: rgba(0, 0, 0, 0.02);
+      border-left: 3px solid var(--border);
+      border-radius: 0 4px 4px 0;
+    }
+    .admin-pointer a { color: var(--accent-dark); }
   </style>
 </head>
 <body>
@@ -76,179 +188,354 @@
 
     <p>
       Mémoire des Cévennes est une carte collaborative de récits, de noms et de
-      lieux du piémont cévenol. Cette page explique comment naviguer, contribuer,
-      et qui peut faire quoi.
+      lieux du piémont cévenol. Le tutoriel ci-dessous s'adapte à ton rôle :
+      choisis le tien (ou laisse-toi reconnaître automatiquement).
     </p>
 
-    <nav class="tuto-toc">
-      <strong>Sur cette page :</strong>
-      <ul>
-        <li><a href="#decouvrir">1. Découvrir la carte sans compte</a></li>
-        <li><a href="#inscription">2. S'inscrire et devenir membre</a></li>
-        <li><a href="#contribuer">3. Contribuer un lieu, une personne, un récit</a></li>
-        <li><a href="#mentions">4. Mentionner @quelqu'un dans un récit</a></li>
-        <li><a href="#visibilites">5. Comprendre les visibilités</a></li>
-        <li><a href="#admin">6. Espace admin — bureau de l'association</a></li>
-        <li><a href="#signalement">7. Signaler un contenu problématique</a></li>
-        <li><a href="#droits">8. Tes droits (RGPD)</a></li>
-      </ul>
+    <!-- ── Sélecteur de rôle ──────────────────────────────────── -->
+    <nav class="role-picker" role="tablist" aria-label="Choisir ton rôle">
+      <button type="button" data-role="guest" role="tab" aria-controls="section-guest">
+        <span class="role-emoji">👀</span>Visiteur·euse
+      </button>
+      <button type="button" data-role="member" role="tab" aria-controls="section-member">
+        <span class="role-emoji">👤</span>Membre
+      </button>
     </nav>
-
-    <h2 id="decouvrir">1. Découvrir la carte sans compte</h2>
-    <p>
-      En arrivant sur la <a href="index.html">page d'accueil</a> sans être connecté·e,
-      tu vois les lieux et récits marqués <em>publics</em> par les contributeurs.
-      Le contenu plus personnel (familles vivantes, histoires intimes) reste réservé
-      aux membres connectés.
+    <p class="admin-pointer">
+      🛡️ <strong>Tu es admin ?</strong> Le mémo administrateur est dans
+      <a href="admin.html#help">l'onglet « Aide » de l'espace admin</a>.
     </p>
-    <div class="step">
-      <strong>Cherche un lieu :</strong> tape un nom de village ou d'adresse dans la
-      barre de recherche en haut de la carte. Suggestion automatique fournie par
-      OpenStreetMap.
-    </div>
-    <div class="step">
-      <strong>Centre la carte sur ta position :</strong> bouton 📍 dans la barre
-      d'ajout (autorise la géolocalisation dans ton navigateur).
+    <div class="role-banner" id="role-banner">
+      <span id="role-banner-text">Choisis le rôle qui correspond à ta situation.</span>
     </div>
 
-    <h2 id="inscription">2. S'inscrire et devenir membre</h2>
-    <p>
-      Va sur la <a href="register.html">page d'inscription</a>. Renseigne ton nom,
-      e-mail, mot de passe (8 caractères minimum), et accepte la
-      <a href="legal/charte-contributeur.html">charte du contributeur</a>.
-    </p>
-    <div class="step">
-      Ton compte est créé en statut <code>pending</code> — un administrateur
-      doit l'approuver avant que tu puisses contribuer. Ça prend généralement
-      moins d'une journée.
-    </div>
-    <div class="step">
-      Une fois approuvé·e, ton rôle de départ est <strong>membre</strong> (lecture
-      du contenu protégé). L'admin peut te promouvoir <strong>contributeur</strong>
-      pour que tu puisses ajouter du contenu.
-    </div>
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 1 : VISITEUR (non connecté)
+         ───────────────────────────────────────────────────────── -->
+    <section id="section-guest" class="role-section" role="tabpanel" aria-labelledby="tab-guest">
+      <h2>👀 Tu visites le site sans compte</h2>
+      <p>
+        En mode visiteur, tu peux <strong>explorer la carte</strong> et lire les
+        contenus marqués <em>publics</em> par les contributeurs. Le contenu plus
+        personnel (familles vivantes, histoires intimes) reste invisible jusqu'à
+        ce que tu te connectes en tant que membre.
+      </p>
 
-    <h2 id="contribuer">3. Contribuer un lieu, une personne, un récit</h2>
-    <p>Une fois connecté·e en tant que contributeur :</p>
+      <nav class="tuto-toc">
+        <strong>Au programme :</strong>
+        <ul>
+          <li><a href="#guest-decouvrir">1. Découvrir la carte</a></li>
+          <li><a href="#guest-couches">2. Voyager dans le temps : cartes anciennes et cadastre</a></li>
+          <li><a href="#guest-fiches">3. Lire une fiche de lieu ou de personne</a></li>
+          <li><a href="#guest-inscrire">4. M'inscrire pour aller plus loin</a></li>
+          <li><a href="#guest-signaler">5. Signaler un contenu</a></li>
+        </ul>
+      </nav>
 
-    <h3>Ajouter un lieu</h3>
-    <ol>
-      <li>Clique sur <strong>« + Ajouter un lieu »</strong> dans la barre du haut.</li>
-      <li>Tape sur la carte à l'endroit voulu, ou clique <em>« utilise ma position »</em>.</li>
-      <li>Renseigne le nom, une description, et les champs « qui es-tu » qui suivent.</li>
-      <li>Coche le consentement (case obligatoire) puis envoie.</li>
-    </ol>
-    <div class="step">
-      Ton lieu part en file de modération (<code>status: pending</code>). Un
-      administrateur le valide. Une fois approuvé, il apparaît sur la carte
-      avec une visibilité par défaut <strong>« membres »</strong>.
-    </div>
+      <h3 id="guest-decouvrir">1. Découvrir la carte</h3>
+      <p>
+        À l'arrivée sur la <a href="index.html">page d'accueil</a>, tu vois la
+        carte centrée sur Saint-Roman-de-Codières. Chaque pin est un lieu
+        contenant un ou plusieurs récits.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/01-home-anonyme-pc.png" alt="Carte vue desktop, anonyme" />
+          <figcaption>Carte d'accueil, en mode visiteur, sur ordinateur.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/01-home-anonyme-mobile.png" alt="Carte vue mobile, anonyme" />
+          <figcaption>Même vue, sur téléphone.</figcaption>
+        </figure>
+      </div>
+      <div class="step">
+        <strong>Cherche un lieu :</strong> tape un nom de village ou d'adresse
+        dans la barre de recherche. Suggestions OpenStreetMap.
+      </div>
+      <div class="step tip">
+        <strong>Centre la carte sur ta position :</strong> bouton 📍 dans la
+        barre d'ajout (autorise la géolocalisation dans ton navigateur).
+      </div>
 
-    <h3>Ajouter un récit attaché à un lieu</h3>
-    <ol>
-      <li>Ouvre le panneau d'un lieu en cliquant sur son marqueur.</li>
-      <li>Bouton <strong>« + Ajouter un récit »</strong> en bas du panneau.</li>
-      <li>Choisis le type (texte, photo, audio, vidéo, dessin, note).</li>
-      <li>Rédige ton récit — utilise <code>@</code> pour mentionner une personne ou un lieu (voir section suivante).</li>
-      <li>Si tu as un fichier média, tu peux le joindre à l'étape suivante.</li>
-    </ol>
+      <h3 id="guest-couches">2. Voyager dans le temps : cartes anciennes et cadastre</h3>
+      <p>
+        En bas à gauche de la carte, le bouton <strong>🗺 Couches</strong> ouvre
+        un panneau qui te laisse changer de fond et superposer le cadastre.
+        Pratique quand tu cherches une ruine ou une maison disparue.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/15-couches-pc.png" alt="Panneau Couches ouvert sur la carte d'État-Major" />
+          <figcaption>Le panneau Couches sur la carte d'État-Major (1820-66).</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/15-couches-mobile.png" alt="Panneau Couches ouvert sur mobile" />
+          <figcaption>Même chose sur téléphone.</figcaption>
+        </figure>
+      </div>
+      <div class="step">
+        <strong>Cartes disponibles :</strong>
+        <ul style="margin:0.4rem 0 0 1rem;">
+          <li><strong>OSM</strong> (par défaut) : la carte routière classique.</li>
+          <li><strong>IGN moderne</strong> : carte topographique IGN actuelle.</li>
+          <li><strong>Photo aérienne (auj.)</strong> : vue satellite récente.</li>
+          <li><strong>Photo aérienne 1950-65</strong> : vue aérienne en noir et blanc — beaucoup de ruines y sont encore debout.</li>
+          <li><strong>Carte d'État-Major (1820-66)</strong> : relief et hameaux du XIX<sup>e</sup>.</li>
+          <li><strong>Carte de Cassini (~1750)</strong> : la plus ancienne, dessinée à la main, toponymie d'avant la Révolution.</li>
+        </ul>
+      </div>
+      <div class="step tip">
+        <strong>Voyager dans le temps en un clic :</strong> les boutons
+        <code>~1750</code> · <code>1830</code> · <code>1950</code> ·
+        <code>Auj.</code> en bas du panneau basculent direct entre les époques.
+      </div>
+      <div class="step tip">
+        <strong>Cadastre actuel (parcelles)</strong> : la case à cocher
+        superpose le contour des parcelles cadastrales. Tu peux l'activer
+        par-dessus n'importe quel fond — particulièrement parlant sur la photo
+        1950 ou la carte d'État-Major pour situer une ruine sur une parcelle
+        précise.
+      </div>
+      <div class="step tip">
+        <strong>Slider d'opacité</strong> : règle la transparence du fond
+        ancien pour le fondre avec l'OSM en dessous (utile pour comparer "où
+        ça collait à l'époque vs aujourd'hui").
+      </div>
 
-    <h3>Compléter un récit existant</h3>
-    <p>
-      Sous chaque récit, le bouton <strong>« ➕ Compléter »</strong> ajoute un
-      chapitre qui s'attache au récit d'origine — utile pour préciser, corriger,
-      ou ajouter une perspective complémentaire. Soumis à validation aussi.
-    </p>
+      <h3 id="guest-fiches">3. Lire une fiche</h3>
+      <p>
+        Clique un marqueur sur la carte : un panneau latéral s'ouvre avec le
+        nom, la description, et les récits attachés au lieu.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/05-panneau-lieu-pc.png" alt="Panneau d'un lieu, anonyme" />
+          <figcaption>Panneau d'un lieu, vu en mode visiteur.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/05-panneau-lieu-mobile.png" alt="Panneau d'un lieu sur mobile" />
+          <figcaption>Sur mobile, le panneau prend l'écran.</figcaption>
+        </figure>
+      </div>
+      <div class="step warn">
+        Les fiches de personnes vivantes ne sont <strong>jamais</strong>
+        visibles sans être connecté·e — c'est volontaire pour respecter la vie
+        privée.
+      </div>
 
-    <h2 id="mentions">4. Mentionner <code>@</code>quelqu'un dans un récit</h2>
-    <p>
-      Dans n'importe quel champ texte d'un récit (corps, complétion), tape
-      <code>@</code> suivi des premières lettres d'un nom — d'une personne, d'un
-      lieu ou d'un de leurs alias. Une liste de suggestions s'affiche, navigue
-      avec ↑↓ et valide avec ⏎.
-    </p>
-    <div class="step">
-      <strong>Pourquoi c'est utile :</strong> chaque mention crée un lien interne
-      cliquable dans le récit. Un visiteur peut sauter d'un récit à la fiche d'une
-      personne, à un lieu, à un autre récit qui mentionne la même personne.
-    </div>
-    <div class="step">
-      <strong>Si la personne ou le lieu n'existe pas encore :</strong> au lieu d'une
-      sélection dans la liste, tu peux créer une fiche à la volée — elle partira
-      en file de modération comme les autres contributions.
-    </div>
+      <h3 id="guest-inscrire">4. M'inscrire pour aller plus loin</h3>
+      <p>
+        Pour voir le contenu réservé aux membres et — éventuellement —
+        contribuer, clique sur <strong>Connexion membre</strong> en haut, puis
+        <em>« Pas encore de compte ? S'inscrire »</em>.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/02-login-membre-pc.png" alt="Page de connexion membre" />
+          <figcaption>La page de connexion / inscription membre.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/02-login-membre-mobile.png" alt="Page de connexion membre, mobile" />
+          <figcaption>Idem sur téléphone.</figcaption>
+        </figure>
+      </div>
+      <div class="step">
+        Ton compte est créé en statut <code>pending</code> — un administrateur
+        l'approuve (en général sous 24 h).
+      </div>
+      <div class="step tip">
+        Une fois approuvé·e, tu deviens <strong>membre</strong> (lecture du
+        contenu protégé). Pour pouvoir <em>contribuer</em>, demande à l'admin
+        de te promouvoir <strong>contributeur</strong>.
+      </div>
 
-    <h2 id="visibilites">5. Comprendre les visibilités</h2>
-    <p>Chaque entité (lieu, personne, récit) a un champ <code>visibility</code> :</p>
-    <ul>
-      <li><strong><code>public</code></strong> — visible par tout le monde, même sans compte. À utiliser pour les éléments patrimoniaux qui n'engagent personne (un mas abandonné, un lieu-dit ancien, un événement historique).</li>
-      <li><strong><code>members</code></strong> (défaut) — visible uniquement aux membres connectés. Pour les histoires familiales, les personnes vivantes, les récits intimes.</li>
-    </ul>
-    <p>
-      Les fiches de <strong>personnes vivantes</strong> sont automatiquement en
-      <code>members</code> (jamais publiques sans accord explicite de la personne).
-      Les visiteurs anonymes ne voient même pas leur nom.
-    </p>
+      <h3 id="guest-signaler">5. Signaler un contenu</h3>
+      <p>
+        Si un contenu te concerne et qu'il pose un problème (vie privée, droit
+        d'auteur, image), va sur la
+        <a href="signaler.html">page de signalement</a>. L'association traite
+        les demandes sous 72 h ouvrées.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/06-signaler-pc.png" alt="Formulaire de signalement" />
+          <figcaption>Le formulaire de signalement.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/06-signaler-mobile.png" alt="Formulaire de signalement mobile" />
+          <figcaption>Version mobile.</figcaption>
+        </figure>
+      </div>
+    </section>
 
-    <h2 id="admin">6. Espace admin — bureau de l'association</h2>
-    <p>
-      L'<a href="admin.html">espace admin</a> est réservé aux membres du bureau
-      de l'association. C'est un espace différent de l'espace membre : on s'y
-      connecte sur <code>/admin.html</code> (et non sur <code>/login.html</code>).
-    </p>
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 2 : MEMBRE (connecté, member ou contributor)
+         ───────────────────────────────────────────────────────── -->
+    <section id="section-member" class="role-section" role="tabpanel" aria-labelledby="tab-member">
+      <h2>👤 Tu es membre connecté·e</h2>
+      <p>
+        En tant que membre, tu accèdes au contenu en visibilité <em>members</em>
+        — les fiches plus personnelles que les contributeurs ont voulu réserver
+        au cercle. Si tu as le rôle <strong>contributeur</strong>, tu peux en
+        plus ajouter des lieux, des personnes, des récits, et corriger des
+        fiches existantes.
+      </p>
 
-    <table class="role-table">
-      <thead>
-        <tr><th>Rôle</th><th>Peut</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Membre</strong></td>
-          <td>Se connecter, voir le contenu en visibilité <em>members</em>.</td>
-        </tr>
-        <tr>
-          <td><strong>Contributeur</strong></td>
-          <td>Tout ce qu'un membre peut faire, plus : ajouter lieux, personnes, récits, médias, complétions.</td>
-        </tr>
-        <tr>
-          <td><strong>Admin</strong></td>
-          <td>
-            Tout ce qu'un contributeur peut faire, plus : valider les inscriptions et les contributions
-            en attente, créer des comptes directement, changer le rôle des membres, consulter le journal
-            d'activité.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <nav class="tuto-toc">
+        <strong>Au programme :</strong>
+        <ul>
+          <li><a href="#member-connecte">1. Ma session connectée</a></li>
+          <li><a href="#member-ajouter-lieu">2. Ajouter un lieu</a></li>
+          <li><a href="#member-recit">3. Ajouter un récit</a></li>
+          <li><a href="#member-mentions">4. Mentionner @quelqu'un</a></li>
+          <li><a href="#member-proposer">5. Proposer une modification</a></li>
+          <li><a href="#member-visibilites">6. Choisir la visibilité</a></li>
+          <li><a href="#member-droits">7. Mes droits (RGPD)</a></li>
+        </ul>
+      </nav>
 
-    <p>L'admin a deux moyens de se connecter :</p>
-    <ul>
-      <li><strong>Compte admin personnel</strong> (recommandé) — onglet <em>Compte admin</em> sur <code>/admin.html</code>.</li>
-      <li><strong>Token partagé</strong> — onglet <em>Token partagé</em>, valeur de la variable <code>ADMIN_TOKEN</code> du serveur. Utile pour le bootstrap initial ou un accès d'urgence.</li>
-    </ul>
+      <h3 id="member-connecte">1. Ma session connectée</h3>
+      <p>
+        Une fois connecté·e, ton nom apparaît en haut à droite. Le bandeau
+        « lecture seule » disparaît, et tu vois les marqueurs et fiches
+        réservés aux membres.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/04-home-membre-connecte-pc.png" alt="Accueil en tant que membre connecté" />
+          <figcaption>L'accueil, vue d'un membre connecté.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/04-home-membre-connecte-mobile.png" alt="Accueil membre connecté, mobile" />
+          <figcaption>Même vue, sur mobile.</figcaption>
+        </figure>
+      </div>
 
-    <h2 id="signalement">7. Signaler un contenu problématique</h2>
-    <p>
-      Si un contenu porte atteinte à tes droits (image, nom, vie privée, droit
-      d'auteur), va sur la <a href="signaler.html">page de signalement</a>.
-      L'association traite les signalements sous <strong>72 heures ouvrées</strong>.
-    </p>
+      <h3 id="member-ajouter-lieu">2. Ajouter un lieu <span style="color:var(--muted);font-weight:normal;font-size:0.9em;">(rôle contributeur requis)</span></h3>
+      <ol>
+        <li>Clique sur <strong>« + Ajouter un lieu »</strong> dans la barre du haut.</li>
+        <li>Tape sur la carte à l'endroit voulu, ou clique <em>« utilise ma position »</em>.</li>
+        <li>Renseigne le nom, une description, et les champs « qui es-tu ».</li>
+        <li>Coche le consentement (case obligatoire) puis envoie.</li>
+      </ol>
+      <div class="step">
+        Ton lieu part en file de modération (<code>status: pending</code>). Un
+        administrateur le valide. Une fois approuvé, il apparaît sur la carte
+        avec une visibilité par défaut <strong>« members »</strong>.
+      </div>
 
-    <h2 id="droits">8. Tes droits (RGPD)</h2>
-    <p>
-      L'association est responsable du traitement de tes données personnelles.
-      Pour exercer tes droits (accès, rectification, suppression, portabilité),
-      contacte l'association à l'adresse indiquée dans la
-      <a href="legal/confidentialite.html">politique de confidentialité</a>.
-      Délai de réponse : 30 jours maximum.
-    </p>
-    <p>
-      Si tu quittes l'association, tu peux demander la suppression de ton compte
-      et l'anonymisation de tes contributions.
-    </p>
+      <h3 id="member-recit">3. Ajouter un récit attaché à un lieu</h3>
+      <ol>
+        <li>Ouvre le panneau d'un lieu en cliquant sur son marqueur.</li>
+        <li>Bouton <strong>« + Ajouter un récit »</strong> en bas du panneau.</li>
+        <li>Choisis le type (texte, photo, audio, vidéo, dessin, note).</li>
+        <li>Rédige ton récit — utilise <code>@</code> pour mentionner une personne ou un lieu.</li>
+        <li>Joins un fichier média si tu veux (audio enregistré dans le navigateur, par exemple).</li>
+      </ol>
+      <figure class="shot">
+        <img src="screenshots/10-add-story-audio-recorder.png" alt="Dialog ajout de récit avec enregistreur audio" />
+        <figcaption>Le dialog d'ajout de récit, ici avec l'enregistreur audio.</figcaption>
+      </figure>
+      <div class="step tip">
+        <strong>Compléter un récit existant :</strong> le bouton
+        <em>« ➕ Compléter »</em> sous chaque récit ajoute un chapitre qui
+        s'attache au récit d'origine — utile pour préciser, corriger, ou ajouter
+        une perspective complémentaire.
+      </div>
+
+      <h3 id="member-mentions">4. Mentionner <code>@</code>quelqu'un</h3>
+      <p>
+        Dans n'importe quel champ texte d'un récit, tape <code>@</code> suivi
+        des premières lettres d'un nom de personne ou de lieu. Une liste de
+        suggestions s'affiche, navigue avec ↑↓ et valide avec ⏎.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/07-mentions-pc.png" alt="Suggestions de mentions" />
+          <figcaption>Suggestions de mentions à la frappe.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/07-mentions-mobile.png" alt="Mentions sur mobile" />
+          <figcaption>Sur mobile.</figcaption>
+        </figure>
+      </div>
+      <p>
+        Tu peux aussi <strong>tagger après coup</strong> : sélectionne un mot
+        dans un récit déjà publié, un popover propose de le lier à une fiche
+        existante (ou d'en créer une nouvelle).
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/11-tagger-popover.png" alt="Popover de tagging post-coup" />
+          <figcaption>Popover qui apparaît quand tu sélectionnes un mot.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/12-tagger-dialog.png" alt="Dialog de tagging" />
+          <figcaption>Dialog qui s'ouvre ensuite pour confirmer la cible.</figcaption>
+        </figure>
+      </div>
+      <div class="step">
+        <strong>Si la personne ou le lieu n'existe pas encore :</strong> tu peux
+        en créer une fiche à la volée — elle partira en file de modération.
+      </div>
+
+      <h3 id="member-proposer">5. Proposer une modification</h3>
+      <p>
+        Tu remarques une faute, une date à corriger, un complément à ajouter
+        sur une fiche existante ? Bouton <strong>« ✏️ Proposer une
+        modification »</strong> dans le panneau du lieu (ou de la personne).
+      </p>
+      <figure class="shot">
+        <img src="screenshots/09-propose-edit-dialog.png" alt="Dialog proposer une modification" />
+        <figcaption>Dialog : tu modifies les champs et expliques pourquoi.</figcaption>
+      </figure>
+      <div class="step">
+        Ta proposition part en file de modération. L'admin voit un diff
+        avant/après et accepte ou refuse.
+      </div>
+
+      <h3 id="member-visibilites">6. Choisir la visibilité</h3>
+      <p>Chaque entité (lieu, personne, récit) a un champ <code>visibility</code> :</p>
+      <ul>
+        <li><strong><code>public</code></strong> — visible par tout le monde, même sans compte. À utiliser pour les éléments patrimoniaux qui n'engagent personne (un mas abandonné, un lieu-dit ancien, un événement historique).</li>
+        <li><strong><code>members</code></strong> (défaut) — visible uniquement aux membres connectés. Pour les histoires familiales, les personnes vivantes, les récits intimes.</li>
+      </ul>
+      <p>
+        Les fiches de <strong>personnes vivantes</strong> sont automatiquement
+        en <code>members</code> et ne peuvent être basculées en <em>public</em>
+        sans accord explicite (charte du contributeur).
+      </p>
+
+      <h3 id="member-droits">7. Mes droits (RGPD)</h3>
+      <p>
+        Pour exercer tes droits (accès, rectification, suppression,
+        portabilité), contacte l'association à l'adresse indiquée dans la
+        <a href="legal/confidentialite.html">politique de confidentialité</a>.
+        Délai de réponse : 30 jours maximum.
+      </p>
+      <div class="shot-pair">
+        <figure class="shot">
+          <img src="screenshots/08-confidentialite-pc.png" alt="Politique de confidentialité" />
+          <figcaption>La politique de confidentialité.</figcaption>
+        </figure>
+        <figure class="shot shot-mobile">
+          <img src="screenshots/08-confidentialite-mobile.png" alt="Politique de confidentialité, mobile" />
+          <figcaption>Version mobile.</figcaption>
+        </figure>
+      </div>
+      <div class="step">
+        Si tu quittes l'association, tu peux demander la suppression de ton
+        compte et l'anonymisation de tes contributions.
+      </div>
+    </section>
+
+    <!-- Section admin déplacée vers /admin.html (onglet « Aide ») —
+         le mémo administrateur n'est accessible qu'aux admins
+         connecté·e·s, à `/admin.html#help`. -->
 
     <p class="tuto-version">
-      Tutoriel mis à jour pour <span data-version></span>. Dernière révision : 25 avril 2026.
+      Tutoriel mis à jour pour <span data-version></span>. Dernière révision :
+      26 avril 2026.
     </p>
   </main>
 
@@ -263,6 +550,122 @@
     <span class="sep">·</span>
     <span class="version-tag" data-version></span>
   </footer>
+
   <script src="js/version.js"></script>
+  <script>
+    (function() {
+      'use strict';
+
+      // Le rôle 'admin' a été retiré du tuto public — son mémo vit dans
+      // l'onglet « Aide » de /admin.html, accessible seulement aux admins
+      // authentifié·e·s.
+      const ROLES = ['guest', 'member'];
+      const ROLE_LABELS = {
+        guest: 'visiteur·euse (sans compte)',
+        member: 'membre',
+      };
+      const STORAGE_KEY = 'mdc-tuto-role';
+      const buttons = document.querySelectorAll('.role-picker button[data-role]');
+      const sections = {
+        guest:  document.getElementById('section-guest'),
+        member: document.getElementById('section-member'),
+      };
+      const banner = document.getElementById('role-banner');
+      const bannerText = document.getElementById('role-banner-text');
+
+      let detectedRole = null;       // rôle reconnu via /api/auth/me
+      let userPickedManually = false;
+
+      function showRole(role, source) {
+        if (!ROLES.includes(role)) role = 'guest';
+        for (const r of ROLES) {
+          sections[r].classList.toggle('active', r === role);
+        }
+        for (const btn of buttons) {
+          btn.classList.toggle('active', btn.dataset.role === role);
+          btn.setAttribute('aria-selected', btn.dataset.role === role ? 'true' : 'false');
+        }
+
+        // Bandeau d'explication.
+        banner.classList.toggle('detected', source === 'detected');
+        if (source === 'detected') {
+          bannerText.innerHTML = `On t'a reconnu·e comme <strong>${ROLE_LABELS[role]}</strong>. ` +
+            `Tu peux changer la vue ci-dessus si tu veux lire les autres sections.`;
+        } else if (source === 'manual') {
+          let suffix = '';
+          if (detectedRole && detectedRole !== role) {
+            suffix = ` (ton compte actuel est en fait : <strong>${ROLE_LABELS[detectedRole]}</strong>)`;
+          }
+          bannerText.innerHTML = `Tu lis le tutoriel <strong>${ROLE_LABELS[role]}</strong>${suffix}.`;
+        } else {
+          bannerText.textContent = 'Choisis le rôle qui correspond à ta situation.';
+        }
+
+        // Hash dans l'URL pour le partage / les ancres.
+        if (location.hash !== '#' + role) {
+          history.replaceState(null, '', '#' + role);
+        }
+      }
+
+      // Choix manuel via boutons.
+      for (const btn of buttons) {
+        btn.addEventListener('click', () => {
+          userPickedManually = true;
+          const role = btn.dataset.role;
+          try { localStorage.setItem(STORAGE_KEY, role); } catch {}
+          showRole(role, 'manual');
+        });
+      }
+
+      // Détermine le rôle à afficher au chargement.
+      // Priorité : (1) hash URL → (2) rôle détecté côté serveur →
+      //           (3) dernier choix mémorisé → (4) visiteur.
+      async function init() {
+        // 1. Hash explicite ?
+        const hashRole = (location.hash || '').replace('#', '');
+        if (ROLES.includes(hashRole)) {
+          userPickedManually = true;
+          showRole(hashRole, 'manual');
+        } else {
+          const stored = (() => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } })();
+          if (stored && ROLES.includes(stored)) {
+            showRole(stored, 'manual');
+          } else {
+            showRole('guest', null);
+          }
+        }
+
+        // 2. En parallèle, on essaie de détecter le rôle via /api/auth/me.
+        //    Si on obtient un membre et que l'utilisateur n'a pas explicitement
+        //    cliqué un onglet, on bascule sur sa vue.
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const member = data.member;
+          if (!member) return;
+
+          // L'admin n'a pas de section dédiée dans ce tuto (cf. ROLES) —
+          // il atterrit sur la vue "membre" et trouve son mémo via le
+          // pointeur vers /admin.html#help.
+          detectedRole = 'member';
+          // Met à jour le bandeau s'il y a divergence.
+          if (!userPickedManually && !ROLES.includes(hashRole)) {
+            showRole(detectedRole, 'detected');
+          } else {
+            // Réécrit juste le bandeau pour signaler la divergence éventuelle.
+            const currentActive = document.querySelector('.role-picker button.active');
+            if (currentActive) {
+              showRole(currentActive.dataset.role, 'manual');
+            }
+          }
+        } catch {
+          // Mode statique (GitHub Pages) — pas d'API, on reste sur le rôle choisi.
+        }
+      }
+
+      init();
+    })();
+  </script>
 </body>
 </html>
