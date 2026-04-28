@@ -15,6 +15,7 @@ const people = require('../people');
 const auth = require('../auth');
 const activityLog = require('../activityLog');
 const backup = require('../backup');
+const welcome = require('../welcome');
 const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
 
@@ -46,6 +47,28 @@ router.use('/import',  backupsRouter.importRouter);
 router.get('/storage', async (_req, res, next) => {
   try { res.json(await backup.getStorageStats()); }
   catch (err) { next(err); }
+});
+
+// ─── Page d'accueil personnalisable ───────────────────────────────────
+// La lecture publique est sous /api/welcome (routes/meta.js). L'écriture
+// passe par ici, protégée par requireAdmin.
+router.put('/welcome', async (req, res, next) => {
+  try {
+    const content = req.body && typeof req.body.content === 'string' ? req.body.content : '';
+    if (content.length > 50_000) {
+      return res.status(400).json({ error: 'Contenu trop long (50 000 caractères max).' });
+    }
+    const updatedBy = (req.member && (req.member.name || req.member.email)) || 'admin';
+    const out = await welcome.save({ content, updatedBy });
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'welcome.update',
+      entityType: 'welcome',
+      entityId: '-',
+      ip: req.ip,
+    });
+    res.json(out);
+  } catch (err) { next(err); }
 });
 
 // ─── Membres ──────────────────────────────────────────────────────────

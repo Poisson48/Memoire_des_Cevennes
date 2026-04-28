@@ -347,6 +347,25 @@
     </form>
   </dialog>
 
+  <!-- Modal d'accueil — s'ouvre au premier visit, contenu markdown
+       personnalisable par l'admin via /admin.html. La case "ne plus
+       afficher" persiste en localStorage (clé mdc-welcome-dismissed).
+       Si tu veux le revoir : ouvre la console et fais
+       `localStorage.removeItem('mdc-welcome-dismissed')`. -->
+  <dialog id="welcome-dialog" class="welcome-dialog">
+    <div class="welcome-content" id="welcome-content"></div>
+    <form method="dialog" class="welcome-actions">
+      <label class="welcome-dontshow">
+        <input type="checkbox" id="welcome-dontshow" />
+        Ne plus afficher ce message à chaque visite
+      </label>
+      <div class="welcome-buttons">
+        <a href="aide.html" class="btn-ghost">📘 Voir le tutoriel</a>
+        <button type="submit" class="btn-primary" value="close">Continuer</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
@@ -358,6 +377,8 @@
   <script src="js/tagger.js"></script>
   <script src="js/autocomplete.js"></script>
   <script src="js/inline-mentions.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/welcome.js"></script>
   <script src="js/version.js"></script>
 </body>
 </html>

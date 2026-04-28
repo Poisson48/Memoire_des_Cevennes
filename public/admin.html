@@ -74,6 +74,7 @@
         <button type="button" class="tab-btn" data-tab="members">Membres</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
+        <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
       </div>
 
       <div id="queue" class="queue"></div>
@@ -142,6 +143,32 @@
         <h3>Archives disponibles</h3>
         <div id="backups-list"></div>
       </div>
+
+      <div id="welcome" class="queue" hidden>
+        <p class="welcome-admin-intro">
+          Texte affiché dans le modal d'accueil, à la première visite (et tant
+          que l'utilisateur n'a pas coché « ne plus afficher »). Format
+          markdown : titres avec <code>#</code>, gras avec <code>**…**</code>,
+          listes avec <code>-</code> ou <code>1.</code>, liens
+          <code>[texte](url)</code>.
+        </p>
+        <div class="welcome-admin-grid">
+          <div class="welcome-admin-edit">
+            <label for="welcome-md">Markdown</label>
+            <textarea id="welcome-md" rows="20" spellcheck="false"></textarea>
+          </div>
+          <div class="welcome-admin-preview">
+            <label>Aperçu</label>
+            <div id="welcome-preview" class="welcome-content"></div>
+          </div>
+        </div>
+        <div class="welcome-admin-actions">
+          <span id="welcome-meta" class="hint"></span>
+          <button type="button" id="btn-welcome-reset" class="btn-ghost">Restaurer le défaut</button>
+          <button type="button" id="btn-welcome-save"  class="btn-primary">Enregistrer</button>
+        </div>
+        <div id="welcome-feedback" class="backup-feedback" hidden></div>
+      </div>
     </section>
   </main>
 
@@ -155,6 +182,7 @@
     <span class="version-tag" data-version></span>
   </footer>
 
+  <script src="js/markdown.js"></script>
   <script src="js/admin.js"></script>
   <script src="js/version.js"></script>
 </body>
