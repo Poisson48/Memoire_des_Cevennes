@@ -11,6 +11,8 @@ const jwt = require('jsonwebtoken');
 const { rateLimit } = require('express-rate-limit');
 const { createMember, login } = require('../auth');
 const { optionalAuth } = require('../middleware');
+const passwordResets = require('../passwordResets');
+const activityLog = require('../activityLog');
 
 const router = express.Router();
 
@@ -40,6 +42,27 @@ const registerLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { error: 'Trop d\'inscriptions depuis cette adresse — réessaie plus tard.' },
+});
+
+// Demande "mot de passe oublié" — rare, manuel côté admin. On limite
+// surtout pour empêcher un script de polluer la file de modération.
+const forgotLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,            // 1 heure
+  limit: 5,                            // 5 demandes max / IP / heure
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Trop de demandes — réessaie plus tard.' },
+});
+
+// Tentatives de saisie d'une clé de réinitialisation. Plus généreux que
+// le login (l'utilisateur peut se tromper en recopiant), mais brute-force
+// d'un secret 60-bit est de toute façon hors de portée à 20/h.
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives — réessaie dans 15 minutes.' },
 });
 
 /** Options du cookie JWT. */
@@ -139,6 +162,67 @@ router.post('/logout', (_req, res) => {
   res.clearCookie('token',     { path: '/' });
   res.clearCookie('admin_jwt', { path: '/' });
   res.json({ ok: true });
+});
+
+// ── POST /api/auth/forgot ─────────────────────────────────────────────────
+// Soumet une demande de réinitialisation. Toujours répondre 200 (anti-
+// énumération de comptes). L'admin verra la demande dans la file et
+// décidera si elle est légitime — la vérification d'identité se fait
+// hors-ligne (téléphone, en personne…).
+router.post('/forgot', forgotLimiter, async (req, res, next) => {
+  try {
+    const { email, name, message } = req.body || {};
+    if (!email || String(email).length > 200) {
+      // Réponse identique au cas nominal pour ne pas révéler la validation.
+      return res.json({ ok: true });
+    }
+    const request = passwordResets.createRequest({
+      email,
+      name,
+      message,
+      ip: req.ip,
+    });
+    activityLog.logActivity({
+      memberId: request.memberId || null,
+      action: 'password-reset.request',
+      entityType: 'password-reset',
+      entityId: request.id,
+      ip: req.ip,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    // Même en erreur interne, on ne donne pas de signal — log côté serveur.
+    console.error('[forgot]', err.message);
+    res.json({ ok: true });
+  }
+});
+
+// ── POST /api/auth/reset ──────────────────────────────────────────────────
+// Le membre saisit la clé reçue de l'admin + son nouveau mot de passe.
+// Réponse générique en cas d'échec : la clé est invalide, expirée, ou
+// déjà consommée — on ne dit pas laquelle.
+router.post('/reset', resetLimiter, async (req, res, next) => {
+  try {
+    const { key, password } = req.body || {};
+    if (!key || !password) {
+      return res.status(400).json({ error: 'Clé et nouveau mot de passe requis.' });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères.' });
+    }
+    const result = await passwordResets.consume(key, password);
+    if (!result.ok) {
+      return res.status(400).json({ error: 'Clé invalide, expirée ou déjà utilisée.' });
+    }
+    activityLog.logActivity({
+      memberId: result.memberId,
+      action: 'password-reset.consume',
+      entityType: 'member',
+      entityId: result.memberId,
+      ip: req.ip,
+    });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────

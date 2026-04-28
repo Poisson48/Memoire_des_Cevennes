@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion — Mémoire des Cévennes</title>
+  <title>Mot de passe oublié — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/legal.css" />
   <style>
@@ -21,11 +21,11 @@
       border-radius: 8px;
       padding: 2rem 2.2rem;
       width: 100%;
-      max-width: 440px;
+      max-width: 520px;
       box-shadow: var(--shadow);
     }
     .auth-card h2 {
-      margin: 0 0 1.4rem;
+      margin: 0 0 1rem;
       font-size: 1.35rem;
       color: var(--accent-dark);
     }
@@ -37,8 +37,8 @@
       font-size: 0.95rem;
     }
     .auth-card input[type="email"],
-    .auth-card input[type="password"],
-    .auth-card input[type="text"] {
+    .auth-card input[type="text"],
+    .auth-card textarea {
       padding: 0.5rem 0.7rem;
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -47,12 +47,27 @@
       background: #fff;
       color: var(--fg);
     }
-    .auth-card input:focus {
+    .auth-card textarea { resize: vertical; min-height: 5rem; }
+    .auth-card input:focus, .auth-card textarea:focus {
       outline: 2px solid var(--accent);
       outline-offset: 1px;
     }
-    .auth-card .actions {
-      margin-top: 1.2rem;
+    .auth-card .actions { margin-top: 1.2rem; }
+    .auth-intro {
+      color: var(--muted);
+      margin: 0 0 1rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .auth-success {
+      background: #e6f4ea;
+      color: #1b5e20;
+      border: 1px solid #b7dfc0;
+      border-radius: 4px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
     .auth-error {
       background: #fde8e8;
@@ -69,26 +84,12 @@
       color: var(--muted);
       text-align: center;
     }
-    .auth-switch a {
-      color: var(--accent);
-    }
-    .auth-intro {
+    .auth-switch a { color: var(--accent); }
+    .hint {
+      font-size: 0.85rem;
       color: var(--muted);
-      margin: 0 0 1rem;
-      font-size: 0.92rem;
+      margin-top: 0.2rem;
     }
-    .auth-sep {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 1.4rem 0 0.8rem;
-    }
-    .auth-admin-note {
-      font-size: 0.88rem;
-      color: var(--muted);
-      text-align: center;
-      margin: 0;
-    }
-    .auth-admin-note a { color: var(--accent-dark); }
   </style>
 </head>
 <body>
@@ -98,33 +99,46 @@
       <p class="tagline">Une carte pour recueillir les récits, les voix et les images de nos vallées.</p>
     </div>
     <div class="topbar-actions">
-      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+      <a href="login.html" class="btn-ghost">← Retour à la connexion</a>
     </div>
   </header>
 
   <main class="auth-main">
     <div class="auth-card">
-      <h2>Espace membre</h2>
+      <h2>Mot de passe oublié</h2>
       <p class="auth-intro">
-        Connecte-toi pour consulter le contenu réservé aux membres et contribuer aux récits.
+        Pas de mail automatique ici. Ta demande arrive directement à un
+        administrateur qui te contactera (téléphone, en personne…) pour
+        vérifier ton identité, puis te transmettra une clé pour choisir
+        un nouveau mot de passe.
       </p>
-      <div id="auth-error" class="auth-error" hidden></div>
-      <form id="form-login" novalidate>
-        <label>Adresse e-mail
-          <input type="email" name="email" required autocomplete="email" />
+
+      <div id="success-box" class="auth-success" hidden>
+        ✓ Demande envoyée. Un administrateur va prendre contact avec toi.
+        Tu peux fermer cette page.
+      </div>
+      <div id="error-box" class="auth-error" hidden></div>
+
+      <form id="form-forgot" novalidate>
+        <label>Adresse e-mail du compte
+          <input type="email" name="email" required autocomplete="email" maxlength="200" />
         </label>
-        <label>Mot de passe
-          <input type="password" name="password" required autocomplete="current-password" />
+        <label>Ton nom
+          <input type="text" name="name" required maxlength="200" />
+          <span class="hint">Pour aider l'admin à te reconnaître.</span>
+        </label>
+        <label>Comment te recontacter (message libre)
+          <textarea name="message" rows="4" maxlength="2000"
+                    placeholder="Ex. : « Je suis Marcel, on s'est croisés au café de Saint-Roman. Mon numéro : 06 12 34 56 78. »"></textarea>
+          <span class="hint">Numéro de téléphone, lieu où te trouver, indice sur ton compte… tout ce qui aidera à confirmer que c'est bien toi.</span>
         </label>
         <div class="actions">
-          <button type="submit" class="btn-primary">Se connecter</button>
+          <button type="submit" class="btn-primary">Envoyer la demande</button>
         </div>
       </form>
-      <p class="auth-switch">Pas encore de compte ? <a href="register.html">S'inscrire</a></p>
-      <p class="auth-switch"><a href="oubli.html">Mot de passe oublié&nbsp;?</a></p>
-      <hr class="auth-sep" />
-      <p class="auth-admin-note">
-        🛡️ Tu es administrateur ? L'accès se fait sur la <a href="admin.html">page d'administration</a>.
+
+      <p class="auth-switch">
+        Tu as déjà reçu une clé ? <a href="reset.html">Choisir un nouveau mot de passe</a>
       </p>
     </div>
   </main>
@@ -143,31 +157,34 @@
   <script src="js/version.js"></script>
 
   <script>
-    document.getElementById('form-login').addEventListener('submit', async (e) => {
+    document.getElementById('form-forgot').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const errEl = document.getElementById('auth-error');
+      const errEl = document.getElementById('error-box');
+      const okEl  = document.getElementById('success-box');
       errEl.hidden = true;
+      okEl.hidden  = true;
       const fd = new FormData(e.target);
-      const data = { email: fd.get('email'), password: fd.get('password') };
+      const data = {
+        email:   fd.get('email'),
+        name:    fd.get('name'),
+        message: fd.get('message'),
+      };
       try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch('/api/auth/forgot', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
-          credentials: 'same-origin'
         });
-        const json = await res.json();
         if (!res.ok) {
-          if (json.adminLoginUrl) {
-            errEl.innerHTML = (json.error || 'Compte admin — utilise la page admin.')
-              + ' <a href="' + json.adminLoginUrl + '">Aller sur /admin.html</a>';
-          } else {
-            errEl.textContent = json.error || 'Identifiants incorrects.';
-          }
+          let msg = 'Erreur, réessaie plus tard.';
+          try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
+          errEl.textContent = msg;
           errEl.hidden = false;
           return;
         }
-        window.location.href = 'index.html';
+        okEl.hidden = false;
+        e.target.reset();
+        e.target.querySelector('button[type="submit"]').disabled = true;
       } catch {
         errEl.textContent = 'Impossible de joindre le serveur.';
         errEl.hidden = false;

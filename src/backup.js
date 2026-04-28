@@ -41,6 +41,7 @@ const DATA_FILES = [
   'members.json',
   'reports.json',
   'activity_log.json',
+  'password_resets.json',
 ];
 
 const SCHEMA_VERSION = 1;

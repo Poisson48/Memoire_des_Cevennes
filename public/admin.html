@@ -72,6 +72,7 @@
         <button type="button" class="tab-btn" data-tab="queue" data-filter="create">Créations</button>
         <button type="button" class="tab-btn" data-tab="queue" data-filter="edit">Modifications</button>
         <button type="button" class="tab-btn" data-tab="members">Membres</button>
+        <button type="button" class="tab-btn" data-tab="resets">Mots de passe oubliés</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
@@ -114,6 +115,42 @@
         <h3>Membres actifs</h3>
         <div id="members-active"></div>
       </div>
+
+      <div id="resets" class="queue" hidden>
+        <p class="backups-intro">
+          Demandes de réinitialisation de mot de passe envoyées via
+          <a href="/oubli.html">/oubli.html</a>. Pas de mail automatique :
+          tu vérifies l'identité hors-ligne (téléphone, en personne…),
+          puis tu approuves — le serveur génère une clé d'usage unique à
+          transmettre à la main. Le membre l'utilise sur
+          <a href="/reset.html">/reset.html</a> pour choisir un nouveau
+          mot de passe.
+        </p>
+        <h3>En attente</h3>
+        <div id="resets-pending"></div>
+        <h3>Approuvées (clé encore valide)</h3>
+        <div id="resets-approved"></div>
+        <details style="margin-top:1.2rem;">
+          <summary>Historique (rejetées, expirées, consommées)</summary>
+          <div id="resets-archive" style="margin-top:0.6rem;"></div>
+        </details>
+      </div>
+
+      <!-- Modale d'affichage de la clé après approbation -->
+      <dialog id="reset-key-dialog">
+        <h2>Clé générée — à transmettre maintenant</h2>
+        <p class="hint" style="margin-bottom:0.6rem;">
+          Note-la ou copie-la tout de suite, puis transmets-la au membre par
+          téléphone ou en personne. Elle expire dans 7 jours et ne sert
+          qu'une fois.
+        </p>
+        <div id="reset-key-value" style="font-family: ui-monospace, Menlo, monospace; font-size: 1.5rem; letter-spacing: 0.1em; padding: 0.8rem 1rem; background: #f6f0e7; border: 2px dashed var(--accent); border-radius: 6px; text-align: center; user-select: all;">—</div>
+        <p class="hint" id="reset-key-meta" style="margin-top:0.6rem;"></p>
+        <div class="actions" style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" id="btn-copy-reset-key" class="btn-primary">📋 Copier</button>
+          <button type="button" id="btn-close-reset-dialog" class="btn-ghost">Fermer</button>
+        </div>
+      </dialog>
 
       <div id="activity" class="queue" hidden>
         <h3>Journal d'activité (200 dernières)</h3>

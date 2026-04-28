@@ -16,6 +16,7 @@ const auth = require('../auth');
 const activityLog = require('../activityLog');
 const backup = require('../backup');
 const welcome = require('../welcome');
+const passwordResets = require('../passwordResets');
 const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
 
@@ -121,6 +122,56 @@ router.post('/members/:id/role', (req, res, next) => {
     const member = auth.setRole(req.params.id, role);
     res.json({ member });
   } catch (err) { next(err); }
+});
+
+// ─── Demandes de réinitialisation de mot de passe ─────────────────────
+// Flux 100% humain : l'admin vérifie l'identité hors-ligne (téléphone,
+// en personne…) avant d'approuver. L'approbation génère une clé d'usage
+// unique que l'admin transmet de la main à la main.
+router.get('/password-resets', (req, res) => {
+  passwordResets.purgeExpired();
+  res.json({ requests: passwordResets.listAll() });
+});
+
+router.post('/password-resets/:id/approve', (req, res, next) => {
+  try {
+    const reviewerId = (req.member && req.member.id) || 'admin-token';
+    const reviewerName = (req.member && (req.member.name || req.member.email)) || 'admin';
+    const { request, key } = passwordResets.approve(req.params.id, { reviewerId, reviewerName });
+    activityLog.logActivity({
+      memberId: reviewerId,
+      action: 'password-reset.approve',
+      entityType: 'password-reset',
+      entityId: request.id,
+      ip: req.ip,
+    });
+    // La clé en clair n'est renvoyée que sur cette réponse — l'admin doit
+    // la copier maintenant. (Elle reste lisible via GET /password-resets
+    // tant que la demande est "approved", utile en cas de fermeture
+    // d'onglet, mais on encourage à la noter immédiatement.)
+    res.json({ request, key });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/password-resets/:id/reject', (req, res, next) => {
+  try {
+    const reviewerId = (req.member && req.member.id) || 'admin-token';
+    const reviewerName = (req.member && (req.member.name || req.member.email)) || 'admin';
+    const reason = (req.body && req.body.reason) || '';
+    const out = passwordResets.reject(req.params.id, { reviewerId, reviewerName, reason });
+    activityLog.logActivity({
+      memberId: reviewerId,
+      action: 'password-reset.reject',
+      entityType: 'password-reset',
+      entityId: out.id,
+      ip: req.ip,
+    });
+    res.json({ request: out });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
 });
 
 router.get('/activity', (req, res) => {

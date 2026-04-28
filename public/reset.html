@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nouveau mot de passe — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
+  <style>
+    body { overflow: auto; }
+    .auth-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+    .auth-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem 2.2rem;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: var(--shadow);
+    }
+    .auth-card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.35rem;
+      color: var(--accent-dark);
+    }
+    .auth-card label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .auth-card input {
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--fg);
+    }
+    .auth-card input.key-input {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .auth-card input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .auth-card .actions { margin-top: 1.2rem; }
+    .auth-intro {
+      color: var(--muted);
+      margin: 0 0 1rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .auth-success {
+      background: #e6f4ea;
+      color: #1b5e20;
+      border: 1px solid #b7dfc0;
+      border-radius: 4px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .auth-error {
+      background: #fde8e8;
+      color: #8b1a1a;
+      border: 1px solid #f5c6c6;
+      border-radius: 4px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .auth-switch {
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .auth-switch a { color: var(--accent); }
+    .hint {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1><a href="index.html" style="color:inherit;text-decoration:none">Mémoire des Cévennes</a></h1>
+      <p class="tagline">Une carte pour recueillir les récits, les voix et les images de nos vallées.</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="login.html" class="btn-ghost">← Retour à la connexion</a>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <h2>Choisir un nouveau mot de passe</h2>
+      <p class="auth-intro">
+        Saisis la clé que l'administrateur t'a transmise (3 groupes de 4
+        caractères, ex. <code>ABCD-EFGH-JKMN</code>) et choisis ton nouveau
+        mot de passe.
+      </p>
+
+      <div id="success-box" class="auth-success" hidden>
+        ✓ Mot de passe mis à jour. <a href="login.html">Se connecter</a>
+      </div>
+      <div id="error-box" class="auth-error" hidden></div>
+
+      <form id="form-reset" novalidate>
+        <label>Clé d'accès
+          <input type="text" name="key" class="key-input" required
+                 autocomplete="off" maxlength="14"
+                 placeholder="XXXX-XXXX-XXXX" />
+          <span class="hint">Caractères acceptés : chiffres et lettres majuscules (sans 0, 1, I, L, O).</span>
+        </label>
+        <label>Nouveau mot de passe
+          <input type="password" name="password" required minlength="8"
+                 autocomplete="new-password" />
+          <span class="hint">8 caractères minimum.</span>
+        </label>
+        <label>Confirmer le mot de passe
+          <input type="password" name="password2" required minlength="8"
+                 autocomplete="new-password" />
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Valider</button>
+        </div>
+      </form>
+
+      <p class="auth-switch">
+        Pas encore de clé ? <a href="oubli.html">Faire une demande</a>
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="position: static;">
+    <a href="aide.html">📘 Tutoriel</a>
+    <span class="sep">·</span>
+    <a href="legal/mentions.html">Mentions légales</a>
+    <span class="sep">·</span>
+    <a href="legal/confidentialite.html">Confidentialité</a>
+    <span class="sep">·</span>
+    <a href="signaler.html">Signaler</a>
+    <span class="sep">·</span>
+    <span class="version-tag" data-version></span>
+  </footer>
+  <script src="js/version.js"></script>
+
+  <script>
+    // Pré-remplit la clé depuis ?cle=XXXX-XXXX-XXXX si présent.
+    const params = new URLSearchParams(window.location.search);
+    const keyParam = params.get('cle') || params.get('key');
+    if (keyParam) {
+      document.querySelector('input[name="key"]').value = keyParam;
+    }
+
+    // Auto-formate la clé : majuscules, insère les tirets après 4/8 chars.
+    const keyInput = document.querySelector('input[name="key"]');
+    keyInput.addEventListener('input', () => {
+      const raw = keyInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+      const parts = [];
+      for (let i = 0; i < raw.length; i += 4) parts.push(raw.slice(i, i + 4));
+      keyInput.value = parts.join('-');
+    });
+
+    document.getElementById('form-reset').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('error-box');
+      const okEl  = document.getElementById('success-box');
+      errEl.hidden = true;
+      okEl.hidden  = true;
+      const fd = new FormData(e.target);
+      const password  = fd.get('password');
+      const password2 = fd.get('password2');
+      if (password !== password2) {
+        errEl.textContent = 'Les deux mots de passe ne correspondent pas.';
+        errEl.hidden = false;
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: fd.get('key'), password }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          errEl.textContent = json.error || 'Erreur, réessaie.';
+          errEl.hidden = false;
+          return;
+        }
+        okEl.hidden = false;
+        e.target.reset();
+        e.target.querySelector('button[type="submit"]').disabled = true;
+      } catch {
+        errEl.textContent = 'Impossible de joindre le serveur.';
+        errEl.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>
