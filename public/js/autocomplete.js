@@ -77,7 +77,10 @@
 
     input.addEventListener('input', () => {
       clearPersonLink(input); // retape = rompt le lien jusqu'à nouvelle sélection
-      const q = input.value.trim();
+      // Si l'utilisateur tape "@nom" (réflexe acquis ailleurs), on ignore le @
+      // pour la recherche. On laisse inline-mentions.js gérer le popover si
+      // le @ est tapé en milieu de chaîne.
+      const q = input.value.trim().replace(/^@/, '');
       if (debounce) clearTimeout(debounce);
       if (q.length < MIN_CHARS) {
         menu.hidden = true;

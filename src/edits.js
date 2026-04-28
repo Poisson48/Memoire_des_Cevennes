@@ -50,7 +50,7 @@ const EDITABLE_FIELDS = {
   // `mentions` est éditable via le post-tagging : la proposition envoie
   // l'array mentions complet mis à jour. L'admin valide → le tableau est
   // remplacé en bloc sur l'entité cible.
-  stories: ['title', 'body', 'memoryDate', 'mentions'],
+  stories: ['title', 'body', 'memoryDate', 'mentions', 'titleMentions'],
   // Sous-ressource : une complétion attachée à un récit. targetId a la
   // forme composite "storyId:completionId". Seul le corps est éditable
   // (le signataire reste celui qui l'a écrit).

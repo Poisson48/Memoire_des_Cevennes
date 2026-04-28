@@ -220,6 +220,7 @@ function makeStory(input, existingIds) {
   const placeId = str(input.placeId, 80);
   if (!placeId) throw new Error('placeId requis pour ancrer le récit');
   const body = str(input.body, 30000);
+  const title = input.title ? str(input.title, 200) : '';
   const id = input.id ? str(input.id, 80) : uniqueId(
     slugify(input.title || `recit-${type}`),
     existingIds,
@@ -228,11 +229,12 @@ function makeStory(input, existingIds) {
     id,
     placeId,
     type,
-    ...(input.title ? { title: str(input.title, 200) } : {}),
+    ...(title ? { title } : {}),
     body,
     ...(input.memoryDate ? { memoryDate: str(input.memoryDate, 80) } : {}),
     ...(input.contributorId ? { contributorId: str(input.contributorId, 80) } : {}),
     mentions: normMentions(input.mentions, body.length),
+    titleMentions: normMentions(input.titleMentions, title.length),
     mediaFiles: (Array.isArray(input.mediaFiles) ? input.mediaFiles : [])
       .map(normMediaFile).filter(Boolean),
     visibility: normVisibility(input.visibility),

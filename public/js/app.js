@@ -38,14 +38,12 @@ function hasRole(minRole) {
 
 // ─── Carte ──────────────────────────────────────────────────────────────
 const map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-// Fond par défaut. Exposé en variable globale pour que map-layers.js
-// puisse le piloter via le sélecteur de couches (cadastre, cartes
-// anciennes, photos aériennes IGN).
+// Fond par défaut. Exposé pour que map-layers.js puisse le piloter via le
+// sélecteur de couches (cadastre, cartes anciennes, photos aériennes IGN).
 const defaultBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '© OpenStreetMap France | © OpenStreetMap contributors',
-});
-defaultBaseLayer.addTo(map);
+}).addTo(map);
 
 // ─── DOM refs ───────────────────────────────────────────────────────────
 const panel = document.getElementById('panel');
@@ -565,7 +563,7 @@ function openStoryFocus(storyId) {
   openPanel(`
     <div class="entity-header">
       <span class="entity-kind">📖 Récit</span>
-      <h2>${escapeHtml(story.title || '(sans titre)')}</h2>
+      <h2>${story.title ? renderBodyWithMentions(story.title, story.titleMentions) : '(sans titre)'}</h2>
       ${story.placeId ? `<div class="dates">ancré sur ${inlineEntity('lieu', story.placeId)}</div>` : ''}
     </div>
     ${renderStoryCard(story, { full: true })}
@@ -623,7 +621,7 @@ function renderStoryCard(s, { full = false } = {}) {
     <article class="story" data-story-id="${escapeAttr(s.id)}">
       <h3>
         <span class="type-badge">${typeLabel}</span>
-        <a href="#/recit/${encodeURIComponent(s.id)}" class="story-title">${escapeHtml(s.title || '(sans titre)')}</a>
+        <a href="#/recit/${encodeURIComponent(s.id)}" class="story-title">${s.title ? renderBodyWithMentions(s.title, s.titleMentions) : '(sans titre)'}</a>
       </h3>
       ${contribBlock}
       ${dateBits ? `<div class="meta">${dateBits}</div>` : ''}

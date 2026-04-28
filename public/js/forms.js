@@ -320,12 +320,14 @@ formStory.addEventListener('submit', async (e) => {
   if (blockedByStaticMode('l\'ajout d\'un contenu')) return;
   const fd = new FormData(formStory);
   const bodyTextarea = formStory.querySelector('textarea[name=body]');
+  const titleInput   = formStory.querySelector('input[name=title]');
   const payload = {
     placeId,
     type: fd.get('type'),
     title: fd.get('title'),
     body: fd.get('body'),
-    mentions: readMentions(bodyTextarea, fd.get('body') || ''),
+    mentions:      readMentions(bodyTextarea, fd.get('body')  || ''),
+    titleMentions: readMentions(titleInput,   fd.get('title') || ''),
     consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
