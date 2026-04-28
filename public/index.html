@@ -90,6 +90,17 @@
       <label>Description (optionnel)
         <textarea name="description" rows="3" maxlength="2000"></textarea>
       </label>
+      <fieldset class="visibility-choice">
+        <legend>Qui peut voir ce lieu ?</legend>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="members" checked />
+          <span><strong>Membres</strong> — réservé aux personnes connectées <em>(défaut)</em></span>
+        </label>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="public" />
+          <span><strong>Public</strong> — visible aussi par les visiteurs non connectés. À privilégier pour le patrimoine sans enjeu privé (lieu-dit ancien, mas abandonné, repère géographique).</span>
+        </label>
+      </fieldset>
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
@@ -109,7 +120,7 @@
       </fieldset>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
-        avant d'apparaître sur la carte publique.
+        avant d'apparaître sur la carte.
       </p>
       <div class="actions">
         <button value="cancel" class="btn-ghost" formnovalidate>Annuler</button>
@@ -280,6 +291,17 @@
         <div class="compress-label"><span id="compress-text">Compression…</span></div>
         <div class="compress-bar"><div id="compress-bar-fill"></div></div>
       </div>
+      <fieldset class="visibility-choice">
+        <legend>Qui peut lire ce contenu ?</legend>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="members" checked />
+          <span><strong>Membres</strong> — réservé aux personnes connectées <em>(défaut)</em>. Pour les histoires familiales, les souvenirs intimes, les fiches de personnes vivantes.</span>
+        </label>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="public" />
+          <span><strong>Public</strong> — visible par tout le monde, même sans compte. Pour le patrimoine collectif (récits historiques, photos d'archives, événements anciens).</span>
+        </label>
+      </fieldset>
       <fieldset class="contributor-id">
         <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
         <label>Nom ou prénom <em>(obligatoire)</em>
@@ -297,7 +319,7 @@
       </fieldset>
       <p class="dialog-note">
         📝 Ton ajout sera <strong>soumis à validation</strong> par les admins
-        avant d'apparaître sur la carte publique.
+        avant d'apparaître sur la carte.
       </p>
       <div class="actions">
         <button type="button" class="btn-ghost" data-close>Annuler</button>

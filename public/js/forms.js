@@ -136,6 +136,7 @@ dlgPlace.addEventListener('close', async () => {
     description: fd.get('description'),
     lat: pendingLatLng.lat,
     lng: pendingLatLng.lng,
+    visibility: fd.get('visibility') || 'members',
     consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
@@ -328,6 +329,7 @@ formStory.addEventListener('submit', async (e) => {
     body: fd.get('body'),
     mentions:      readMentions(bodyTextarea, fd.get('body')  || ''),
     titleMentions: readMentions(titleInput,   fd.get('title') || ''),
+    visibility: fd.get('visibility') || 'members',
     consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
     submittedBy: extractSubmittedBy(fd),
     newPerson: extractNewPerson(fd),
@@ -498,10 +500,15 @@ function resetRecorder() {
 }
 
 // ── Flux 3 : proposer une modification (style Wikipédia) ───────────────
+const VISIBILITY_OPTIONS = [
+  { value: 'members', label: 'Membres (réservé aux personnes connectées)' },
+  { value: 'public',  label: 'Public (visible aussi par les visiteurs anonymes)' },
+];
 const EDIT_FIELDS = {
   places: [
     { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
     { key: 'description', label: 'Description', type: 'textarea', rows: 4 },
+    { key: 'visibility',  label: 'Visibilité',   type: 'radio', options: VISIBILITY_OPTIONS },
   ],
   people: [
     { key: 'primaryName', label: 'Nom principal', type: 'text', required: true },
@@ -512,6 +519,7 @@ const EDIT_FIELDS = {
     { key: 'title', label: 'Titre', type: 'text' },
     { key: 'memoryDate', label: 'Date du souvenir (libre : « années 40 », « 1952 »…)', type: 'text' },
     { key: 'body', label: 'Texte', type: 'textarea', rows: 6 },
+    { key: 'visibility', label: 'Visibilité', type: 'radio', options: VISIBILITY_OPTIONS },
   ],
 };
 
@@ -533,6 +541,20 @@ function openEditDialog(entityType, entity) {
         <label>${escapeHtml(f.label)}
           <textarea name="${f.key}" rows="${f.rows || 3}"${req}>${escapeHtml(val)}</textarea>
         </label>
+      `;
+    }
+    if (f.type === 'radio') {
+      const opts = (f.options || []).map(o => `
+        <label class="visibility-option">
+          <input type="radio" name="${f.key}" value="${escapeAttr(o.value)}"${o.value === val ? ' checked' : ''} />
+          <span>${escapeHtml(o.label)}</span>
+        </label>
+      `).join('');
+      return `
+        <fieldset class="visibility-choice">
+          <legend>${escapeHtml(f.label)}</legend>
+          ${opts}
+        </fieldset>
       `;
     }
     return `
