@@ -32,6 +32,7 @@ const membersSection  = document.getElementById('members');
 const activitySection = document.getElementById('activity');
 const backupsSection  = document.getElementById('backups');
 const welcomeSection  = document.getElementById('welcome');
+const helpSection     = document.getElementById('help');
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -44,6 +45,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     activitySection.hidden = currentTab !== 'activity';
     if (backupsSection) backupsSection.hidden = currentTab !== 'backups';
     if (welcomeSection) welcomeSection.hidden = currentTab !== 'welcome';
+    if (helpSection)    helpSection.hidden    = currentTab !== 'help';
     if (currentTab === 'queue')    renderQueue(lastQueue);
     if (currentTab === 'members')  refreshMembers();
     if (currentTab === 'activity') refreshActivity();

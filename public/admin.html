@@ -75,6 +75,7 @@
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
+        <button type="button" class="tab-btn" data-tab="help">Aide</button>
       </div>
 
       <div id="queue" class="queue"></div>
@@ -168,6 +169,191 @@
           <button type="button" id="btn-welcome-save"  class="btn-primary">Enregistrer</button>
         </div>
         <div id="welcome-feedback" class="backup-feedback" hidden></div>
+      </div>
+
+      <div id="help" class="queue admin-help" hidden>
+        <h2>🛡️ Mémo administrateur</h2>
+        <p class="admin-help-intro">
+          Tout ce qu'un admin doit savoir pour modérer le site. Le tutoriel
+          général pour visiteurs et membres est sur
+          <a href="aide.html">aide.html</a>.
+        </p>
+
+        <nav class="admin-help-toc">
+          <strong>Au programme :</strong>
+          <ul>
+            <li><a href="#help-connexion">1. Me connecter à l'espace admin</a></li>
+            <li><a href="#help-file">2. Valider les contributions en attente</a></li>
+            <li><a href="#help-membres">3. Approuver et gérer les membres</a></li>
+            <li><a href="#help-activite">4. Consulter le journal d'activité</a></li>
+            <li><a href="#help-backups">5. Sauvegardes, exports, imports</a></li>
+            <li><a href="#help-welcome">6. Personnaliser la page d'accueil</a></li>
+            <li><a href="#help-aussi-membre">7. Admin et membre à la fois</a></li>
+            <li><a href="#help-portee">8. Limites des permissions</a></li>
+          </ul>
+        </nav>
+
+        <h3 id="help-connexion">1. Me connecter à l'espace admin</h3>
+        <p>Deux moyens, exclusifs :</p>
+        <ul>
+          <li><strong>Compte admin personnel</strong> (recommandé) — onglet <em>Compte admin</em>, login + mot de passe.</li>
+          <li><strong>Token partagé</strong> — onglet <em>Token partagé</em>, valeur de la variable <code>ADMIN_TOKEN</code> du serveur. Utile pour le bootstrap initial ou un accès d'urgence.</li>
+        </ul>
+        <div class="shot-pair">
+          <figure class="shot">
+            <img src="screenshots/09-admin-login-pc.png" alt="Login admin desktop" loading="lazy" />
+            <figcaption>L'écran de connexion (deux onglets).</figcaption>
+          </figure>
+          <figure class="shot shot-mobile">
+            <img src="screenshots/09-admin-login-mobile.png" alt="Login admin mobile" loading="lazy" />
+            <figcaption>Sur mobile.</figcaption>
+          </figure>
+        </div>
+        <div class="step warn">
+          Tenter de se connecter à <code>/login.html</code> avec un compte admin
+          ne fonctionne pas — l'admin a son propre espace.
+        </div>
+
+        <h3 id="help-file">2. Valider les contributions en attente</h3>
+        <p>
+          L'onglet <strong>« File de modération »</strong> liste toutes les
+          créations et propositions de modifications en <code>pending</code> —
+          nouveaux lieux, nouvelles personnes, nouveaux récits, modifications
+          proposées par les contributeurs.
+        </p>
+        <figure class="shot">
+          <img src="screenshots/08-admin-queue-desktop.png" alt="File de modération vue détaillée" loading="lazy" />
+          <figcaption>Vue détaillée d'une proposition : diff avant/après et note du contributeur.</figcaption>
+        </figure>
+        <ol>
+          <li>Pour une <em>création</em>, l'item affiche les champs proposés. Bouton ✅ Approuver / ❌ Refuser.</li>
+          <li>Pour une <em>modification</em>, le panneau montre le diff champ par champ et la note explicative du contributeur.</li>
+          <li>Chaque action est tracée (qui, quand, quoi) dans le journal d'activité.</li>
+        </ol>
+        <div class="step tip">
+          <strong>Astuce :</strong> tu peux laisser un commentaire interne au
+          moment du refus — il sera visible dans le journal et utile à un autre
+          admin qui re-traite la proposition plus tard.
+        </div>
+
+        <h3 id="help-membres">3. Approuver et gérer les membres</h3>
+        <p>
+          L'onglet <strong>« Membres »</strong> liste les comptes — en attente
+          d'approbation, actifs, suspendus. Tu peux :
+        </p>
+        <ul>
+          <li>Approuver un compte <code>pending</code> pour qu'il puisse se connecter.</li>
+          <li>Promouvoir un membre en <em>contributeur</em> (droit de créer du contenu) ou en <em>admin</em>.</li>
+          <li>Suspendre / réactiver un compte.</li>
+          <li>Créer un compte directement (utile pour les anciens qui n'utilisent pas internet : tu fais l'inscription pour eux).</li>
+        </ul>
+        <div class="shot-pair">
+          <figure class="shot">
+            <img src="screenshots/11-admin-membres-pc.png" alt="Gestion des membres desktop" loading="lazy" />
+            <figcaption>Gestion des membres, vue desktop.</figcaption>
+          </figure>
+          <figure class="shot shot-mobile">
+            <img src="screenshots/11-admin-membres-mobile.png" alt="Gestion des membres mobile" loading="lazy" />
+            <figcaption>Sur mobile.</figcaption>
+          </figure>
+        </div>
+
+        <h3 id="help-activite">4. Consulter le journal d'activité</h3>
+        <p>
+          L'onglet <strong>« Journal d'activité »</strong> trace toutes les
+          actions admin et les changements d'état du contenu (création,
+          approbation, refus, modifications de rôle, sauvegardes, modifications
+          de la page d'accueil). C'est ta source de vérité en cas de litige.
+        </p>
+
+        <h3 id="help-backups">5. Sauvegardes, exports, imports</h3>
+        <p>
+          L'onglet <strong>« Sauvegardes »</strong> permet de créer des
+          archives complètes (données + médias), les télécharger pour les
+          stocker hors-serveur, ou en réimporter une (par exemple pour migrer
+          le site sur une nouvelle machine).
+        </p>
+        <ul>
+          <li><strong>Créer une sauvegarde</strong> : prend un snapshot manuel.</li>
+          <li><strong>Exporter tout</strong> : crée et télécharge l'archive en un clic.</li>
+          <li><strong>Importer une archive</strong> : restaure depuis un fichier <code>.tar.gz(.enc)</code>. Un snapshot <em>pre-restore</em> est créé automatiquement avant pour pouvoir revenir en arrière.</li>
+          <li><strong>Restaurer</strong> : remplace les données actuelles par celles d'une archive existante (toujours avec snapshot pre-restore).</li>
+        </ul>
+        <div class="step tip">
+          <strong>Chiffrement :</strong> si la variable <code>BACKUP_PASSPHRASE</code>
+          est définie côté serveur, toutes les archives sortent chiffrées
+          (extension <code>.tar.gz.enc</code>). Garde la passphrase ailleurs
+          que sur le serveur — sans elle, les archives chiffrées sont
+          irrécupérables.
+        </div>
+        <div class="step tip">
+          <strong>Sauvegardes auto :</strong> avec <code>BACKUP_AUTO_INTERVAL_HOURS=24</code>
+          dans le <code>.env</code>, le serveur crée un backup automatique
+          chaque jour, avec rétention bornée (<code>BACKUP_AUTO_KEEP=14</code>
+          par défaut).
+        </div>
+
+        <h3 id="help-welcome">6. Personnaliser la page d'accueil</h3>
+        <p>
+          L'onglet <strong>« Page d'accueil »</strong> permet d'éditer le texte
+          markdown affiché dans le modal d'accueil à la première visite.
+          Pratique pour adapter le mot d'accueil au village ou à l'événement
+          en cours. Format markdown : <code>#</code> pour les titres,
+          <code>**…**</code> pour le gras, <code>-</code> pour les listes,
+          <code>[texte](url)</code> pour les liens.
+        </p>
+
+        <h3 id="help-aussi-membre">7. Admin et membre à la fois</h3>
+        <p>
+          Tu peux être <strong>connecté·e simultanément</strong> à l'espace
+          admin <em>et</em> à l'espace membre — deux cookies distincts. C'est
+          utile : tu modères depuis ton compte admin, et tu contribues depuis
+          ton compte membre, sans confusion d'identité dans le journal d'activité.
+        </p>
+        <div class="shot-pair">
+          <figure class="shot">
+            <img src="screenshots/13-admin-aussi-membre-pc.png" alt="Admin connecté aussi en membre, desktop" loading="lazy" />
+            <figcaption>Admin connecté en parallèle à un compte membre.</figcaption>
+          </figure>
+          <figure class="shot shot-mobile">
+            <img src="screenshots/13-admin-aussi-membre-mobile.png" alt="Admin connecté aussi en membre, mobile" loading="lazy" />
+            <figcaption>Sur mobile.</figcaption>
+          </figure>
+        </div>
+
+        <h3 id="help-portee">8. Limites des permissions</h3>
+        <table class="role-table">
+          <thead>
+            <tr><th>Rôle</th><th>Peut</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Membre</strong></td>
+              <td>Se connecter, voir le contenu en visibilité <em>members</em>, signaler.</td>
+            </tr>
+            <tr>
+              <td><strong>Contributeur</strong></td>
+              <td>Tout ce qu'un membre peut faire, plus : ajouter lieux, personnes, récits, médias, complétions, propositions de modifications.</td>
+            </tr>
+            <tr>
+              <td><strong>Admin</strong></td>
+              <td>
+                Tout ce qu'un contributeur peut faire, plus : valider les
+                inscriptions et les contributions en attente, créer des comptes
+                directement, changer le rôle des membres, consulter le journal
+                d'activité, traiter les signalements, gérer les sauvegardes,
+                personnaliser la page d'accueil.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="step warn">
+          <strong>Action irréversible :</strong> approuver une création est
+          irréversible côté file (le contenu passe en <code>active</code>). Pour
+          retirer un contenu approuvé, il faut le repasser en
+          <code>pending</code> ou le supprimer — ces actions sont aussi tracées
+          dans le journal.
+        </div>
       </div>
     </section>
   </main>

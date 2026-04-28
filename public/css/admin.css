@@ -574,3 +574,97 @@
 @media (max-width: 700px) {
   .welcome-admin-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Onglet Aide (mémo administrateur) ─────────────────────────── */
+.admin-help { line-height: 1.55; }
+.admin-help h2 {
+  margin: 0 0 0.6rem;
+  color: var(--accent-dark, #6a4420);
+}
+.admin-help h3 {
+  margin: 1.6rem 0 0.5rem;
+  color: var(--accent-dark, #6a4420);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+}
+.admin-help-intro {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 0 0 1.2rem;
+}
+.admin-help-toc {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin: 0.5rem 0 1.6rem;
+}
+.admin-help-toc ul { margin: 0.4rem 0 0; padding-left: 1.4rem; }
+.admin-help-toc li { margin: 0.15rem 0; }
+.admin-help code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+.admin-help .step {
+  background: var(--panel-bg);
+  border-left: 4px solid var(--accent, #8c5a2b);
+  padding: 0.6rem 0.9rem;
+  margin: 0.7rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.admin-help .step.warn {
+  border-left-color: #a14040;
+  background: rgba(161, 64, 64, 0.05);
+}
+.admin-help .step.tip {
+  border-left-color: #4a7a4a;
+  background: rgba(74, 122, 74, 0.05);
+}
+.admin-help .role-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8rem 0;
+  font-size: 0.93rem;
+}
+.admin-help .role-table th,
+.admin-help .role-table td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+.admin-help .role-table thead th { background: var(--panel-bg); }
+
+/* Captures d'écran : par paire (desktop / mobile côte à côte sur grand
+   écran, empilées sur petit écran). */
+.admin-help .shot {
+  margin: 0.6rem 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem;
+  background: #fff;
+}
+.admin-help .shot img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
+}
+.admin-help .shot figcaption {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+.admin-help .shot-pair {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.6rem;
+  margin: 0.6rem 0;
+}
+.admin-help .shot-pair .shot { margin: 0; }
+@media (max-width: 700px) {
+  .admin-help .shot-pair { grid-template-columns: 1fr; }
+}
