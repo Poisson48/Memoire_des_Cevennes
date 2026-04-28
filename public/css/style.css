@@ -368,6 +368,22 @@ fieldset.contributor-id label em {
   font-size: 0.85rem;
 }
 
+/* ── Modal "Partager" (lien + QR code) ─────────────────────── */
+#dlg-share .share-content { display: flex; flex-direction: column; gap: 0.8rem; }
+.share-intro { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.share-url-label { font-weight: 600; font-size: 0.9rem; }
+.share-url-row { display: flex; gap: 0.4rem; align-items: stretch; margin-top: 0.3rem; }
+.share-url-row input[type="text"] { flex: 1; font-family: monospace; font-size: 0.88rem; }
+.share-qr-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0.6rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.share-qr-wrap img { display: block; image-rendering: pixelated; }
+
 /* ── Fieldset "visibility-choice" (radios public / membres) ──── */
 fieldset.visibility-choice {
   margin: 0.9rem 0 0.3rem;
