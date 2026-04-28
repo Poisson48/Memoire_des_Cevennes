@@ -384,17 +384,77 @@
       <nav class="tuto-toc">
         <strong>Au programme :</strong>
         <ul>
-          <li><a href="#member-connecte">1. Ma session connectée</a></li>
-          <li><a href="#member-ajouter-lieu">2. Ajouter un lieu</a></li>
-          <li><a href="#member-recit">3. Ajouter un récit</a></li>
-          <li><a href="#member-mentions">4. Mentionner @quelqu'un</a></li>
-          <li><a href="#member-proposer">5. Proposer une modification</a></li>
-          <li><a href="#member-visibilites">6. Choisir la visibilité</a></li>
-          <li><a href="#member-droits">7. Mes droits (RGPD)</a></li>
+          <li><a href="#member-cle-acces">1. Première connexion avec ma clé d'accès</a></li>
+          <li><a href="#member-connecte">2. Ma session connectée</a></li>
+          <li><a href="#member-ajouter-lieu">3. Ajouter un lieu</a></li>
+          <li><a href="#member-recit">4. Ajouter un récit</a></li>
+          <li><a href="#member-mentions">5. Mentionner @quelqu'un</a></li>
+          <li><a href="#member-proposer">6. Proposer une modification</a></li>
+          <li><a href="#member-visibilites">7. Choisir la visibilité</a></li>
+          <li><a href="#member-droits">8. Mes droits (RGPD)</a></li>
         </ul>
       </nav>
 
-      <h3 id="member-connecte">1. Ma session connectée</h3>
+      <h3 id="member-cle-acces">1. Première connexion avec ma clé d'accès</h3>
+      <p>
+        Pour des raisons de sécurité, l'admin ne génère <strong>jamais</strong>
+        de mot de passe à ta place. À la création de ton compte, l'admin te
+        remet une <strong>clé d'accès à usage unique</strong>, valable
+        <strong>7 jours</strong>, qui sert juste à activer ton compte. Le mot
+        de passe, c'est <strong>toi qui le choisis</strong>.
+      </p>
+
+      <ol>
+        <li>
+          L'admin te transmet une clé du type
+          <code>ABCD-EFGH-JKMN</code> (3 groupes de 4
+          caractères, lettres majuscules et chiffres uniquement, sans
+          <code>0</code>, <code>1</code>, <code>I</code>, <code>L</code>,
+          <code>O</code> pour éviter toute ambiguïté). En général de la main
+          à la main, par SMS, par e-mail privé, etc.
+        </li>
+        <li>
+          Va sur <a href="reset.html"><strong>la page d'activation</strong></a>
+          (lien aussi présent en bas de la page de connexion sous
+          <em>« Pas encore de clé ? »</em> → suis le flux jusqu'à arriver
+          ici).
+        </li>
+        <li>
+          Recopie la clé dans le premier champ. Tu peux la coller telle
+          quelle (avec ou sans tirets, le formulaire les ajoute tout seul).
+        </li>
+        <li>
+          Choisis ton mot de passe. <strong>8 caractères minimum.</strong>
+          Le système ne te demandera jamais ce mot de passe, ne le mettra
+          jamais en clair quelque part, et seul toi le connais.
+        </li>
+        <li>
+          Confirme-le dans le second champ et clique sur
+          <strong>« Valider »</strong>. Tu vois apparaître le message vert
+          <em>« Mot de passe mis à jour »</em>.
+        </li>
+        <li>
+          Tu peux maintenant te connecter normalement avec ton e-mail et
+          le mot de passe que tu viens de choisir, depuis la
+          <a href="login.html">page de connexion</a>.
+        </li>
+      </ol>
+
+      <div class="step">
+        ⏰ <strong>La clé expire au bout de 7 jours.</strong> Si tu attends
+        trop, demande-en une nouvelle à l'admin (qui peut la regénérer
+        depuis l'onglet « Mots de passe oubliés »). Une clé qui a déjà
+        servi (compte activé) ne marche plus non plus, c'est normal.
+      </div>
+
+      <div class="step">
+        🔁 <strong>Mot de passe oublié ?</strong> Même flux : tu vas sur
+        <a href="oubli.html">la page « Mot de passe oublié »</a>, tu
+        renseignes ton e-mail, l'admin te remettra une nouvelle clé pour
+        en choisir un autre. Aucun mot de passe ne circule jamais en clair.
+      </div>
+
+      <h3 id="member-connecte">2. Ma session connectée</h3>
       <p>
         Une fois connecté·e, ton nom apparaît en haut à droite. Le bandeau
         « lecture seule » disparaît, et tu vois les marqueurs et fiches
@@ -411,7 +471,7 @@
         </figure>
       </div>
 
-      <h3 id="member-ajouter-lieu">2. Ajouter un lieu <span style="color:var(--muted);font-weight:normal;font-size:0.9em;">(rôle contributeur requis)</span></h3>
+      <h3 id="member-ajouter-lieu">3. Ajouter un lieu <span style="color:var(--muted);font-weight:normal;font-size:0.9em;">(rôle contributeur requis)</span></h3>
       <ol>
         <li>Clique sur <strong>« + Ajouter un lieu »</strong> dans la barre du haut.</li>
         <li>Tape sur la carte à l'endroit voulu, ou clique <em>« utilise ma position »</em>.</li>
@@ -424,7 +484,7 @@
         avec une visibilité par défaut <strong>« members »</strong>.
       </div>
 
-      <h3 id="member-recit">3. Ajouter un récit attaché à un lieu</h3>
+      <h3 id="member-recit">4. Ajouter un récit attaché à un lieu</h3>
       <ol>
         <li>Ouvre le panneau d'un lieu en cliquant sur son marqueur.</li>
         <li>Bouton <strong>« + Ajouter un récit »</strong> en bas du panneau.</li>
@@ -443,7 +503,7 @@
         une perspective complémentaire.
       </div>
 
-      <h3 id="member-mentions">4. Mentionner <code>@</code>quelqu'un</h3>
+      <h3 id="member-mentions">5. Mentionner <code>@</code>quelqu'un</h3>
       <p>
         Dans n'importe quel champ texte d'un récit, tape <code>@</code> suivi
         des premières lettres d'un nom de personne ou de lieu. Une liste de
@@ -479,7 +539,7 @@
         en créer une fiche à la volée — elle partira en file de modération.
       </div>
 
-      <h3 id="member-proposer">5. Proposer une modification</h3>
+      <h3 id="member-proposer">6. Proposer une modification</h3>
       <p>
         Tu remarques une faute, une date à corriger, un complément à ajouter
         sur une fiche existante ? Bouton <strong>« ✏️ Proposer une
@@ -494,7 +554,7 @@
         avant/après et accepte ou refuse.
       </div>
 
-      <h3 id="member-visibilites">6. Choisir la visibilité</h3>
+      <h3 id="member-visibilites">7. Choisir la visibilité</h3>
       <p>Chaque entité (lieu, personne, récit) a un champ <code>visibility</code> :</p>
       <ul>
         <li><strong><code>public</code></strong> — visible par tout le monde, même sans compte. À utiliser pour les éléments patrimoniaux qui n'engagent personne (un mas abandonné, un lieu-dit ancien, un événement historique).</li>
@@ -506,7 +566,7 @@
         sans accord explicite (charte du contributeur).
       </p>
 
-      <h3 id="member-droits">7. Mes droits (RGPD)</h3>
+      <h3 id="member-droits">8. Mes droits (RGPD)</h3>
       <p>
         Pour exercer tes droits (accès, rectification, suppression,
         portabilité), contacte l'association à l'adresse indiquée dans la
@@ -535,7 +595,7 @@
 
     <p class="tuto-version">
       Tutoriel mis à jour pour <span data-version></span>. Dernière révision :
-      26 avril 2026.
+      28 avril 2026.
     </p>
   </main>
 
