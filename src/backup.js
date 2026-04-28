@@ -42,6 +42,7 @@ const DATA_FILES = [
   'reports.json',
   'activity_log.json',
   'password_resets.json',
+  'site_config.json',
 ];
 
 const SCHEMA_VERSION = 1;

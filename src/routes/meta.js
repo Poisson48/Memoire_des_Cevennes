@@ -4,6 +4,7 @@ const { execFile } = require('child_process');
 const path = require('path');
 const { resolve } = require('../resolve');
 const welcome = require('../welcome');
+const siteConfig = require('../siteConfig');
 
 const router = express.Router();
 const REPO_ROOT = path.join(__dirname, '..', '..');
@@ -70,6 +71,13 @@ router.get('/resolve', (req, res) => {
 // utilisée par le modal d'accueil. L'écriture passe par /api/admin/welcome.
 router.get('/welcome', (_req, res) => {
   res.json(welcome.load());
+});
+
+// Réglages du site (titre, tagline) — lecture publique, lue par le script
+// public/js/site-config.js sur chaque page pour remplacer les valeurs par
+// défaut codées dans le HTML.
+router.get('/site-config', (_req, res) => {
+  res.json(siteConfig.load());
 });
 
 module.exports = router;

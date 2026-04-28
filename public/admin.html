@@ -11,7 +11,7 @@
 <body class="admin-body">
   <header class="topbar admin-topbar">
     <div class="topbar-titles">
-      <h1>🛡️ Administration — Mémoire des Cévennes <span class="version-badge" data-version></span></h1>
+      <h1>🛡️ Administration — <span data-site-title>Mémoire des Cévennes</span> <span class="version-badge" data-version></span></h1>
       <p class="tagline">Validation des ajouts et des propositions de modification.</p>
     </div>
     <div class="topbar-actions">
@@ -76,6 +76,7 @@
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
+        <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
         <button type="button" class="tab-btn" data-tab="help">Aide</button>
       </div>
 
@@ -206,6 +207,30 @@
           <button type="button" id="btn-welcome-save"  class="btn-primary">Enregistrer</button>
         </div>
         <div id="welcome-feedback" class="backup-feedback" hidden></div>
+      </div>
+
+      <div id="settings" class="queue" hidden>
+        <p class="backups-intro">
+          Réglages globaux du site, lus par toutes les pages au chargement
+          (avec un cache localStorage côté visiteur pour éviter le clignotement).
+          Le titre apparaît dans la barre du haut, dans l'onglet du navigateur,
+          et dans la signature des emails légaux. La tagline est le sous-titre
+          affiché sous la barre principale.
+        </p>
+        <form id="form-settings" class="legal-form">
+          <label>Titre du site
+            <input type="text" name="title" required maxlength="200" />
+          </label>
+          <label>Tagline (sous-titre)
+            <textarea name="tagline" rows="2" maxlength="400"></textarea>
+          </label>
+          <p class="hint" id="settings-meta"></p>
+          <div id="settings-feedback" class="backup-feedback" hidden></div>
+          <div class="actions">
+            <button type="button" id="btn-settings-reset" class="btn-ghost">Restaurer le défaut</button>
+            <button type="submit" class="btn-primary">Enregistrer</button>
+          </div>
+        </form>
       </div>
 
       <div id="help" class="queue admin-help" hidden>
@@ -408,5 +433,6 @@
   <script src="js/markdown.js"></script>
   <script src="js/admin.js"></script>
   <script src="js/version.js"></script>
+  <script src="js/site-config.js"></script>
 </body>
 </html>

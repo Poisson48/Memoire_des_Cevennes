@@ -16,6 +16,7 @@ const auth = require('../auth');
 const activityLog = require('../activityLog');
 const backup = require('../backup');
 const welcome = require('../welcome');
+const siteConfig = require('../siteConfig');
 const passwordResets = require('../passwordResets');
 const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
@@ -65,6 +66,27 @@ router.put('/welcome', async (req, res, next) => {
       memberId: (req.member && req.member.id) || 'admin-token',
       action: 'welcome.update',
       entityType: 'welcome',
+      entityId: '-',
+      ip: req.ip,
+    });
+    res.json(out);
+  } catch (err) { next(err); }
+});
+
+// ─── Réglages du site (titre, tagline) ───────────────────────────────
+router.get('/site-config', (_req, res) => {
+  res.json(siteConfig.load());
+});
+
+router.put('/site-config', async (req, res, next) => {
+  try {
+    const { title, tagline } = req.body || {};
+    const updatedBy = (req.member && (req.member.name || req.member.email)) || 'admin';
+    const out = await siteConfig.save({ title, tagline, updatedBy });
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'site-config.update',
+      entityType: 'site-config',
       entityId: '-',
       ip: req.ip,
     });
