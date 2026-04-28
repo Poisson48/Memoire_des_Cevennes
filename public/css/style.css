@@ -1356,3 +1356,121 @@ select:focus-visible {
   from { transform: translateY(-100%); }
   to   { transform: translateY(0); }
 }
+
+/* ── Sélecteur de couches : fonds modernes / anciens / cadastre ───── */
+.map-layers {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column-reverse;  /* le panneau s'ouvre vers le haut */
+  align-items: flex-start;
+  gap: 6px;
+  font-family: inherit;
+  max-width: calc(100% - 20px);
+}
+.map-layers-toggle {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--accent-dark);
+  cursor: pointer;
+  min-height: 38px;
+}
+.map-layers-toggle:hover { background: #fff; }
+.map-layers-body {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  padding: 0.7rem 0.8rem 0.65rem;
+  font-size: 0.88rem;
+  width: 270px;
+  max-width: calc(100vw - 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.map-layers-body[hidden] { display: none; }
+.map-layers-bases {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.map-layers-bases legend {
+  font-weight: 600;
+  color: var(--accent-dark);
+  font-size: 0.82rem;
+  margin-bottom: 0.2rem;
+  padding: 0;
+}
+.map-layers-bases label,
+.map-layers-overlay {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.map-layers-overlay {
+  border-top: 1px dashed var(--border);
+  padding-top: 0.5rem;
+  font-weight: 500;
+}
+.map-layers-opacity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.5rem;
+}
+.map-layers-opacity label {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.map-layers-opacity input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.map-layers-opacity.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.map-layers-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.3rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.5rem;
+}
+.map-layers-timeline button {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem 0.2rem;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--accent-dark);
+  cursor: pointer;
+  min-height: 32px;
+}
+.map-layers-timeline button:hover { background: rgba(0, 0, 0, 0.04); }
+.map-layers-timeline button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent-dark);
+}
+@media (max-width: 600px) {
+  /* L'attribution Leaflet en bas-droite passe sur deux lignes en mobile,
+     ce qui faisait chevaucher le bouton « Couches ». On le remonte pour
+     dégager la barre d'attribution. */
+  .map-layers { bottom: 28px; }
+}

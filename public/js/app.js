@@ -38,10 +38,14 @@ function hasRole(minRole) {
 
 // ─── Carte ──────────────────────────────────────────────────────────────
 const map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+// Fond par défaut. Exposé en variable globale pour que map-layers.js
+// puisse le piloter via le sélecteur de couches (cadastre, cartes
+// anciennes, photos aériennes IGN).
+const defaultBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '© OpenStreetMap France | © OpenStreetMap contributors',
-}).addTo(map);
+});
+defaultBaseLayer.addTo(map);
 
 // ─── DOM refs ───────────────────────────────────────────────────────────
 const panel = document.getElementById('panel');
