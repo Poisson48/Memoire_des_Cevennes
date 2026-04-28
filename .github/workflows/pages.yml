@@ -32,6 +32,36 @@ jobs:
           cp data/places.json  _site/data/places.json
           cp data/people.json  _site/data/people.json
           cp data/stories.json _site/data/stories.json
+          # Changelog statique : permet à la dialog "Quoi de neuf ?" de
+          # fonctionner aussi en mode Pages (où /api/changelog n'existe pas).
+          git -C "$GITHUB_WORKSPACE" log --all --extended-regexp \
+              --grep='^(v[0-9]+\.[0-9]+|Bump [0-9]+\.[0-9]+)' \
+              --pretty=format:'%H%x1f%aI%x1f%s%x1f%b%x1e' \
+            | node -e '
+                let buf = "";
+                process.stdin.on("data", d => buf += d);
+                process.stdin.on("end", () => {
+                  const entries = buf.split("\x1e")
+                    .map(c => c.replace(/^\n+/, ""))
+                    .filter(Boolean)
+                    .map(c => {
+                      const [hash, date, subject, body] = c.split("\x1f");
+                      const m = (subject || "").match(/^(?:v|Bump\s+)([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i);
+                      return {
+                        version: m ? m[1] : null,
+                        date: date ? date.slice(0, 10) : "",
+                        subject: subject || "",
+                        body: (body || "").trim(),
+                        hash: hash || "",
+                      };
+                    })
+                    .filter(e => e.version);
+                  process.stdout.write(JSON.stringify({ entries }, null, 2));
+                });
+              ' > _site/data/changelog.json
+          # Captures utilisées par la page tutoriel (aide.html).
+          mkdir -p _site/screenshots
+          cp -r docs/screenshots/. _site/screenshots/
           # Pas d'uploads/ : les médias lourds vivent sur le serveur, pas sur Pages.
 
       - uses: actions/configure-pages@v5

@@ -98,25 +98,27 @@
   border-radius: 4px;
 }
 
-/* Bandeau footer commun ajouté sur les pages principales. */
+/* Bandeau footer commun ajouté sur les pages principales. Posé dans le
+   flux (sous la carte) plutôt qu'en absolute par-dessus la carte —
+   évite que le footer translucide ne rogne les tuiles ou l'attribution
+   OSM. La page carte (index.html) fait `<main>` flex-column : le map
+   prend `flex: 1`, ce footer occupe la rangée du bas. */
 .site-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(251, 247, 239, 0.92);
+  background: var(--panel-bg);
   border-top: 1px solid var(--border);
   padding: 0.4rem 0.8rem;
   text-align: center;
   font-size: 0.82rem;
   color: var(--muted);
-  z-index: 400;
-  pointer-events: none;
+  flex-shrink: 0;
+  /* Sur les pages contenant `<main>` flex-column (index.html), le footer
+     est un enfant de main donc s'aligne automatiquement en bas. Sur les
+     pages légales (style "lecture longue"), on a `position: static` en
+     inline pour le poser après le `<main>` static. */
 }
 .site-footer a {
   color: var(--accent-dark);
   text-decoration: none;
-  pointer-events: auto;
 }
 .site-footer a:hover { text-decoration: underline; }
 .site-footer .sep { margin: 0 0.5rem; color: var(--border); }
@@ -126,6 +128,7 @@
   font-size: 0.78rem;
   opacity: 0.7;
 }
+
 
 /* Badge version dans le topbar — visible à côté du titre. */
 .version-badge {
@@ -142,6 +145,72 @@
   letter-spacing: 0.02em;
 }
 .version-badge:empty { display: none; }
+.version-badge:hover,
+.site-footer .version-tag:hover { filter: brightness(1.1); text-decoration: underline; }
 @media (max-width: 600px) {
   .site-footer { font-size: 0.72rem; padding: 0.3rem 0.5rem; }
+}
+
+/* ── Dialog "Quoi de neuf ?" ouverte au clic sur une pastille version ── */
+.dlg-changelog {
+  width: min(640px, calc(100% - 1.5rem));
+  max-height: 85vh;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  background: var(--panel-bg);
+}
+.dlg-changelog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dlg-changelog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+.dlg-changelog-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--accent-dark);
+}
+.dlg-changelog-body {
+  padding: 0.6rem 1rem 1rem;
+  overflow-y: auto;
+  max-height: calc(85vh - 56px);
+}
+.changelog-entry {
+  padding: 0.8rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+.changelog-entry:last-child { border-bottom: none; }
+.changelog-entry header {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin-bottom: 0.2rem;
+}
+.changelog-version {
+  font-family: monospace;
+  font-size: 0.85rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.05rem 0.5rem;
+  border-radius: 10px;
+}
+.changelog-date {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: monospace;
+}
+.changelog-entry h3 {
+  margin: 0.1rem 0 0.3rem;
+  font-size: 1rem;
+  color: var(--accent-dark);
+}
+.changelog-body-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #333;
+  white-space: pre-wrap;
 }

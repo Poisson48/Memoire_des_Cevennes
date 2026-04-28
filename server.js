@@ -65,6 +65,10 @@ app.use('/uploads', express.static(UPLOADS_DIR, { fallthrough: true }));
 // Expose data/ pour cohérence avec le mode statique (GitHub Pages) — le
 // frontend peut faire un fallback sur /data/*.json en statique.
 app.use('/data', express.static(DATA_DIR));
+// Captures d'écran utilisées par la page tutoriel (aide.html). Servies
+// depuis docs/ pour rester la source unique (régénérées par
+// scripts/screenshots.js).
+app.use('/screenshots', express.static(path.join(__dirname, 'docs', 'screenshots')));
 app.use(express.static(PUBLIC_DIR));
 
 app.use(errorHandler);
