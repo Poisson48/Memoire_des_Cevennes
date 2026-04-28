@@ -1325,3 +1325,34 @@ select:focus-visible {
   .welcome-content { padding: 1rem 1.1rem 0.8rem; max-height: 55vh; }
   .welcome-actions { padding: 0.7rem 1rem; }
 }
+
+/* ── Bandeau de déplacement de lieu (mode admin) ────────────── */
+.move-place-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  background: var(--banner-bg, #fff3dc);
+  color: var(--banner-fg, #6a4420);
+  border-bottom: 2px solid var(--accent, #8c5a2b);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 0.92rem;
+  animation: move-banner-slide 0.18s ease-out;
+}
+.move-place-banner.active { display: flex; }
+.move-place-banner .move-banner-text { flex: 1; }
+.move-place-banner em {
+  font-style: italic;
+  color: var(--accent-dark, #6a4420);
+  font-weight: 600;
+}
+@keyframes move-banner-slide {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}

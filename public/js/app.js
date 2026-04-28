@@ -16,6 +16,7 @@ const DEFAULT_ZOOM = 14;
 const state = {
   mode: 'live',           // 'live' (API) ou 'static' (GitHub Pages)
   addMode: false,         // true quand l'utilisateur prépare la pose d'un lieu
+  movePlaceId: null,      // si non null : ID du lieu en cours de déplacement (admin only)
   places: new Map(),      // id -> place
   people: new Map(),      // id -> person
   stories: [],            // liste ordonnée
@@ -354,6 +355,9 @@ function openPanel(html) {
       if (story && comp) openEditCompletionDialog(story, comp);
     });
   });
+  panelContent.querySelectorAll('.btn-move-place').forEach(btn => {
+    btn.addEventListener('click', () => enterMovePlaceMode(btn.dataset.placeId));
+  });
 }
 
 function closePanel() {
@@ -377,12 +381,16 @@ function openPlacePanel(placeId) {
     return `<span class="chip">${escapeHtml(a.name)}${ctx ? ` <em>(${escapeHtml(ctx)})</em>` : ''}</span>`;
   }).join('');
 
-  // Bouton d'ajout de contenu uniquement pour contributor/admin
+  // Bouton d'ajout de contenu uniquement pour contributor/admin.
+  // Bouton "Déplacer" uniquement pour admin — corrige une position
+  // approximative directement, sans passer par la file de modération.
   const canContribute = state.mode === 'live' && hasRole('contributor');
+  const canMove       = state.mode === 'live' && hasRole('admin');
   const actions = `
     <div class="entity-actions">
       ${canContribute ? `<button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>` : ''}
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
+      ${canMove ? `<button class="btn-ghost btn-move-place" type="button" data-place-id="${escapeAttr(place.id)}">🔧 Déplacer ce lieu</button>` : ''}
     </div>`;
 
   openPanel(`
@@ -702,6 +710,111 @@ function escapeHtml(str) {
 }
 function escapeAttr(str) {
   return escapeHtml(str);
+}
+
+// ─── Déplacement d'un lieu (admin) ──────────────────────────────────────
+// Active un mode "drag" sur un marker pour corriger ses coordonnées.
+// Bandeau d'info en haut de la carte, ESC pour annuler. À la fin du
+// drag, modale de confirmation avec les nouvelles coords avant POST.
+
+let _moveBanner = null;
+let _moveOriginalLatLng = null;
+let _moveEscHandler = null;
+
+function ensureMoveBanner() {
+  if (_moveBanner) return _moveBanner;
+  _moveBanner = document.createElement('div');
+  _moveBanner.id = 'move-place-banner';
+  _moveBanner.className = 'move-place-banner';
+  _moveBanner.innerHTML = `
+    <span class="move-banner-text"></span>
+    <button type="button" class="btn-ghost" id="move-banner-cancel">Annuler (ESC)</button>
+  `;
+  document.body.appendChild(_moveBanner);
+  _moveBanner.querySelector('#move-banner-cancel')
+    .addEventListener('click', exitMovePlaceMode);
+  return _moveBanner;
+}
+
+function enterMovePlaceMode(placeId) {
+  if (!hasRole('admin')) return;
+  if (state.movePlaceId === placeId) return;
+  if (state.movePlaceId) exitMovePlaceMode();
+
+  const place = state.places.get(placeId);
+  const marker = state.markers.get(placeId);
+  if (!place || !marker) return;
+
+  state.movePlaceId = placeId;
+  _moveOriginalLatLng = marker.getLatLng();
+
+  marker.dragging.enable();
+  marker.setOpacity(0.85);
+  marker.on('dragend', _handleMarkerDragEnd);
+
+  const banner = ensureMoveBanner();
+  banner.querySelector('.move-banner-text').innerHTML =
+    `🔧 <strong>Mode déplacement</strong> : glisse le marker de ` +
+    `<em>${escapeHtml(place.primaryName)}</em> à sa position correcte.`;
+  banner.classList.add('active');
+
+  _moveEscHandler = (e) => { if (e.key === 'Escape') exitMovePlaceMode(); };
+  window.addEventListener('keydown', _moveEscHandler);
+}
+
+function exitMovePlaceMode() {
+  if (!state.movePlaceId) return;
+  const marker = state.markers.get(state.movePlaceId);
+  if (marker) {
+    marker.off('dragend', _handleMarkerDragEnd);
+    if (marker.dragging) marker.dragging.disable();
+    marker.setOpacity(1);
+    if (_moveOriginalLatLng) marker.setLatLng(_moveOriginalLatLng);
+  }
+  state.movePlaceId = null;
+  _moveOriginalLatLng = null;
+  if (_moveBanner) _moveBanner.classList.remove('active');
+  if (_moveEscHandler) {
+    window.removeEventListener('keydown', _moveEscHandler);
+    _moveEscHandler = null;
+  }
+}
+
+async function _handleMarkerDragEnd(e) {
+  const placeId = state.movePlaceId;
+  if (!placeId) return;
+  const marker = e.target;
+  const newPos = marker.getLatLng();
+  const place = state.places.get(placeId);
+  const ok = confirm(
+    `Déplacer « ${place ? place.primaryName : placeId} » ?\n\n` +
+    `Avant : ${_moveOriginalLatLng.lat.toFixed(5)}, ${_moveOriginalLatLng.lng.toFixed(5)}\n` +
+    `Après : ${newPos.lat.toFixed(5)}, ${newPos.lng.toFixed(5)}`,
+  );
+  if (!ok) {
+    // Reposition le marker à l'endroit d'origine, on reste en mode drag
+    marker.setLatLng(_moveOriginalLatLng);
+    return;
+  }
+  try {
+    const res = await fetch(`/api/admin/places/${encodeURIComponent(placeId)}/move`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat: newPos.lat, lng: newPos.lng }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || `${res.status}`);
+    // Persisté côté serveur — on quitte le mode et on recharge
+    _moveOriginalLatLng = newPos; // empêche exitMovePlaceMode de reposer le marker
+    exitMovePlaceMode();
+    await reload();
+    // Réouvre le panneau du lieu pour voir les coords mises à jour
+    if (location.hash !== `#/lieu/${placeId}`) navigateTo('lieu', placeId);
+  } catch (err) {
+    alert('Erreur lors du déplacement : ' + err.message);
+    marker.setLatLng(_moveOriginalLatLng);
+  }
 }
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────

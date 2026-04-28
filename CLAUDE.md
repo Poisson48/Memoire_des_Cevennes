@@ -32,6 +32,27 @@ GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519_poisson48 -o IdentitiesOnly=yes' git p
 L'alias `github-poisson48` est configuré dans `~/.ssh/config` — le remote
 `origin` pointe déjà sur `git@github-poisson48:Poisson48/Memoire_des_Cevennes.git`.
 
+## 🔢 Versioning — semver, à incrémenter à chaque commit
+
+Le numéro de version dans `package.json` reflète l'état du programme,
+pas un calendrier de release. Convention :
+
+- **Patch** (`0.4.0` → `0.4.1`) : bug fix, correction de doc, chore,
+  régénération de captures, ajustement mineur d'UI.
+- **Minor** (`0.4.0` → `0.5.0`) : nouvelle fonctionnalité visible
+  utilisateur (nouvelle section, nouveau bouton, nouvelle API).
+- **Major** (`0.x.y` → `1.0.0`) : refonte importante ou changement
+  cassant (incompatible avec les versions précédentes).
+
+À chaque commit :
+1. Bumper `package.json` (clé `version`) selon la nature du change.
+2. Préfixer le sujet du commit avec `vX.Y.Z :` (ex.
+   `v0.7.0 : page d'accueil personnalisable`).
+
+Le changelog `/api/changelog` lit les sujets de commits matchant
+`^v[0-9]+\.[0-9]+` et les présente à l'utilisateur — un commit non
+préfixé n'apparaît pas.
+
 ## 🔄 Preview GitHub Pages — pousser souvent
 
 Le workflow `.github/workflows/pages.yml` redéploie à chaque push sur

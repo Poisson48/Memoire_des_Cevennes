@@ -210,6 +210,41 @@ router.post('/:type(places|people|stories)/:id/reject', async (req, res, next) =
   } catch (err) { next(err); }
 });
 
+// ─── Déplacement d'un lieu ────────────────────────────────────────────
+// Permet à l'admin de corriger les coordonnées d'un lieu existant (ex.
+// pin posé approximativement par un contributeur). Pas de flux de
+// modération : action directe, journalisée. L'ancienne position est
+// stockée dans activity_log pour pouvoir reconstituer l'historique.
+router.patch('/places/:id/move', async (req, res, next) => {
+  try {
+    const lat = Number(req.body && req.body.lat);
+    const lng = Number(req.body && req.body.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: 'lat et lng numériques requis' });
+    }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({ error: 'lat/lng hors limites géographiques' });
+    }
+    let before = null;
+    const updated = await places.patch(req.params.id, (place) => {
+      before = { lat: place.lat, lng: place.lng };
+      return { lat, lng };
+    });
+    if (!updated) return res.status(404).json({ error: 'Lieu introuvable' });
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'place.move',
+      entityType: 'place',
+      entityId: req.params.id,
+      ip: req.ip,
+      // Le journal accepte des champs additionnels — on stocke les coords
+      // d'avant/après pour pouvoir reconstituer l'historique.
+      meta: { from: before, to: { lat, lng } },
+    });
+    res.json({ place: updated, from: before });
+  } catch (err) { next(err); }
+});
+
 // ─── Suppression définitive ──────────────────────────────────────────
 // Différent du "Refuser" qui passe juste status=rejected. Ici on retire
 // l'entrée de la base + médias sur disque (pour les récits).
