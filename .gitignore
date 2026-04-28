@@ -20,5 +20,7 @@ data/members.json
 data/activity_log.json
 data/reports.json
 data/welcome.json
+data/password_resets.json
+data/site_config.json
 # … mais on garde les graines de référence (contenu du programme) :
 !data/seeds/

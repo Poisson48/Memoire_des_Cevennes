@@ -85,17 +85,18 @@
       <div id="members" class="queue" hidden>
         <details class="member-create">
           <summary>➕ Créer un compte (membre, contributeur ou admin)</summary>
-          <form id="form-create-member" class="legal-form" style="margin-top:0.8rem;">
+          <p class="hint" style="margin:0.6rem 0 0.4rem;">
+            Pas de mot de passe à choisir : le serveur génère une clé d'usage
+            unique (valable 7 jours) que tu transmets au membre de la main à
+            la main. Il choisira lui-même son mot de passe sur
+            <a href="/reset.html">/reset.html</a>.
+          </p>
+          <form id="form-create-member" class="legal-form" style="margin-top:0.4rem;">
             <label>Nom
               <input type="text" name="name" required maxlength="120" />
             </label>
             <label>Adresse e-mail
               <input type="email" name="email" required maxlength="160" />
-            </label>
-            <label>Mot de passe initial
-              <input type="text" name="password" required minlength="8"
-                     placeholder="8 caractères minimum" />
-              <span class="hint">À communiquer au membre, qui pourra le changer.</span>
             </label>
             <label>Rôle
               <select name="role">
@@ -107,7 +108,7 @@
             <div id="create-member-error" class="auth-error" hidden></div>
             <div id="create-member-success" class="hint" hidden style="color:#2a6e40;"></div>
             <div class="actions">
-              <button type="submit" class="btn-primary">Créer le compte</button>
+              <button type="submit" class="btn-primary">Créer le compte et générer la clé</button>
             </div>
           </form>
         </details>
@@ -119,13 +120,14 @@
 
       <div id="resets" class="queue" hidden>
         <p class="backups-intro">
-          Demandes de réinitialisation de mot de passe envoyées via
-          <a href="/oubli.html">/oubli.html</a>. Pas de mail automatique :
-          tu vérifies l'identité hors-ligne (téléphone, en personne…),
-          puis tu approuves — le serveur génère une clé d'usage unique à
-          transmettre à la main. Le membre l'utilise sur
-          <a href="/reset.html">/reset.html</a> pour choisir un nouveau
-          mot de passe.
+          Clés d'usage unique — deux usages partagent la même file :
+          les <strong>réinitialisations</strong> demandées par les membres
+          via <a href="/oubli.html">/oubli.html</a> (à approuver une fois
+          l'identité vérifiée hors-ligne) et les <strong>invitations</strong>
+          générées quand un admin crée un compte. Dans les deux cas, le
+          serveur produit une clé à transmettre à la main, et le membre
+          choisit lui-même son mot de passe sur
+          <a href="/reset.html">/reset.html</a>.
         </p>
         <h3>En attente</h3>
         <div id="resets-pending"></div>

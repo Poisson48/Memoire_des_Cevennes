@@ -465,10 +465,9 @@ if (formCreateMember) {
       const res = await fetch('/api/admin/members', authFetchOpts({
         method: 'POST',
         body: JSON.stringify({
-          name:     fd.get('name'),
-          email:    fd.get('email'),
-          password: fd.get('password'),
-          role:     fd.get('role'),
+          name:  fd.get('name'),
+          email: fd.get('email'),
+          role:  fd.get('role'),
         }),
       }));
       const j = await res.json();
@@ -477,10 +476,15 @@ if (formCreateMember) {
         errEl.hidden = false;
         return;
       }
-      okEl.textContent = `✓ Compte créé : ${j.member.email} (${j.member.role})`;
+      okEl.textContent = `✓ Compte créé : ${j.member.email} (${j.member.role}). Transmets la clé au membre.`;
       okEl.hidden = false;
       formCreateMember.reset();
+      // Affiche la clé une seule fois — l'admin doit la copier maintenant.
+      // (Elle reste réaffichable depuis l'onglet Mots de passe oubliés
+      // tant que l'invitation est "approved".)
+      showResetKeyDialog(j.key, { member: j.member });
       refreshMembers();
+      refreshResets();
     } catch (err) {
       errEl.textContent = 'Serveur injoignable : ' + err.message;
       errEl.hidden = false;
@@ -617,14 +621,19 @@ function renderResets(container, items, kind) {
       consumed:  'utilisée',
       expired:   'expirée',
     })[r.status] || r.status;
+    const kindLabel = r.kind === 'invite' ? '🎫 invitation' : '🔄 réinitialisation';
+    const submittedLine = r.kind === 'invite'
+      ? `créée le ${escapeHtml(submittedAt)}${r.reviewerName ? ' par ' + escapeHtml(r.reviewerName) : ''}`
+      : `demandé le ${escapeHtml(submittedAt)}${r.requestedFromIp ? ` <small>(IP ${escapeHtml(r.requestedFromIp)})</small>` : ''}`;
 
     return `
       <article class="queue-item" data-reset-id="${escapeAttr(r.id)}" data-key-plain="${escapeAttr(r.keyPlain || '')}">
         <header>
+          <span class="status" style="margin-right:0.4rem;">${escapeHtml(kindLabel)}</span>
           ${memberLine}
           · <span class="status">${escapeHtml(statusLabel)}</span>
         </header>
-        <p class="meta">demandé le ${escapeHtml(submittedAt)}${r.requestedFromIp ? ` <small>(IP ${escapeHtml(r.requestedFromIp)})</small>` : ''}</p>
+        <p class="meta">${submittedLine}</p>
         ${r.name    ? `<p class="meta">Nom donné : <strong>${escapeHtml(r.name)}</strong></p>` : ''}
         ${r.message ? `<p class="meta" style="white-space:pre-wrap;">${escapeHtml(r.message)}</p>` : ''}
         ${reviewedAt ? `<p class="meta">Modéré le ${escapeHtml(reviewedAt)}${r.reviewerName ? ' par ' + escapeHtml(r.reviewerName) : ''}</p>` : ''}

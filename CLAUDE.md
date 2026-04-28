@@ -52,17 +52,45 @@ un autre point sauf demande explicite.
 - Toute création (Lieu / Personne / Récit) atterrit en `status: pending`.
 - Toute proposition de modification (fichier `data/edits.json`) entre
   aussi en file.
-- L'admin (token partagé `ADMIN_TOKEN`) valide depuis `/admin.html` ou
-  via `/api/admin/*`.
+- Authentification admin : deux chemins acceptés par `requireAdmin`.
+  1. **Préféré** : compte membre avec `role: "admin"` connecté via
+     `/admin.html` (login email + mot de passe → cookie `admin_jwt`,
+     route `POST /api/auth/admin-login`).
+  2. **Compatibilité** : `ADMIN_TOKEN` partagé en env, transmis par
+     header `X-Admin-Token` ou cookie `admin_token`. Utile pour bootstrap
+     sans compte, à éviter quand un compte admin existe.
 - Modèle inspiré de Wikipédia : diff avant/après, note de modification,
   audit avec horodatage et reviewer.
 
+## 🎫 Création de comptes — par invitation, jamais de mot de passe en clair
+
+**Règle dure** : aucun mot de passe ne doit être généré, transmis ou
+affiché par l'admin (ni par Claude). Toute création de compte (membre,
+contributeur, admin) passe par une **clé d'usage unique** (format
+`XXXX-XXXX-XXXX`, valable 7 jours, alphabet sans 0/O/1/I/L) que
+l'admin transmet de la main à la main. Le titulaire choisit lui-même son
+mot de passe sur `/reset.html` en saisissant la clé.
+
+- API : `POST /api/admin/members` ne prend plus que `name`, `email`,
+  `role`. Elle crée le membre avec `passwordHash: ""` puis génère
+  l'invitation et renvoie `{ member, key, expiresAt }`.
+- Code : `auth.createInvitedMember` + `passwordResets.createInvite`
+  (champ `kind: "invite"` dans `data/password_resets.json`, mécanisme
+  identique aux resets côté `consume()`).
+- UI admin : formulaire dans l'onglet « Membres », clé affichée une
+  seule fois dans la modale, réaffichable depuis l'onglet « Mots de
+  passe oubliés » tant que l'invitation est `approved`.
+- Pour un compte créé en CLI, ne sortir QUE la clé (pas le hash, pas
+  un mdp inventé).
+
 ## 🧱 Stack et conventions
 
-- Node 18+ / Express / Multer (v2).
+- Node 18+ / Express 4 / Multer 2.
 - Frontend vanilla (pas de build step), Leaflet pour la carte.
 - Données dans `data/*.json`, médias dans `uploads/` (git-ignored).
-- Tests Playwright prévus mais non en place.
+- Tests Playwright en place sur `tests/contribution-flow.test.js`
+  (parcours contributeur). À étendre quand de nouvelles routes critiques
+  apparaissent.
 - Le port par défaut documenté dans `.env` est `3003`. **Mais** l'instance
   live que l'utilisateur teste dans le navigateur tourne sur **18542**
   (voir section ci-dessous).
@@ -101,9 +129,9 @@ l'extérieur. La box ne fait pas de translation de port : `18542` externe
 
 ## 📸 Captures d'écran
 
-`scripts/screenshots.js` capture 9 vues (desktop, mobile, admin,
-dialogs…) via Playwright. À relancer quand l'UI change visiblement,
-avant de pousser :
+`scripts/screenshots.js` capture 13 vues (desktop, mobile, admin, dialogs,
+tagger, complétions…) via Playwright. À relancer quand l'UI change
+visiblement, avant de pousser :
 
 ```bash
 PORT=3199 ADMIN_TOKEN=dev node server.js &
@@ -134,7 +162,9 @@ Le module `src/backup.js` produit des archives `.tar.gz` autoporteuses
   `kind` (`manual` / `pre-restore` / `export` / `import`), `files` (sha256
   par fichier JSON), inventaire `uploads`.
 - `data/*.json` (places, people, stories, edits, members, reports,
-  activity_log) — `data/seeds/` exclu.
+  activity_log, password_resets, site_config) — `data/seeds/` exclu.
+  La liste exacte est `DATA_FILES` dans `src/backup.js`, à mettre à jour
+  quand on ajoute un fichier de données.
 - `uploads/` — médias attachés aux récits.
 
 **Versionnage** : `SCHEMA_VERSION` est un entier dans `src/backup.js`. Le

@@ -97,6 +97,55 @@ async function createMember(email, password, name, opts = {}) {
 }
 
 /**
+ * Crée un membre invité par un admin, sans mot de passe utilisable.
+ *
+ * Le `passwordHash` est stocké à chaîne vide : `bcrypt.compare(plain, '')`
+ * renvoie toujours false, donc le compte ne peut pas être connecté tant
+ * que le titulaire n'a pas consommé sa clé d'invitation sur reset.html
+ * pour choisir lui-même son mot de passe. À aucun moment l'admin (ni
+ * personne d'autre) ne connaît un mot de passe en clair.
+ *
+ * Le membre est créé directement en `status: "active"` (l'admin l'a déjà
+ * validé en lui envoyant une invitation). La clé de couplage est créée
+ * séparément via `passwordResets.createInvite`.
+ */
+async function createInvitedMember(email, name, opts = {}) {
+  const {
+    charterVersion = '1.0',
+    role           = 'member',
+    createdByAdmin = null,
+  } = opts;
+
+  if (!ROLES.includes(role)) throw new Error(`Rôle invalide : ${role}`);
+
+  const members = loadMembers();
+  const normalizedEmail = String(email).toLowerCase().trim();
+
+  if (members.find(m => m.email === normalizedEmail)) {
+    throw new Error('Un compte existe déjà avec cet email.');
+  }
+
+  const now = new Date().toISOString();
+  const member = {
+    id: randomUUID(),
+    name: String(name).trim().slice(0, 120),
+    email: normalizedEmail,
+    passwordHash: '',                    // pas de mot de passe utilisable
+    role,
+    status: 'active',
+    createdAt: now,
+    charterAcceptedVersion: String(charterVersion),
+    charterAcceptedAt:      now,
+    approvedAt:             now,
+  };
+  if (createdByAdmin) member.createdByAdmin = createdByAdmin;
+
+  members.push(member);
+  saveMembers(members);
+  return safe(member);
+}
+
+/**
  * Passe un membre de "pending" à "active".
  */
 function approveMember(id) {
@@ -138,6 +187,8 @@ async function login(email, password) {
   const member = members.find(m => m.email === normalizedEmail);
 
   if (!member || member.status !== 'active') return null;
+  // passwordHash vide = compte invité qui n'a pas encore activé via la clé.
+  if (!member.passwordHash) return null;
 
   const ok = await bcrypt.compare(String(password), member.passwordHash);
   if (!ok) return null;
@@ -196,6 +247,7 @@ function logActivity({ memberId, action, entityType, entityId, ip }) {
 
 module.exports = {
   createMember,
+  createInvitedMember,
   approveMember,
   setRole,
   login,

@@ -1,15 +1,22 @@
 'use strict';
 
-// Demandes de réinitialisation de mot de passe — flux 100% humain, pas de mail.
+// Demandes de clé d'usage unique — flux 100% humain, pas de mail.
 //
-// 1. Le membre remplit oubli.html (email + nom + message) → status "pending".
-// 2. Un admin consulte la file, vérifie l'identité hors-ligne (téléphone,
-//    en vrai…), puis approuve → on génère une clé d'usage unique, affichée
-//    UNE FOIS à l'admin qui la transmet de la main à la main.
-// 3. Le membre saisit la clé sur reset.html avec un nouveau mot de passe →
-//    on vérifie le hash, on met à jour le passwordHash, on marque "consumed".
+// Deux usages partagent le même mécanisme (champ `kind`) :
 //
-// La clé en clair est conservée tant que la demande est "approved" (pour que
+//   • kind = "reset"  — mot de passe oublié.
+//     1. Le membre remplit oubli.html (email + nom + message) → "pending".
+//     2. L'admin vérifie l'identité hors-ligne, approuve → clé générée.
+//     3. Le membre saisit la clé sur reset.html → nouveau mot de passe.
+//
+//   • kind = "invite" — création d'un compte par un admin.
+//     1. L'admin crée le compte (sans mot de passe) → on génère
+//        directement une entrée "approved" avec une clé.
+//     2. L'admin transmet la clé au futur membre, de la main à la main.
+//     3. Le membre saisit la clé sur reset.html → choisit son mot de passe
+//        lui-même. À aucun moment le mot de passe ne transite par l'admin.
+//
+// La clé en clair est conservée tant que l'entrée est "approved" (pour que
 // l'admin puisse la relire si le membre ne l'a pas notée). Au consume ou à
 // l'expiration (purge), seul le hash sha256 reste.
 
@@ -21,6 +28,9 @@ const { randomUUID } = require('crypto');
 
 const FILE = path.join(__dirname, '..', 'data', 'password_resets.json');
 const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
+
+const KIND_RESET  = 'reset';
+const KIND_INVITE = 'invite';
 
 // 7 jours — l'admin a le temps de joindre le membre.
 const KEY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -37,7 +47,11 @@ const SALT_ROUNDS = 12;
 
 function loadAll() {
   try {
-    return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    const list = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    // Migration douce : les entrées d'avant l'ajout du champ `kind` sont
+    // toutes des resets. On normalise à la lecture pour que les filtres et
+    // les vues admin n'aient pas à gérer le cas absent.
+    return list.map(r => (r.kind ? r : { ...r, kind: KIND_RESET }));
   } catch {
     return [];
   }
@@ -120,6 +134,7 @@ function createRequest({ email, name, message, ip } = {}) {
   const now = new Date().toISOString();
   const request = {
     id: randomUUID(),
+    kind: KIND_RESET,
     emailRequested: normalizedEmail,
     name: cleanName,
     message: cleanMessage,
@@ -132,6 +147,52 @@ function createRequest({ email, name, message, ip } = {}) {
   list.push(request);
   saveAll(list);
   return request;
+}
+
+// ── Invitation (création de compte par un admin) ──────────────────────────
+
+/**
+ * Crée une entrée "invite" directement en status "approved" (l'admin
+ * authentifié a déjà la légitimité d'agir, pas de phase pending).
+ * Génère la clé en clair et la retourne — elle reste lisible dans
+ * `keyPlain` tant que l'invite est "approved", comme pour les resets.
+ *
+ * @param {{memberId: string, reviewerId?: string, reviewerName?: string}} opts
+ * @returns {{request: object, key: string}}
+ */
+function createInvite({ memberId, reviewerId, reviewerName } = {}) {
+  if (!memberId) throw new Error('memberId requis pour créer une invitation.');
+  const members = loadMembers();
+  const member = members.find(m => m.id === memberId);
+  if (!member) throw new Error('Membre introuvable.');
+
+  const now = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + KEY_TTL_MS).toISOString();
+  const key = generateKey();
+
+  const list = loadAll();
+  const request = {
+    id: randomUUID(),
+    kind: KIND_INVITE,
+    emailRequested: member.email,
+    name: member.name || '',
+    message: '',
+    memberId: member.id,
+    memberKnown: true,
+    status: 'approved',
+    requestedAt: now,
+    requestedFromIp: null,
+    reviewedAt: now,
+    reviewedBy: reviewerId || null,
+    reviewerName: reviewerName || null,
+    keyHash: hashKey(key),
+    keyPlain: key,
+    keyHint: keyHint(key),
+    expiresAt,
+  };
+  list.push(request);
+  saveAll(list);
+  return { request, key };
 }
 
 // ── Lecture admin ─────────────────────────────────────────────────────────
@@ -284,6 +345,7 @@ function purgeExpired() {
 
 module.exports = {
   createRequest,
+  createInvite,
   listAll,
   approve,
   reject,
@@ -294,4 +356,6 @@ module.exports = {
   normalizeKey,
   hashKey,
   KEY_TTL_MS,
+  KIND_RESET,
+  KIND_INVITE,
 };

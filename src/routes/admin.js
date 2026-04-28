@@ -104,25 +104,48 @@ router.get('/members', (req, res) => {
   res.json({ members });
 });
 
-// Création d'un compte directement par un admin — déjà actif, rôle au choix.
-// L'admin choisit un mot de passe initial (à changer par le membre ensuite).
+// Création d'un compte par un admin — par invitation, sans mot de passe.
+// Mécanisme identique à un reset : on génère une clé d'usage unique que
+// l'admin transmet de la main à la main. Le membre choisit lui-même son
+// mot de passe sur reset.html en saisissant la clé. À aucun moment l'admin
+// ne connaît le mot de passe.
 router.post('/members', async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body || {};
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'name, email et password sont requis.' });
-    }
-    if (String(password).length < 8) {
-      return res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères.' });
+    const { name, email, role } = req.body || {};
+    if (!name || !email) {
+      return res.status(400).json({ error: 'name et email sont requis.' });
     }
     const validRoles = ['member', 'contributor', 'admin'];
     const wantedRole = validRoles.includes(role) ? role : 'member';
-    const member = await auth.createMember(email, password, name, {
+    const reviewerId   = (req.member && req.member.id) || 'admin-token';
+    const reviewerName = (req.member && (req.member.name || req.member.email)) || 'admin';
+
+    const member = await auth.createInvitedMember(email, name, {
       role: wantedRole,
-      status: 'active',
       createdByAdmin: req.member ? req.member.id : null,
     });
-    res.status(201).json({ ok: true, member, message: 'Compte créé et activé.' });
+    const { request, key } = passwordResets.createInvite({
+      memberId: member.id,
+      reviewerId,
+      reviewerName,
+    });
+    activityLog.logActivity({
+      memberId: reviewerId,
+      action: 'member.invite',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+    });
+    // La clé en clair n'est renvoyée que sur cette réponse — l'admin doit
+    // la copier maintenant. Elle reste lisible via GET /password-resets
+    // tant que l'invitation est "approved".
+    res.status(201).json({
+      ok: true,
+      member,
+      key,
+      expiresAt: request.expiresAt,
+      message: 'Compte créé. Transmets la clé au membre — il choisira son mot de passe.',
+    });
   } catch (err) {
     if (err.message && err.message.includes('existe déjà')) {
       return res.status(409).json({ error: err.message });
