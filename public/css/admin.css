@@ -335,3 +335,171 @@
   .diff td.field { width: 100px; font-size: 0.82rem; }
   .item-actions button { flex: 1; }
 }
+
+/* ── Sauvegardes ───────────────────────────────────────────────────── */
+.backups-intro {
+  font-size: 0.92rem;
+  color: var(--muted);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-dark, #4a7a4a);
+  padding: 0.7rem 0.9rem;
+  border-radius: 4px;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+.backups-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+.backups-actions .btn-primary,
+.backups-actions .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  text-decoration: none;
+}
+.backup-feedback {
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+  border: 1px solid var(--border);
+}
+.backup-feedback.level-info    { background: #f4f6f9; color: #2a3a4a; }
+.backup-feedback.level-success { background: #e7f3ea; color: #2a6e40; border-color: #b8d8c0; }
+.backup-feedback.level-error   { background: #fbe9e9; color: #8a2424; border-color: #e2b8b8; }
+
+.backup-item .backup-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.backup-item .backup-label {
+  color: var(--muted);
+  font-style: italic;
+}
+.backup-item .backup-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+.backup-item .backup-meta code {
+  font-size: 0.78rem;
+  color: var(--text);
+}
+.backup-item .backup-note {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+.kind-badge.backup-kind {
+  background: #e6e9ef;
+  color: #3a4a5e;
+  border: 1px solid #c7cdd9;
+}
+.kind-badge.backup-kind-pre-restore { background: #fdf3da; color: #7a5a18; border-color: #e8d4a0; }
+.kind-badge.backup-kind-export      { background: #e0f0e6; color: #2a6e40; border-color: #b8d8c0; }
+.kind-badge.backup-kind-import      { background: #e2eaf6; color: #2a4a7e; border-color: #b8c8e0; }
+.kind-badge.backup-kind-manual      { background: #f0e6f4; color: #5a2a7a; border-color: #d0b8e0; }
+
+.schema-warn {
+  font-size: 0.82rem;
+  color: #8a2424;
+  background: #fbe9e9;
+  border: 1px solid #e2b8b8;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.enc-badge {
+  font-size: 0.78rem;
+  color: #2a4a7e;
+  background: #e2eaf6;
+  border: 1px solid #b8c8e0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.backup-broken {
+  border-left: 3px solid #a14040;
+  background: rgba(161, 64, 64, 0.04);
+}
+.backup-broken .backup-meta { color: #8a2424; }
+
+/* Panneau de stockage en haut de l'onglet */
+.storage-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+}
+.storage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.storage-card {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.5rem 0.7rem;
+}
+.storage-card.storage-total {
+  background: rgba(74, 122, 74, 0.08);
+  border-color: #b8d8b8;
+}
+.storage-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.storage-value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0.2rem 0 0;
+}
+.storage-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+.storage-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.6rem;
+}
+.storage-kind {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.storage-disk {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+.storage-disk-label { margin-bottom: 0.25rem; }
+.storage-bar {
+  background: rgba(0, 0, 0, 0.06);
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.storage-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4a7a4a 0%, #6c8a3c 60%, #c46f3a 90%, #a14040 100%);
+}
+.storage-disk.low { color: #8a2424; }
+.storage-disk.low .storage-bar > span { background: #a14040; }

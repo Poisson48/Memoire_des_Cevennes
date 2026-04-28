@@ -14,6 +14,8 @@ const places = require('../places');
 const people = require('../people');
 const auth = require('../auth');
 const activityLog = require('../activityLog');
+const backup = require('../backup');
+const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
@@ -29,6 +31,22 @@ function removeStoryMedia(storyId) {
 
 const router = express.Router();
 router.use(requireAdmin);
+
+// ─── Sauvegardes / Export / Import ────────────────────────────────────
+// Routes /api/admin/backups/* : liste, création, restauration, suppression.
+// /api/admin/export et /api/admin/import sont montés via les sous-routers
+// exposés par ./backups (export = télécharger un nouveau backup ;
+// import = uploader une archive externe pour la restaurer).
+router.use('/backups', backupsRouter);
+router.use('/export',  backupsRouter.exportRouter);
+router.use('/import',  backupsRouter.importRouter);
+
+// Aperçu du stockage : tailles data/, uploads/, backups/ (par kind),
+// espace disque libre. Affiché en haut de l'onglet Sauvegardes.
+router.get('/storage', async (_req, res, next) => {
+  try { res.json(await backup.getStorageStats()); }
+  catch (err) { next(err); }
+});
 
 // ─── Membres ──────────────────────────────────────────────────────────
 // Liste, approbation, changement de rôle, journal d'activité.

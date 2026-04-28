@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 
 const { UPLOADS_DIR } = require('./src/upload');
 const { errorHandler, optionalAuth } = require('./src/middleware');
+const backup = require('./src/backup');
 
 const meta          = require('./src/routes/meta');
 const authRouter    = require('./src/routes/auth');
@@ -75,5 +76,22 @@ app.listen(PORT, () => {
   }
   if (!process.env.JWT_SECRET) {
     console.log('  ⚠  JWT_SECRET non défini — authentification membres désactivée.');
+  }
+
+  // Sauvegardes automatiques périodiques (désactivé si l'env n'est pas mis).
+  const autoH = parseFloat(process.env.BACKUP_AUTO_INTERVAL_HOURS || '');
+  const autoKeep = parseInt(process.env.BACKUP_AUTO_KEEP || '14', 10);
+  const preKeep  = parseInt(process.env.BACKUP_AUTO_PRE_RESTORE_KEEP || '10', 10);
+  if (Number.isFinite(autoH) && autoH > 0) {
+    backup.startAutoBackups({
+      intervalHours: autoH,
+      keep: Number.isFinite(autoKeep) ? autoKeep : 14,
+      preRestoreKeep: Number.isFinite(preKeep) ? preKeep : 10,
+    });
+  }
+  if (!backup.encryptionEnabled()) {
+    console.log('  (BACKUP_PASSPHRASE non défini — backups en clair)');
+  } else {
+    console.log('  Backups chiffrés (AES-256-GCM, scrypt) — ne perds pas BACKUP_PASSPHRASE !');
   }
 });

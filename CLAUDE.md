@@ -82,3 +82,54 @@ PORT=3199 ADMIN_TOKEN=dev node scripts/screenshots.js
 
 Les captures vivent dans `docs/screenshots/` et sont référencées par le
 README.
+
+## 💾 Sauvegardes / Export / Import
+
+Le module `src/backup.js` produit des archives `.tar.gz` autoporteuses
+(données + médias + manifest avec sha256). Stockées dans `backups/`
+(git-ignoré). UI dans l'onglet « Sauvegardes » de `/admin.html`, API sous
+`/api/admin/backups`, `/api/admin/export`, `/api/admin/import`.
+
+**Format de l'archive** :
+- `manifest.json` à la racine : `schemaVersion`, `appVersion`, `createdAt`,
+  `kind` (`manual` / `pre-restore` / `export` / `import` / `auto`),
+  `files` (sha256 par fichier JSON), inventaire `uploads`, flag
+  `encrypted`.
+- `data/*.json` (places, people, stories, edits, members, reports,
+  activity_log) — `data/seeds/` exclu.
+- `uploads/` — médias attachés aux récits.
+
+**Versionnage** : `SCHEMA_VERSION` est un entier dans `src/backup.js`. Le
+**bumper** (et ajouter une migration dans l'objet `MIGRATIONS`) à chaque
+fois qu'on change la forme d'une entité (renommage de champ, etc.). Les
+migrations sont chaînées de la version source vers la version courante au
+moment du restore. Un import en schéma supérieur au serveur est refusé
+(message clair : « Mets à jour le serveur avant d'importer »).
+
+**Sécurités** :
+- Avant chaque restore/import, snapshot `pre-restore` automatique (sauf si
+  l'archive est invalide → on n'en crée pas).
+- Vérification sha256 de chaque fichier JSON avant écrasement.
+- Path traversal bloqué (regex sur l'ID, options tar conservatrices).
+- Toutes les opérations journalisées dans `data/activity_log.json`.
+
+**Migrer le site sur un autre serveur** : onglet Sauvegardes →
+« Exporter tout » → copier le `.tar.gz(.enc)` sur la nouvelle machine →
+« Importer une archive… » sur la nouvelle instance admin. Si l'archive
+est chiffrée, la nouvelle instance doit avoir la **même
+`BACKUP_PASSPHRASE`** dans son `.env`.
+
+**Chiffrement** : si `BACKUP_PASSPHRASE` est défini, toutes les archives
+créées sont chiffrées AES-256-GCM (extension `.tar.gz.enc`, scrypt N=2¹⁴).
+Conserver la passphrase ailleurs (gestionnaire de mots de passe) — sans
+elle, les archives chiffrées sont irrécupérables.
+
+**Sauvegardes périodiques** : `BACKUP_AUTO_INTERVAL_HOURS` active un timer
+qui crée un backup `kind="auto"` toutes les N heures. `BACKUP_AUTO_KEEP`
+borne combien on en garde (par défaut 14). Les snapshots `pre-restore`
+sont eux bornés par `BACKUP_AUTO_PRE_RESTORE_KEEP` (défaut 10).
+
+**Aperçu stockage** : `GET /api/admin/storage` → tailles `data/`,
+`uploads/`, `backups/` (ventilation par kind) + espace libre du disque
+via `fs.statfs`. Affiché en haut de l'onglet Sauvegardes avec une barre
+de remplissage qui passe au rouge en dessous d'1 Go libre.

@@ -73,6 +73,7 @@
         <button type="button" class="tab-btn" data-tab="queue" data-filter="edit">Modifications</button>
         <button type="button" class="tab-btn" data-tab="members">Membres</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
+        <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
       </div>
 
       <div id="queue" class="queue"></div>
@@ -115,6 +116,31 @@
       <div id="activity" class="queue" hidden>
         <h3>Journal d'activité (200 dernières)</h3>
         <div id="activity-list"></div>
+      </div>
+
+      <div id="backups" class="queue" hidden>
+        <p class="backups-intro">
+          Les sauvegardes contiennent toutes les données du site (lieux, personnes,
+          récits, médias, comptes membres) plus un manifest avec sha256 et version
+          de schéma. Une archive est portable : on peut migrer le site sur un autre
+          serveur en l'important. Avant chaque restauration ou import, un snapshot
+          <em>pre-restore</em> est créé automatiquement pour pouvoir revenir en arrière.
+        </p>
+
+        <div id="storage-panel" class="storage-panel">Chargement…</div>
+
+        <div class="backups-actions">
+          <button type="button" id="btn-backup-create"  class="btn-primary">💾 Créer une sauvegarde</button>
+          <a       href="/api/admin/export"             id="btn-backup-export"  class="btn-ghost">⬇️ Exporter tout (téléchargement direct)</a>
+          <label class="btn-ghost" for="input-backup-import" style="cursor:pointer;">
+            ⬆️ Importer une archive…
+            <input type="file" id="input-backup-import" accept=".tar.gz,.enc,application/gzip,application/x-gzip,application/x-tar,application/octet-stream" hidden />
+          </label>
+        </div>
+        <div id="backup-feedback" class="backup-feedback" hidden></div>
+
+        <h3>Archives disponibles</h3>
+        <div id="backups-list"></div>
       </div>
     </section>
   </main>
