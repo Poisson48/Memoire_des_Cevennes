@@ -10,9 +10,8 @@ pas Valère, pas Claude, pas Poisson48.**
 - `git config user.name` doit valoir `crevette etincelante` dans ce dépôt.
 - **Ne jamais ajouter** de ligne `Co-Authored-By: Claude …` dans les
   messages de commit.
-- L'email est `antoinnneee@gmail.com` (pour que GitHub reconnaisse le
-  compte Poisson48 qui est le propriétaire du dépôt), sauf si l'utilisateur
-  en demande un autre.
+- L'email est `leohaize@etik.com`, sauf si l'utilisateur en demande un
+  autre.
 
 Avant tout commit, vérifier :
 ```bash
