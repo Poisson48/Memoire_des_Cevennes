@@ -1,6 +1,7 @@
 node_modules/
 uploads/
 backups/
+data/import/
 *.log
 .env
 .DS_Store

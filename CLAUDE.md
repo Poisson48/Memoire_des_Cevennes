@@ -32,27 +32,6 @@ GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519_poisson48 -o IdentitiesOnly=yes' git p
 L'alias `github-poisson48` est configuré dans `~/.ssh/config` — le remote
 `origin` pointe déjà sur `git@github-poisson48:Poisson48/Memoire_des_Cevennes.git`.
 
-## 🔢 Versioning — semver, à incrémenter à chaque commit
-
-Le numéro de version dans `package.json` reflète l'état du programme,
-pas un calendrier de release. Convention :
-
-- **Patch** (`0.4.0` → `0.4.1`) : bug fix, correction de doc, chore,
-  régénération de captures, ajustement mineur d'UI.
-- **Minor** (`0.4.0` → `0.5.0`) : nouvelle fonctionnalité visible
-  utilisateur (nouvelle section, nouveau bouton, nouvelle API).
-- **Major** (`0.x.y` → `1.0.0`) : refonte importante ou changement
-  cassant (incompatible avec les versions précédentes).
-
-À chaque commit :
-1. Bumper `package.json` (clé `version`) selon la nature du change.
-2. Préfixer le sujet du commit avec `vX.Y.Z :` (ex.
-   `v0.7.0 : page d'accueil personnalisable`).
-
-Le changelog `/api/changelog` lit les sujets de commits matchant
-`^v[0-9]+\.[0-9]+` et les présente à l'utilisateur — un commit non
-préfixé n'apparaît pas.
-
 ## 🔄 Preview GitHub Pages — pousser souvent
 
 Le workflow `.github/workflows/pages.yml` redéploie à chaque push sur
@@ -63,7 +42,7 @@ Preview : <https://poisson48.github.io/Memoire_des_Cevennes/>
 
 ## 🧭 Focale géographique
 
-Le projet est **centré sur Saint-Roman-de-Codières** (43.9881, 3.7439) et
+Le projet est **centré sur Saint-Roman-de-Codières** (44.0027, 3.7786, OSM) et
 ses alentours dans le premier temps. Une ouverture plus large sur
 l'ensemble des Cévennes viendra plus tard. Ne pas re-centrer la carte sur
 un autre point sauf demande explicite.
@@ -84,9 +63,41 @@ un autre point sauf demande explicite.
 - Frontend vanilla (pas de build step), Leaflet pour la carte.
 - Données dans `data/*.json`, médias dans `uploads/` (git-ignored).
 - Tests Playwright prévus mais non en place.
-- Le port par défaut est `3003`. Pour les scripts (ex. captures), préférer
-  un port non usuel (`3199`) pour éviter les collisions avec d'autres
-  projets locaux.
+- Le port par défaut documenté dans `.env` est `3003`. **Mais** l'instance
+  live que l'utilisateur teste dans le navigateur tourne sur **18542**
+  (voir section ci-dessous).
+
+## 🌐 Déploiement live — port 18542
+
+L'utilisateur accède au site via **<http://78.122.112.36:18542/>** depuis
+l'extérieur. La box ne fait pas de translation de port : `18542` externe
+↔ `18542` interne en direct. Donc :
+
+- **Lancer le serveur sur `PORT=18542`** quand on veut que l'utilisateur
+  puisse tester depuis son navigateur, même si `.env` dit 3003 :
+  ```bash
+  set -a && . ./.env && set +a; PORT=18542 node server.js
+  ```
+  (laisser tourner en background — ne pas killer en fin de tâche).
+
+- **Cette machine n'a pas de NAT loopback.** Donc `curl 78.122.112.36:18542`
+  *depuis cette machine* échoue toujours, même quand le service est joignable
+  depuis l'extérieur. Ce n'est pas un signe de panne. Pour vérifier la
+  disponibilité publique, utiliser **check-host.net** :
+  ```bash
+  REQ=$(curl -sS "https://check-host.net/check-tcp?host=78.122.112.36:18542&max_nodes=4" -H "Accept: application/json")
+  ID=$(echo "$REQ" | grep -oE '"request_id":"[^"]+"' | cut -d'"' -f4)
+  sleep 8
+  curl -sS "https://check-host.net/check-result/$ID" -H "Accept: application/json"
+  ```
+
+- ⚠ **Ne jamais utiliser `pkill -f "node server.js"` ni `pkill node`.** La
+  machine héberge plusieurs autres projets Node (meownopoly, loto-dofus,
+  AgentDVR…), parfois sous un autre user (`uid 1000` / `meow-server`). Pour
+  arrêter notre serveur, cibler le PID exact (renvoyé par `Bash
+  run_in_background`) ou `lsof -ti :18542 | xargs -r kill -9` si on est
+  sûr·e que c'est notre process. Pour les scripts de capture/test internes,
+  un port non usuel (`3199`) évite les collisions.
 
 ## 📸 Captures d'écran
 
@@ -100,8 +111,16 @@ sleep 2
 PORT=3199 ADMIN_TOKEN=dev node scripts/screenshots.js
 ```
 
+Le script utilise un port dédié (`3199`) pour ne pas perturber le serveur
+live sur `18542`.
+
+`scripts/capture-tuto.js` regénère uniquement les captures de la page
+tutoriel (`14-tutoriel-{pc,mobile}.png`).
+
 Les captures vivent dans `docs/screenshots/` et sont référencées par le
-README.
+README et par `aide.html` (qui les charge depuis `/screenshots/`,
+servi par `server.js` et copié dans `_site/screenshots/` par le workflow
+GitHub Pages).
 
 ## 💾 Sauvegardes / Export / Import
 
@@ -112,9 +131,8 @@ Le module `src/backup.js` produit des archives `.tar.gz` autoporteuses
 
 **Format de l'archive** :
 - `manifest.json` à la racine : `schemaVersion`, `appVersion`, `createdAt`,
-  `kind` (`manual` / `pre-restore` / `export` / `import` / `auto`),
-  `files` (sha256 par fichier JSON), inventaire `uploads`, flag
-  `encrypted`.
+  `kind` (`manual` / `pre-restore` / `export` / `import`), `files` (sha256
+  par fichier JSON), inventaire `uploads`.
 - `data/*.json` (places, people, stories, edits, members, reports,
   activity_log) — `data/seeds/` exclu.
 - `uploads/` — médias attachés aux récits.
