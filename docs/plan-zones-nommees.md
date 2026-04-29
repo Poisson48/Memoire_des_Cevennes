@@ -295,10 +295,16 @@ au moins une zone publique. Sinon, refuser ou flagger selon le mode.
    ~1 h.
 7. **Tests Playwright** : create zone via admin → vérifier overlay
    au drag de carte. ~1-2 h.
-8. **Données initiales pour Saint-Roman** : tracer les 3 vallons
-   (Récodier, Vidourle, Savel) attestés dans les Cahiers, plus la
-   commune englobante en zone parente. ~30 min de tracé. Si l'utilisateur
-   en connaît une 4ᵉ (Salendrinque, Hérault amont ?), à valider avant.
+8. **Données initiales pour Saint-Roman** : tracer les vallons listés
+   sur la fiche Wikipédia
+   <https://fr.wikipedia.org/wiki/Saint-Roman-de-Codi%C3%A8res>
+   (section Géographie / Hydrographie — c'est la source de référence,
+   plus complète que les Cahiers du Haut-Vidourle qui n'en mentionnent
+   que 3 : Récodier, Vidourle, Savel). Vérifier au moment du seed que
+   la liste Wikipédia est cohérente avec le terrain ; idéalement faire
+   le pointage à la main sur l'orthophoto IGN, pas seulement à partir
+   des contours hydro OSM. Plus la commune englobante en zone parente.
+   ~45 min de tracé.
 9. **Doc** : section dans `aide.html` expliquant les zones côté visiteur.
    ~30 min.
 
@@ -344,7 +350,10 @@ au moins une zone publique. Sinon, refuser ou flagger selon le mode.
 - **Statistiques par zone** : « 12 récits dans le Vallon du Vidourle ».
 - **Filtrage par zone** dans la barre de recherche.
 - **Import depuis OSM** : `relation = vallée du Vidourle` quand elle
-  existe en OSM, fetch via Overpass au lieu de tracer à la main.
+  existe en OSM, fetch via Overpass au lieu de tracer à la main. Pour
+  les vallons cévenols la couverture OSM est lacunaire ; Wikipédia
+  reste la meilleure source narrative et l'orthophoto IGN la meilleure
+  source géométrique.
 - **Lien Lieu→Zone** : champ `zoneIds[]` sur les Lieux, calculé
   automatiquement à la création (point-in-polygon). Affiché dans la
   fiche.
