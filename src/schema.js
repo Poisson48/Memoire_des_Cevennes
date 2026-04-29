@@ -248,6 +248,7 @@ module.exports = {
   makePerson,
   makeStory,
   normSubmittedBy,
+  normAliases,
   slugify,
   STORY_TYPES,
 };

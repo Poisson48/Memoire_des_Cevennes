@@ -341,6 +341,40 @@ router.patch('/places/:id/move', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ─── Édition directe des alias ───────────────────────────────────────
+// Hors file de modération : un admin peut corriger / enrichir les alias
+// d'un Lieu ou d'une Personne directement (typiquement après import en
+// vrac). Journalisé pour pouvoir reconstituer l'historique.
+const { normAliases } = require('../schema');
+
+function buildAliasRoute(type, store, label) {
+  router.patch(`/${type}/:id/aliases`, async (req, res, next) => {
+    try {
+      const incoming = Array.isArray(req.body && req.body.aliases) ? req.body.aliases : null;
+      if (!incoming) return res.status(400).json({ error: 'Body { aliases: [...] } requis' });
+      const aliases = normAliases(incoming);
+      let before = null;
+      const updated = await store.patch(req.params.id, (entity) => {
+        before = entity.aliases || [];
+        return { aliases };
+      });
+      if (!updated) return res.status(404).json({ error: `${label} introuvable` });
+      activityLog.logActivity({
+        memberId: (req.member && req.member.id) || 'admin-token',
+        action: `${type === 'places' ? 'place' : 'person'}.aliases.update`,
+        entityType: type === 'places' ? 'place' : 'person',
+        entityId: req.params.id,
+        ip: req.ip,
+        meta: { from: before, to: aliases },
+      });
+      res.json({ item: updated });
+    } catch (err) { next(err); }
+  });
+}
+
+buildAliasRoute('places', places, 'Lieu');
+buildAliasRoute('people', people, 'Personne');
+
 // ─── Suppression définitive ──────────────────────────────────────────
 // Différent du "Refuser" qui passe juste status=rejected. Ici on retire
 // l'entrée de la base + médias sur disque (pour les récits).

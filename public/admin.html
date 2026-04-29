@@ -71,6 +71,7 @@
         <button type="button" class="tab-btn active" data-tab="queue" data-filter="all">File de modération</button>
         <button type="button" class="tab-btn" data-tab="queue" data-filter="create">Créations</button>
         <button type="button" class="tab-btn" data-tab="queue" data-filter="edit">Modifications</button>
+        <button type="button" class="tab-btn" data-tab="aliases">Alias</button>
         <button type="button" class="tab-btn" data-tab="members">Membres</button>
         <button type="button" class="tab-btn" data-tab="resets">Mots de passe oubliés</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
@@ -82,6 +83,23 @@
       </div>
 
       <div id="queue" class="queue"></div>
+
+      <div id="aliases" class="queue" hidden>
+        <p class="backups-intro">
+          Édition directe des alias (autres orthographes, surnoms, formes
+          familières) des Lieux et Personnes approuvés. Action immédiate,
+          hors file de modération, journalisée. Utile après un import en
+          vrac pour rattraper les surnoms qui n'ont pas été repérés.
+        </p>
+        <div class="aliases-tools">
+          <div class="aliases-filter">
+            <label><input type="radio" name="alias-type" value="people" checked /> Personnes</label>
+            <label><input type="radio" name="alias-type" value="places" /> Lieux</label>
+          </div>
+          <input type="search" id="alias-search" placeholder="Rechercher par nom ou alias…" maxlength="120" />
+        </div>
+        <div id="aliases-list"></div>
+      </div>
 
       <div id="members" class="queue" hidden>
         <details class="member-create">
