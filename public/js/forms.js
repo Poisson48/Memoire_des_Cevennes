@@ -98,12 +98,29 @@ addBtn.addEventListener('click', () => {
   addHint.hidden = !state.addMode;
   addBtn.textContent = state.addMode ? '✕ Annuler' : '+ Ajouter un lieu';
   map.getContainer().style.cursor = state.addMode ? 'crosshair' : '';
+  // Active la mire fixe au centre via .map-crosshair (cf. style.css)
+  document.body.classList.toggle('add-mode', state.addMode);
 });
 
+// Voie 1 : touche directement la carte (rapide sur desktop / quand on
+// vise précisément un point connu).
 map.on('click', (e) => {
   if (!state.addMode) return;
   pendingLatLng = e.latlng;
   renderPlaceCoords(e.latlng);
+  if (!dlgPlace.open) {
+    formPlace.reset();
+    dlgPlace.showModal();
+  }
+});
+
+// Voie 2 (touch-friendly) : centre la carte avec la mire et tape « Placer ici ».
+// Le doigt n'occulte jamais la cible, et on peut paner/zoomer librement
+// avant de valider.
+document.getElementById('btn-place-here').addEventListener('click', () => {
+  if (!state.addMode) return;
+  pendingLatLng = map.getCenter();
+  renderPlaceCoords(pendingLatLng);
   if (!dlgPlace.open) {
     formPlace.reset();
     dlgPlace.showModal();
@@ -163,6 +180,7 @@ function resetAddMode() {
   addHint.hidden = true;
   addBtn.textContent = '+ Ajouter un lieu';
   map.getContainer().style.cursor = '';
+  document.body.classList.remove('add-mode');
 }
 
 // ── Flux 2 : ajouter un contenu (texte / photo / audio / vidéo / …) ────

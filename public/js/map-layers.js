@@ -29,6 +29,40 @@
 
   const ATTR_IGN = '© <a href="https://www.ign.fr/">IGN</a> – Géoplateforme';
 
+  // Calibration cadastre — laissée à 0 pour l'instant. Une calibration
+  // mono-point fait empirer Saint-Roman quand on cale sur Bourras (et
+  // inversement) parce que les relevés napoléoniens ont une erreur
+  // géométrique non uniforme. Pour vraiment corriger il faudra du
+  // multi-points + transform affine. L'infrastructure (ShiftedTileLayer
+  // + onglet « 🎯 Cadastre » de /admin.html) reste prête pour ça.
+  const CADASTRE_SHIFT_LAT = 0;
+  const CADASTRE_SHIFT_LNG = 0;
+
+  // Sous-classe de TileLayer qui décale le rendu d'un offset lat/lng
+  // constant. Le calcul se fait en pixels au zoom de chaque tuile : on
+  // projette le centre de la carte avant et après application du shift,
+  // et on ajoute la différence à la position de chaque tuile. Le tile
+  // range chargé reste celui du viewport standard — pour des shifts
+  // sub-tile (notre cas, ~20 px max au zoom max) le keepBuffer Leaflet
+  // par défaut suffit, pas de gap visible.
+  const ShiftedTileLayer = L.TileLayer.extend({
+    options: { shiftLat: 0, shiftLng: 0 },
+    _getTilePos: function (coords) {
+      const pos = L.TileLayer.prototype._getTilePos.call(this, coords);
+      if (!this._map || this._tileZoom == null) return pos;
+      const sLat = this.options.shiftLat;
+      const sLng = this.options.shiftLng;
+      if (!sLat && !sLng) return pos;
+      const center = this._map.getCenter();
+      const z = this._tileZoom;
+      const a = this._map.project(center, z);
+      const b = this._map.project(
+        L.latLng(center.lat + sLat, center.lng + sLng), z
+      );
+      return pos.add([b.x - a.x, b.y - a.y]);
+    },
+  });
+
   const BASES = {
     osm: {
       label: 'OSM (défaut)',
@@ -37,25 +71,25 @@
     ign: {
       label: 'IGN moderne',
       layer: L.tileLayer(ign('GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2'), {
-        maxNativeZoom: 18, maxZoom: 19, attribution: ATTR_IGN,
+        maxNativeZoom: 18, maxZoom: 22, attribution: ATTR_IGN,
       }),
     },
     photo: {
       label: 'Photo aérienne (auj.)',
       layer: L.tileLayer(ign('ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg'), {
-        maxNativeZoom: 19, maxZoom: 19, attribution: ATTR_IGN,
+        maxNativeZoom: 19, maxZoom: 22, attribution: ATTR_IGN,
       }),
     },
     photo1950: {
       label: 'Photo aérienne 1950-65',
       layer: L.tileLayer(ign('ORTHOIMAGERY.ORTHOPHOTOS.1950-1965'), {
-        maxNativeZoom: 18, maxZoom: 19, attribution: ATTR_IGN,
+        maxNativeZoom: 18, maxZoom: 22, attribution: ATTR_IGN,
       }),
     },
     etatmajor: {
       label: "Carte d'État-Major (1820-66)",
       layer: L.tileLayer(ign('GEOGRAPHICALGRIDSYSTEMS.ETATMAJOR40', 'image/jpeg'), {
-        maxNativeZoom: 15, maxZoom: 19, attribution: ATTR_IGN,
+        maxNativeZoom: 15, maxZoom: 22, attribution: ATTR_IGN,
       }),
     },
     cassini: {
@@ -64,14 +98,20 @@
       // visuellement que la version Archives Nationales. Couvre les niveaux
       // de zoom 6 à 14 — d'où le TileMatrixSet 'PM_6_14'.
       layer: L.tileLayer(ign('BNF-IGNF_GEOGRAPHICALGRIDSYSTEMS.CASSINI', 'image/png', 'PM_6_14'), {
-        minZoom: 6, maxNativeZoom: 14, maxZoom: 19, attribution: ATTR_IGN,
+        minZoom: 6, maxNativeZoom: 14, maxZoom: 22, attribution: ATTR_IGN,
       }),
     },
   };
 
-  const cadastreLayer = L.tileLayer(ign('CADASTRALPARCELS.PARCELLAIRE_EXPRESS'), {
-    maxNativeZoom: 20, maxZoom: 20, opacity: 0.75,
+  // maxNativeZoom à 19 (et non 20) : IGN ne sert pas toujours les tuiles
+  // cadastre au niveau 20 dans les zones rurales cévenoles, ce qui faisait
+  // disparaître le calque dès qu'on zoomait à fond. À 19 c'est garanti, et
+  // Leaflet upscale proprement jusqu'à maxZoom (22) — flou mais visible.
+  const cadastreLayer = new ShiftedTileLayer(ign('CADASTRALPARCELS.PARCELLAIRE_EXPRESS'), {
+    maxNativeZoom: 19, maxZoom: 22, opacity: 0.75,
     attribution: ATTR_IGN + ' – Cadastre',
+    shiftLat: CADASTRE_SHIFT_LAT,
+    shiftLng: CADASTRE_SHIFT_LNG,
   });
 
   let activeBaseKey = 'osm';

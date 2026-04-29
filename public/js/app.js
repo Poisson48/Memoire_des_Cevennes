@@ -37,17 +37,38 @@ function hasRole(minRole) {
 }
 
 // ─── Carte ──────────────────────────────────────────────────────────────
-// maxZoom à 19 explicitement : sans ça, Leaflet le déduit des couches
-// actives et le cadastre (maxZoom 20) le faisait monter à 20 — niveau
-// auquel OSM et toutes les autres couches n'ont plus de tuiles → la
-// carte virait au gris dès qu'on zoomait à fond avec le cadastre actif.
-const map = L.map('map', { zoomControl: true, maxZoom: 19 }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+// maxZoom à 22 : permet à l'utilisateur de zoomer au-delà de la résolution
+// native des tuiles (Leaflet upscale les tuiles natives, ça devient flou
+// mais reste exploitable — utile pour aligner précisément un point au
+// doigt sur tél, par ex. la calibration cadastre). Chaque couche a son
+// propre `maxNativeZoom` pour que l'upscale parte du bon niveau au lieu
+// de virer au gris.
+const map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 // Fond par défaut. Exposé pour que map-layers.js puisse le piloter via le
 // sélecteur de couches (cadastre, cartes anciennes, photos aériennes IGN).
 const defaultBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-  maxZoom: 19,
+  maxNativeZoom: 19,
+  maxZoom: 22,
   attribution: '© OpenStreetMap France | © OpenStreetMap contributors',
 }).addTo(map);
+
+// Mire fixe au centre de la carte. Affichée via la classe `add-mode` ou
+// `move-mode` sur <body> (forms.js / app.js gèrent ces classes). On
+// pane/zoome la carte sous la mire au lieu de glisser un marker sous
+// le doigt — le doigt n'occulte plus la cible.
+{
+  const ch = document.createElement('div');
+  ch.className = 'map-crosshair';
+  ch.setAttribute('aria-hidden', 'true');
+  ch.innerHTML = '<svg viewBox="-16 -16 32 32" width="40" height="40">' +
+    '<circle r="13" fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="1"/>' +
+    '<line x1="-12" y1="0" x2="-3" y2="0" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>' +
+    '<line x1="3" y1="0" x2="12" y2="0" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>' +
+    '<line x1="0" y1="-12" x2="0" y2="-3" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>' +
+    '<line x1="0" y1="3" x2="0" y2="12" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>' +
+    '<circle r="2" fill="#d63b3b" stroke="#fff" stroke-width="0.8"/></svg>';
+  map.getContainer().appendChild(ch);
+}
 
 // ─── DOM refs ───────────────────────────────────────────────────────────
 const panel = document.getElementById('panel');
@@ -719,9 +740,12 @@ function escapeAttr(str) {
 }
 
 // ─── Déplacement d'un lieu (admin) ──────────────────────────────────────
-// Active un mode "drag" sur un marker pour corriger ses coordonnées.
-// Bandeau d'info en haut de la carte, ESC pour annuler. À la fin du
-// drag, modale de confirmation avec les nouvelles coords avant POST.
+// Mode déplacement de marker (admin) — pattern mire au centre de la
+// carte + bouton Valider, comme la calibration cadastre. Le marker
+// d'origine reste affiché en fondu pour repère ; on pane/zoome la
+// carte sous la mire jusqu'à la nouvelle position, puis on valide.
+// Tant qu'on n'a pas validé, libre de re-paner et re-zoomer autant
+// qu'on veut — pas de drag-and-drop qui se valide à chaque relâché.
 
 let _moveBanner = null;
 let _moveOriginalLatLng = null;
@@ -734,11 +758,14 @@ function ensureMoveBanner() {
   _moveBanner.className = 'move-place-banner';
   _moveBanner.innerHTML = `
     <span class="move-banner-text"></span>
+    <button type="button" class="btn-primary" id="move-banner-validate">✓ Placer ici</button>
     <button type="button" class="btn-ghost" id="move-banner-cancel">Annuler (ESC)</button>
   `;
   document.body.appendChild(_moveBanner);
   _moveBanner.querySelector('#move-banner-cancel')
     .addEventListener('click', exitMovePlaceMode);
+  _moveBanner.querySelector('#move-banner-validate')
+    .addEventListener('click', _validateMove);
   return _moveBanner;
 }
 
@@ -754,14 +781,16 @@ function enterMovePlaceMode(placeId) {
   state.movePlaceId = placeId;
   _moveOriginalLatLng = marker.getLatLng();
 
-  marker.dragging.enable();
-  marker.setOpacity(0.85);
-  marker.on('dragend', _handleMarkerDragEnd);
+  // Centre la carte sur la position d'origine pour que la mire parte
+  // pile sur le marker ; zoom au moins à 18 pour la précision.
+  map.setView(_moveOriginalLatLng, Math.max(map.getZoom(), 18));
+  marker.setOpacity(0.4);
+  document.body.classList.add('move-mode');
 
   const banner = ensureMoveBanner();
   banner.querySelector('.move-banner-text').innerHTML =
-    `🔧 <strong>Mode déplacement</strong> : glisse le marker de ` +
-    `<em>${escapeHtml(place.primaryName)}</em> à sa position correcte.`;
+    `🔧 <strong>Déplacement de</strong> <em>${escapeHtml(place.primaryName)}</em> — ` +
+    `pane la carte pour amener la mire centrale sur la nouvelle position, puis tape ✓.`;
   banner.classList.add('active');
 
   _moveEscHandler = (e) => { if (e.key === 'Escape') exitMovePlaceMode(); };
@@ -771,14 +800,10 @@ function enterMovePlaceMode(placeId) {
 function exitMovePlaceMode() {
   if (!state.movePlaceId) return;
   const marker = state.markers.get(state.movePlaceId);
-  if (marker) {
-    marker.off('dragend', _handleMarkerDragEnd);
-    if (marker.dragging) marker.dragging.disable();
-    marker.setOpacity(1);
-    if (_moveOriginalLatLng) marker.setLatLng(_moveOriginalLatLng);
-  }
+  if (marker) marker.setOpacity(1);
   state.movePlaceId = null;
   _moveOriginalLatLng = null;
+  document.body.classList.remove('move-mode');
   if (_moveBanner) _moveBanner.classList.remove('active');
   if (_moveEscHandler) {
     window.removeEventListener('keydown', _moveEscHandler);
@@ -786,22 +811,17 @@ function exitMovePlaceMode() {
   }
 }
 
-async function _handleMarkerDragEnd(e) {
+async function _validateMove() {
   const placeId = state.movePlaceId;
   if (!placeId) return;
-  const marker = e.target;
-  const newPos = marker.getLatLng();
+  const newPos = map.getCenter();
   const place = state.places.get(placeId);
   const ok = confirm(
     `Déplacer « ${place ? place.primaryName : placeId} » ?\n\n` +
     `Avant : ${_moveOriginalLatLng.lat.toFixed(5)}, ${_moveOriginalLatLng.lng.toFixed(5)}\n` +
     `Après : ${newPos.lat.toFixed(5)}, ${newPos.lng.toFixed(5)}`,
   );
-  if (!ok) {
-    // Reposition le marker à l'endroit d'origine, on reste en mode drag
-    marker.setLatLng(_moveOriginalLatLng);
-    return;
-  }
+  if (!ok) return; // reste en mode déplacement, peut re-paner / re-zoomer
   try {
     const res = await fetch(`/api/admin/places/${encodeURIComponent(placeId)}/move`, {
       method: 'PATCH',
@@ -811,15 +831,11 @@ async function _handleMarkerDragEnd(e) {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || `${res.status}`);
-    // Persisté côté serveur — on quitte le mode et on recharge
-    _moveOriginalLatLng = newPos; // empêche exitMovePlaceMode de reposer le marker
     exitMovePlaceMode();
     await reload();
-    // Réouvre le panneau du lieu pour voir les coords mises à jour
     if (location.hash !== `#/lieu/${placeId}`) navigateTo('lieu', placeId);
   } catch (err) {
     alert('Erreur lors du déplacement : ' + err.message);
-    marker.setLatLng(_moveOriginalLatLng);
   }
 }
 

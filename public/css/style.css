@@ -1602,3 +1602,38 @@ select:focus-visible {
   from { transform: translateY(-100%); }
   to   { transform: translateY(0); }
 }
+.move-place-banner .btn-primary,
+.move-place-banner .btn-ghost {
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  .move-place-banner {
+    flex-wrap: wrap;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+  .move-place-banner .move-banner-text { flex: 1 0 100%; }
+  .move-place-banner .btn-primary,
+  .move-place-banner .btn-ghost { flex: 1 1 auto; }
+}
+
+/* ── Mire fixe au centre de la carte (touch-friendly) ────────
+   Affichée pendant l'ajout (.add-mode) ou le déplacement (.move-mode)
+   d'un lieu. On pane la carte sous la mire au lieu de glisser un
+   marker sous le doigt. JS injecte le SVG dans #map (cf. app.js). */
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  pointer-events: none;
+  z-index: 800;
+  display: none;
+}
+body.add-mode .map-crosshair,
+body.move-mode .map-crosshair {
+  display: block;
+}

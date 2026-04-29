@@ -77,6 +77,7 @@
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
+        <button type="button" class="tab-btn" data-tab="cadastre">🎯 Cadastre (avancé)</button>
         <button type="button" class="tab-btn" data-tab="help">Aide</button>
       </div>
 
@@ -233,6 +234,45 @@
             <button type="submit" class="btn-primary">Enregistrer</button>
           </div>
         </form>
+      </div>
+
+      <div id="cadastre" class="queue cadastre-tab" hidden>
+        <h2>🎯 Calibrer le décalage cadastre</h2>
+        <p>
+          Le cadastre IGN (parcellaire express) est légèrement décalé par
+          rapport à la photo aérienne dans les zones cévenoles : les relevés
+          d'origine sont anciens et n'ont jamais été re-géoréférencés au GPS.
+          Cet outil permet de mesurer le décalage moyen autour de
+          Saint-Roman-de-Codières.
+        </p>
+        <ol class="cadastre-steps">
+          <li>Pan/zoom la carte jusqu'à voir un coin de bâtiment net.</li>
+          <li>Place la <strong>mire centrale</strong> sur la <strong>vraie</strong>
+            position du coin (visible sur la photo aérienne) → bouton « Poser ».</li>
+          <li>Re-pan jusqu'à où le <strong>cadastre</strong> place le même coin
+            (limites de parcelle roses), pose le second point.</li>
+          <li>Le décalage s'affiche en mètres et en coordonnées.</li>
+        </ol>
+        <div class="cadastre-mapwrap">
+          <div id="cadastre-map"></div>
+          <svg class="cadastre-crosshair" viewBox="-16 -16 32 32" aria-hidden="true">
+            <circle r="13" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1"/>
+            <line x1="-12" y1="0" x2="-3" y2="0" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>
+            <line x1="3" y1="0" x2="12" y2="0" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>
+            <line x1="0" y1="-12" x2="0" y2="-3" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>
+            <line x1="0" y1="3" x2="0" y2="12" stroke="rgba(0,0,0,0.85)" stroke-width="1.6"/>
+            <line x1="-12" y1="0" x2="-3" y2="0" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+            <line x1="3" y1="0" x2="12" y2="0" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+            <line x1="0" y1="-12" x2="0" y2="-3" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+            <line x1="0" y1="3" x2="0" y2="12" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+            <circle r="2" fill="#d63b3b" stroke="#fff" stroke-width="0.8"/>
+          </svg>
+        </div>
+        <div class="cadastre-actions">
+          <button type="button" id="cadastre-pose" class="btn-primary">① Poser le point réalité (rouge)</button>
+          <button type="button" id="cadastre-reset" class="btn-ghost">Réinitialiser</button>
+        </div>
+        <pre id="cadastre-result" class="cadastre-result" hidden></pre>
       </div>
 
       <div id="help" class="queue admin-help" hidden>
@@ -434,6 +474,7 @@
 
   <script src="js/markdown.js"></script>
   <script src="js/admin.js"></script>
+  <script src="js/admin-cadastre.js"></script>
   <script src="js/dialog-swipe.js"></script>
   <script src="js/version.js"></script>
   <script src="js/site-config.js"></script>

@@ -34,6 +34,7 @@ const activitySection = document.getElementById('activity');
 const backupsSection  = document.getElementById('backups');
 const welcomeSection  = document.getElementById('welcome');
 const settingsSection = document.getElementById('settings');
+const cadastreSection = document.getElementById('cadastre');
 const helpSection     = document.getElementById('help');
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -49,6 +50,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (backupsSection) backupsSection.hidden = currentTab !== 'backups';
     if (welcomeSection) welcomeSection.hidden = currentTab !== 'welcome';
     if (settingsSection) settingsSection.hidden = currentTab !== 'settings';
+    if (cadastreSection) cadastreSection.hidden = currentTab !== 'cadastre';
     if (helpSection)    helpSection.hidden    = currentTab !== 'help';
     if (currentTab === 'queue')    renderQueue(lastQueue);
     if (currentTab === 'members')  refreshMembers();
@@ -57,6 +59,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (currentTab === 'backups')  refreshBackups();
     if (currentTab === 'welcome')  refreshWelcome();
     if (currentTab === 'settings') refreshSettings();
+    if (currentTab === 'cadastre' && window.cadastreCalibrationActivate) {
+      window.cadastreCalibrationActivate();
+    }
   });
 });
 
