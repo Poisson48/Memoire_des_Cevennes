@@ -307,11 +307,15 @@
             <li><a href="#help-connexion">1. Me connecter à l'espace admin</a></li>
             <li><a href="#help-file">2. Valider les contributions en attente</a></li>
             <li><a href="#help-membres">3. Approuver et gérer les membres</a></li>
-            <li><a href="#help-activite">4. Consulter le journal d'activité</a></li>
-            <li><a href="#help-backups">5. Sauvegardes, exports, imports</a></li>
-            <li><a href="#help-welcome">6. Personnaliser la page d'accueil</a></li>
-            <li><a href="#help-aussi-membre">7. Admin et membre à la fois</a></li>
-            <li><a href="#help-portee">8. Limites des permissions</a></li>
+            <li><a href="#help-resets">4. Inviter un membre, réinitialiser un mot de passe</a></li>
+            <li><a href="#help-aliases">5. Corriger ou enrichir les alias</a></li>
+            <li><a href="#help-settings">6. Régler le titre et la tagline du site</a></li>
+            <li><a href="#help-activite">7. Consulter le journal d'activité</a></li>
+            <li><a href="#help-backups">8. Sauvegardes, exports, imports</a></li>
+            <li><a href="#help-welcome">9. Personnaliser la page d'accueil</a></li>
+            <li><a href="#help-cadastre">10. Calibrer le décalage cadastre (avancé)</a></li>
+            <li><a href="#help-aussi-membre">11. Admin et membre à la fois</a></li>
+            <li><a href="#help-portee">12. Limites des permissions</a></li>
           </ul>
         </nav>
 
@@ -367,8 +371,19 @@
           <li>Approuver un compte <code>pending</code> pour qu'il puisse se connecter.</li>
           <li>Promouvoir un membre en <em>contributeur</em> (droit de créer du contenu) ou en <em>admin</em>.</li>
           <li>Suspendre / réactiver un compte.</li>
-          <li>Créer un compte directement (utile pour les anciens qui n'utilisent pas internet : tu fais l'inscription pour eux).</li>
+          <li>Créer un compte directement par invitation (utile pour les anciens qui n'utilisent pas internet : tu remplis nom + email + rôle, l'app génère une <strong>clé d'usage unique</strong> que tu lui transmets de la main à la main).</li>
         </ul>
+        <div class="step warn">
+          <strong>Aucun mot de passe n'est jamais affiché.</strong> Quand tu
+          crées un compte, l'admin (ou Claude) ne voit jamais le mot de passe
+          du membre. À la place, l'application génère une clé au format
+          <code>XXXX-XXXX-XXXX</code> (valable 7 jours, alphabet sans
+          0/O/1/I/L). Le titulaire la saisit sur <code>/reset.html</code>
+          pour choisir lui-même son mot de passe. La clé n'est affichée
+          qu'une seule fois — pense à la copier ; sinon elle reste
+          réaffichable depuis l'onglet « Mots de passe oubliés » tant que
+          l'invitation est <code>approved</code>.
+        </div>
         <div class="shot-pair">
           <figure class="shot">
             <img src="screenshots/11-admin-membres-pc.png" alt="Gestion des membres desktop" loading="lazy" />
@@ -380,7 +395,54 @@
           </figure>
         </div>
 
-        <h3 id="help-activite">4. Consulter le journal d'activité</h3>
+        <h3 id="help-resets">4. Inviter un membre, réinitialiser un mot de passe</h3>
+        <p>
+          L'onglet <strong>« Mots de passe oubliés »</strong> centralise deux
+          flux : les <em>invitations</em> que tu crées toi-même (cf. ci-dessus)
+          et les <em>demandes de réinitialisation</em> envoyées par les membres
+          depuis <code>/oubli.html</code>. Le mécanisme est identique : à
+          l'approbation, l'app génère une clé à transmettre au membre.
+        </p>
+        <ul>
+          <li><strong>En attente</strong> : demandes de réinit non encore traitées. Approuver génère la clé ; refuser permet de noter une raison (audit).</li>
+          <li><strong>Approuvées</strong> : invitations / demandes dont la clé est encore valide. Bouton « 🔑 Réafficher la clé » utile si l'admin a fermé la modale trop vite ou doit la redonner.</li>
+          <li><strong>Archive</strong> : demandes consommées, refusées, expirées (la clé n'est plus utilisable).</li>
+        </ul>
+        <div class="step tip">
+          <strong>Cas typique :</strong> un membre te dit qu'il ne se souvient
+          plus de son mot de passe. Plutôt que d'inventer une procédure
+          improvisée, dis-lui d'aller sur <code>/oubli.html</code> et de saisir
+          son email. Tu vois la demande arriver dans cet onglet, tu approuves,
+          tu lui transmets la clé qui apparaît. Il la saisit sur
+          <code>/reset.html</code> et choisit son nouveau mot de passe.
+        </div>
+
+        <h3 id="help-aliases">5. Corriger ou enrichir les alias</h3>
+        <p>
+          L'onglet <strong>« Alias »</strong> permet d'éditer directement
+          (hors file de modération) les <em>autres orthographes, surnoms,
+          formes familières</em> rattachés à un Lieu ou à une Personne. Très
+          utile après un import en vrac où certains noms ont été enregistrés
+          sous une seule forme alors que la communauté en utilise plusieurs
+          (« Mas de la Coste » / « Coste »).
+        </p>
+        <ul>
+          <li>Bascule <em>Personnes / Lieux</em> en haut, recherche par nom ou alias.</li>
+          <li>Sur chaque carte, ajoute un alias (➕), édite l'existant, supprime (✕). Bouton « Enregistrer » par carte.</li>
+          <li>Action immédiate (pas de file de modération), mais journalisée dans le journal d'activité.</li>
+        </ul>
+
+        <h3 id="help-settings">6. Régler le titre et la tagline du site</h3>
+        <p>
+          L'onglet <strong>« Réglages du site »</strong> permet d'éditer le
+          <em>titre</em> (qui apparaît dans la barre du haut, l'onglet du
+          navigateur, les pages /admin /aide etc.) et la <em>tagline</em>
+          (sous-titre italique). Pratique si l'association change de nom ou
+          décline le projet sur une autre vallée. Les valeurs sont
+          enregistrées au PUT et appliquées au prochain rechargement de page.
+        </p>
+
+        <h3 id="help-activite">7. Consulter le journal d'activité</h3>
         <p>
           L'onglet <strong>« Journal d'activité »</strong> trace toutes les
           actions admin et les changements d'état du contenu (création,
@@ -388,7 +450,7 @@
           de la page d'accueil). C'est ta source de vérité en cas de litige.
         </p>
 
-        <h3 id="help-backups">5. Sauvegardes, exports, imports</h3>
+        <h3 id="help-backups">8. Sauvegardes, exports, imports</h3>
         <p>
           L'onglet <strong>« Sauvegardes »</strong> permet de créer des
           archives complètes (données + médias), les télécharger pour les
@@ -415,17 +477,30 @@
           par défaut).
         </div>
 
-        <h3 id="help-welcome">6. Personnaliser la page d'accueil</h3>
+        <h3 id="help-welcome">9. Personnaliser la page d'accueil</h3>
         <p>
           L'onglet <strong>« Page d'accueil »</strong> permet d'éditer le texte
           markdown affiché dans le modal d'accueil à la première visite.
           Pratique pour adapter le mot d'accueil au village ou à l'événement
           en cours. Format markdown : <code>#</code> pour les titres,
           <code>**…**</code> pour le gras, <code>-</code> pour les listes,
-          <code>[texte](url)</code> pour les liens.
+          <code>[texte](url)</code> pour les liens. L'aperçu live à droite
+          de la zone d'édition montre le rendu final.
         </p>
 
-        <h3 id="help-aussi-membre">7. Admin et membre à la fois</h3>
+        <h3 id="help-cadastre">10. Calibrer le décalage cadastre (avancé)</h3>
+        <p>
+          L'onglet <strong>« 🎯 Cadastre »</strong> sert à mesurer le décalage
+          entre les tuiles cadastre IGN et la réalité OSM/aérienne sur la
+          zone — utile uniquement quand on remarque des bâtiments décalés
+          systématiquement de quelques mètres. La procédure : on pose un
+          point sur le cadastre (la position « erronée »), puis on pose un
+          point sur la photo aérienne (la position « réelle »). L'app
+          calcule l'offset à appliquer pour aligner les couches. À ne
+          toucher qu'en connaissance de cause.
+        </p>
+
+        <h3 id="help-aussi-membre">11. Admin et membre à la fois</h3>
         <p>
           Tu peux être <strong>connecté·e simultanément</strong> à l'espace
           admin <em>et</em> à l'espace membre — deux cookies distincts. C'est
@@ -443,7 +518,7 @@
           </figure>
         </div>
 
-        <h3 id="help-portee">8. Limites des permissions</h3>
+        <h3 id="help-portee">12. Limites des permissions</h3>
         <table class="role-table">
           <thead>
             <tr><th>Rôle</th><th>Peut</th></tr>
