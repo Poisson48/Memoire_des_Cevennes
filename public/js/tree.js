@@ -18,9 +18,79 @@
 (function() {
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const W = 150;  // largeur d'une carte
-  const H = 58;   // hauteur
+  const H = 72;   // hauteur (assez pour 2 lignes de nom + dates + meta)
   const GX = 18;  // écart horizontal entre cartes
   const GY = 72;  // écart vertical entre rangées
+  const NAME_PAD = 8; // marge intérieure horizontale réservée au texte
+
+  // Mesure réelle de la largeur (font Georgia 13px bold) — permet de
+  // décider si un nom déborde. Lazy : créé à la première mesure pour ne
+  // pas casser les tests headless qui n'ont pas de canvas.
+  let _measureFn = null;
+  function measureName(s) {
+    if (!_measureFn) {
+      try {
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = '600 13px Georgia, "Iowan Old Style", serif';
+        _measureFn = (t) => ctx.measureText(t).width;
+      } catch (_) {
+        // Fallback grossier : ~7.5px/char en Georgia 13px bold.
+        _measureFn = (t) => t.length * 7.5;
+      }
+    }
+    return _measureFn(s);
+  }
+
+  // Coupe un nom en 1 ou 2 lignes pour tenir dans `maxW` pixels.
+  // Stratégie :
+  //  - Si ça rentre tel quel → 1 ligne.
+  //  - Sinon, on cherche la coupure (sur un espace ou un trait d'union)
+  //    qui minimise la largeur de la ligne la plus longue.
+  //  - Si aucune coupure ne marche (mot unique trop long), on tronque
+  //    avec ellipsis.
+  //  - Si même en 2 lignes ça déborde, on tronque la 2ᵉ.
+  function wrapName(name, maxW) {
+    const s = String(name || '');
+    if (!s) return [''];
+    if (measureName(s) <= maxW) return [s];
+
+    // Points de coupure possibles : après un espace ou un trait d'union,
+    // mais on conserve le tiret avec la 1ʳᵉ ligne.
+    const points = [];
+    for (let i = 1; i < s.length; i++) {
+      if (s[i - 1] === ' ') points.push({ at: i, drop: 1 });
+      else if (s[i - 1] === '-' && s[i] !== ' ') points.push({ at: i, drop: 0 });
+    }
+    if (points.length === 0) {
+      // Mot unique trop long → ellipsis.
+      let t = s;
+      while (t.length > 1 && measureName(t + '…') > maxW) t = t.slice(0, -1);
+      return [t + '…'];
+    }
+    let best = null;
+    for (const p of points) {
+      const l1 = s.slice(0, p.drop ? p.at - 1 : p.at);
+      const l2 = s.slice(p.at);
+      const w1 = measureName(l1);
+      const w2 = measureName(l2);
+      if (w1 <= maxW && w2 <= maxW) {
+        const score = Math.max(w1, w2);
+        if (!best || score < best.score) best = { lines: [l1, l2], score };
+      }
+    }
+    if (best) return best.lines;
+    // Pas de coupe propre : prends la coupure la plus proche du milieu et
+    // tronque la 2ᵉ ligne.
+    const mid = s.length / 2;
+    const fallback = points.reduce(
+      (acc, p) => Math.abs(p.at - mid) < Math.abs(acc.at - mid) ? p : acc,
+      points[0],
+    );
+    const l1 = s.slice(0, fallback.drop ? fallback.at - 1 : fallback.at);
+    let l2 = s.slice(fallback.at);
+    while (l2.length > 1 && measureName(l2 + '…') > maxW) l2 = l2.slice(0, -1);
+    return [l1, l2 + '…'];
+  }
 
   function ns(tag, attrs = {}, text) {
     const el = document.createElementNS(SVG_NS, tag);
@@ -284,18 +354,28 @@
     });
     g.appendChild(rect);
 
+    const primary = node.person.primaryName || '';
+    const lines = wrapName(primary, W - 2 * NAME_PAD);
     const name = ns('text', {
-      x: W / 2, y: 22, 'text-anchor': 'middle',
+      x: W / 2, 'text-anchor': 'middle',
       class: 'card-name',
     });
-    const primary = node.person.primaryName;
-    name.textContent = primary.length > 22 ? primary.slice(0, 21) + '…' : primary;
+    // y de la 1ʳᵉ ligne : décalé vers le haut quand on a 2 lignes pour
+    // laisser respirer les dates en dessous.
+    const firstY = lines.length === 1 ? 24 : 18;
+    lines.forEach((line, i) => {
+      const tspan = ns('tspan', { x: W / 2, y: firstY + i * 14 });
+      tspan.textContent = line;
+      name.appendChild(tspan);
+    });
     g.appendChild(name);
 
+    // Position verticale des dates : juste en dessous du dernier tspan.
+    const datesY = firstY + (lines.length - 1) * 14 + 16;
     const sub = personDates(node.person);
     if (sub) {
       const dt = ns('text', {
-        x: W / 2, y: 40, 'text-anchor': 'middle',
+        x: W / 2, y: datesY, 'text-anchor': 'middle',
         class: 'card-dates',
       });
       dt.textContent = sub;
