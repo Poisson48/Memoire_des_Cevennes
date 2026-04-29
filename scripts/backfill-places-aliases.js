@@ -11,15 +11,28 @@ const PLACES_PATH = path.join(__dirname, '..', 'data', 'places.json');
 const ALIASES = {
   'saint-roman-de-codieres': [
     { name: 'Saint-Roman' },
-    { name: 'Sanctus Romanus de Codeyra' }, // forme latine
-    { name: 'Saint-Roman-de-Codeyra' },     // orthographe ancienne
-    { name: 'lieu de Saint-Roman-de-Codières' }, // périphrase administrative ancienne (ex. testament Capieu, 1588)
+    // Formes latines / médiévales
+    { name: 'Sanctus Romanus de Codeyra', context: 'forme latine médiévale' },
+    { name: 'Saint-Roman-de-Codeyra',     context: 'orthographe ancienne' },
+    { name: 'Codeyra',                    context: 'forme courte ancienne' },
+    // Région englobante au haut Moyen Âge — Saint-Roman en faisait partie
+    { name: 'Aristum',                    context: 'pays d\'Aristum, VIᵉ-VIIIᵉ siècle' },
+    { name: 'pays d\'Aristum',            context: 'haut Moyen Âge' },
+    { name: 'Hierle',                     context: 'pays d\'Hierle, diocèse de Nîmes' },
+    { name: 'pays d\'Hierle',             context: 'rattachement médiéval' },
+    // Désignations administratives d'Ancien Régime
+    { name: 'lieu de Saint-Roman-de-Codières', context: 'périphrase administrative (ex. testament Capieu, 1588)' },
+    { name: 'seigneurie de Saint-Roman',  context: 'Ancien Régime, 1620-1789' },
+    { name: 'terre de Saint-Roman',       context: 'féodal, Ancien Régime' },
+    { name: 'majorat de Saint-Roman',     context: 'érection en majorat, 1815' },
   ],
   'tour-de-saint-roman': [
     { name: 'Tour-château' },
     { name: 'Château de Saint-Roman' },
-    { name: 'Tour carrée' }, // appellation usitée pour la demeure XXᵉ
-    { name: 'Tour des Bermond' }, // dénomination médiévale
+    { name: 'Tour carrée',          context: 'appellation XXᵉ siècle' },
+    { name: 'Tour des Bermond',     context: 'dénomination médiévale, 900-1217' },
+    { name: 'Oppidum de Saint-Roman', context: 'place forte antique, 51 av. J.-C.' },
+    { name: 'place forte romaine',  context: 'antiquité' },
   ],
   'eglise-saint-roman': [
     { name: 'Église de Saint-Roman' },
