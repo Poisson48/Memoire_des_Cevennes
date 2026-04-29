@@ -1,0 +1,148 @@
+/* ── Responsive : tablette ─────────────────────────────────── */
+@media (max-width: 860px) {
+  .topbar { padding: 0.6rem 0.9rem; }
+  .topbar-titles h1 { font-size: 1.2rem; }
+  .tagline { font-size: 0.88rem; }
+}
+
+/* ── Responsive : mobile ───────────────────────────────────── */
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0.4rem 0.7rem;
+    gap: 0.3rem;
+  }
+  .topbar-titles h1 {
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+  /* Le sous-titre prend de la place précieuse sur petit écran. */
+  .tagline { display: none; }
+  .topbar-actions {
+    width: 100%;
+    justify-content: stretch;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .topbar-actions .btn-primary,
+  .topbar-actions .btn-ghost {
+    flex: 1 1 auto;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+  /* Salutation membre : masquée en mobile (le bouton Déconnexion suffit). */
+  #member-greeting { display: none !important; }
+  /* Astuce d'ajout en pleine largeur quand le mode addMode est actif. */
+  #add-hint { flex: 1 0 100%; font-size: 0.82rem; line-height: 1.2; }
+
+  .banner {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.3rem 0.35rem 0.6rem;
+  }
+  .banner code { font-size: 0.85em; }
+
+  /* Le panneau devient un bottom sheet. 72vh : assez haut pour que les
+     actions d'un récit (Compléter / Modifier) soient visibles sans
+     scroller, assez court pour qu'on voie encore une bonne part de la
+     carte en arrière-plan. */
+  .panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 72vh;
+    /* Cap à 100% de <main> : si le topbar wrap sur 3 lignes (cas
+       « non connecté » avec « Connexion membre » + Admin), main est
+       plus court que 72vh et le bouton Fermer en haut du panneau
+       serait rogné par overflow:hidden de main. */
+    max-height: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    padding: 1.1rem 1rem 3rem;
+  }
+  .panel[aria-hidden="false"] {
+    transform: translateY(0);
+  }
+  .panel::before {
+    /* petite barre de "drag" visuelle */
+    content: '';
+    display: block;
+    width: 42px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: -0.6rem auto 0.6rem;
+  }
+  /* Bouton Fermer bien visible sur mobile (le back Android n'est pas
+     toujours évident, surtout sur les surfaces plein écran). */
+  .panel-close {
+    top: 0.3rem;
+    right: 0.5rem;
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    padding: 0.35rem 0.75rem;
+    min-height: 44px;
+    font-weight: 600;
+  }
+  .panel-close:hover,
+  .panel-close:active {
+    background: var(--accent-dark);
+    color: #fff;
+    border-color: var(--accent-dark);
+  }
+  .panel-close-label { font-size: 0.95rem; }
+
+  /* Pousse un peu la carte vers le haut pour laisser la place au panneau */
+  body.panel-open #map {
+    filter: brightness(0.92);
+  }
+
+  /* L'attribution Leaflet en bas-droite passe sur deux lignes en mobile,
+     ce qui faisait chevaucher le bouton "Couches". On le remonte pour
+     dégager la barre d'attribution. */
+  .map-layers {
+    bottom: 28px;
+  }
+  /* Quand on consulte un contenu, on rend le bandeau invisible pour
+     rendre tout l'espace à la lecture. Il réapparaît à la fermeture. */
+  body.panel-open .banner {
+    display: none;
+  }
+
+  /* Dialogs : pleine largeur confortable sur mobile */
+  dialog {
+    width: calc(100% - 1rem);
+    padding: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  dialog .actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+  dialog .actions .btn-primary,
+  dialog .actions .btn-ghost {
+    width: 100%;
+  }
+
+  .banner { font-size: 0.82rem; padding: 0.5rem 0.8rem; }
+
+  /* Sur mobile, on laisse les boutons +/- de Leaflet à gauche et la barre
+     prend l'espace restant à droite (≈ 60 px de marge à gauche pour ne
+     pas chevaucher les contrôles). */
+  .map-search {
+    left: 60px;
+    right: 8px;
+    top: 8px;
+    max-width: none;
+  }
+  .map-search input { font-size: 0.92rem; padding: 0.45rem 2rem 0.45rem 2rem; }
+
+  .place-position { flex-direction: column; align-items: stretch; }
+  .place-position .btn-small { width: 100%; }
+}
+

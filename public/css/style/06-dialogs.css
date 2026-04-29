@@ -1,0 +1,177 @@
+/* ── Modals ────────────────────────────────────────────────── */
+dialog {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.2rem 1.4rem;
+  max-width: 520px;
+  width: calc(100% - 2rem);
+  background: var(--panel-bg);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+dialog h2 {
+  margin: 0 0 0.6rem;
+}
+
+dialog label {
+  display: block;
+  margin: 0.7rem 0;
+  font-size: 0.95rem;
+}
+
+dialog input[type=text],
+dialog input[type=file],
+dialog textarea,
+dialog select {
+  font: inherit;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  min-height: 44px;
+}
+
+dialog textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+dialog .coords {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+
+.place-position {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.place-position .coords { margin: 0; }
+.btn-small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.9rem;
+  min-height: 36px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-dark);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.btn-link:hover { color: var(--accent); }
+.btn-link:disabled { cursor: wait; opacity: 0.6; }
+
+/* ── Liste de fichiers à uploader avec légende ──────────────── */
+.media-captions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.4rem;
+}
+.media-caption-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem;
+}
+.media-thumb {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  overflow: hidden;
+}
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-cap-right {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.media-fname {
+  font-size: 0.82rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.media-caption-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+/* ── Popover de mentions inline @nom ─────────────────────────── */
+/* position:fixed pour fonctionner aussi quand l'input est dans un
+   <dialog> modal (top-layer du navigateur). Le JS insère le popover
+   dans la dialog active pour passer au-dessus du backdrop. */
+.mention-popover {
+  position: fixed;
+  z-index: 1500;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+.mention-item {
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.mention-item:last-child { border-bottom: none; }
+.mention-item:hover,
+.mention-item.active {
+  background: rgba(140, 90, 43, 0.10);
+}
+.mention-ctx {
+  color: var(--muted);
+  font-size: 0.85em;
+}
+.mention-create {
+  background: rgba(140, 90, 43, 0.04);
+  border-top: 1px solid var(--border);
+}
+.mention-create strong { font-weight: 600; }
+.mention-flash {
+  position: fixed;
+  z-index: 1600;
+  background: var(--accent-dark);
+  color: #fff;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  max-width: 320px;
+  box-shadow: var(--shadow);
+}
+

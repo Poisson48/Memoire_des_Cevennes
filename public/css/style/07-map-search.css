@@ -1,0 +1,94 @@
+/* ── Recherche d'adresse sur la carte ────────────────────────── */
+.map-search {
+  position: absolute;
+  top: 10px;
+  right: 56px;       /* laisse la place aux contrôles Leaflet (topright) */
+  left: 56px;        /* laisse la place aux contrôles Leaflet (topleft) */
+  max-width: 420px;
+  margin-left: auto;
+  z-index: 500;
+  font-family: inherit;
+}
+.map-search-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.map-search-row::before {
+  content: '🔍';
+  position: absolute;
+  left: 0.65rem;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+.map-search input {
+  flex: 1;
+  padding: 0.55rem 2.2rem 0.55rem 2.1rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--fg);
+  border-radius: 6px;
+  min-height: 40px;
+}
+.map-search input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.map-search-clear {
+  position: absolute;
+  right: 0.35rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+}
+.map-search-clear:hover { background: rgba(0, 0, 0, 0.05); color: var(--fg); }
+
+.map-search-results {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.map-search-results li {
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.92rem;
+}
+.map-search-results li:last-child { border-bottom: none; }
+.map-search-results li:hover,
+.map-search-results li:focus {
+  background: rgba(140, 90, 43, 0.08);
+}
+.map-search-results strong { font-weight: 600; }
+.map-search-ctx {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.map-search-empty,
+.map-search-error {
+  color: var(--muted);
+  font-style: italic;
+  cursor: default !important;
+}
+.map-search-error { color: #a04a30; }
+

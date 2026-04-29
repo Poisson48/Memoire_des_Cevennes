@@ -1,0 +1,156 @@
+:root {
+  --bg: #f4efe6;
+  --fg: #2b2a27;
+  --accent: #8c5a2b;
+  --accent-dark: #6a4420;
+  --muted: #6d6a63;
+  --panel-bg: #fbf7ef;
+  --border: #d9cfbd;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --banner-bg: #fff3dc;
+  --banner-fg: #6a4420;
+  --topbar-h: 84px;
+}
+
+* { box-sizing: border-box; }
+
+/* L'attribut `hidden` doit l'emporter sur display:flex/grid, sinon les
+   éléments masqués réapparaissent (MediaRecorder live/preview/error…). */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  padding: 0.75rem 1.2rem;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.topbar-titles h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.tagline {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.banner {
+  background: var(--banner-bg);
+  color: var(--banner-fg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.45rem 0.5rem 0.45rem 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.banner-text {
+  flex: 1;
+  text-align: center;
+}
+.banner code {
+  background: rgba(0,0,0,0.06);
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  font-size: 0.88em;
+}
+.banner-close {
+  background: transparent;
+  border: none;
+  color: var(--banner-fg);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 3px;
+}
+.banner-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary, .btn-ghost {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--accent);
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-dark); }
+
+.btn-primary.btn-locked {
+  background: #aa9a82;
+  border-color: #aa9a82;
+  cursor: help;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+}
+.btn-ghost:hover { background: rgba(140, 90, 43, 0.08); }
+
+.hint {
+  font-style: italic;
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+}
+
+main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* Layout vertical : la carte prend la place restante, le footer du site
+     se loge en dessous (au lieu de flotter par-dessus la carte avec un
+     fond semi-transparent qui rognait visuellement les contrôles
+     Leaflet et l'attribution OSM). */
+  display: flex;
+  flex-direction: column;
+}
+
+#map {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+

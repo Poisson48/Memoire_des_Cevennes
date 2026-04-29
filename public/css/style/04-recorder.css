@@ -1,0 +1,174 @@
+/* ── UI de compression ─────────────────────────────────────── */
+.compress-status {
+  margin: 0.7rem 0;
+  padding: 0.6rem 0.8rem;
+  background: rgba(140, 90, 43, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.compress-label {
+  font-size: 0.9rem;
+  color: var(--accent-dark);
+  margin-bottom: 0.35rem;
+}
+.compress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.compress-bar #compress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+/* ── Post-tagging des mentions ─────────────────────────────── */
+.tag-popover {
+  position: absolute;
+  z-index: 1500;
+}
+.tag-popover button {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow);
+}
+
+.tag-type-toggle {
+  display: flex;
+  gap: 1rem;
+  margin: 0.8rem 0 0.3rem;
+}
+.tag-type-toggle label {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.tag-type-toggle input {
+  width: auto;
+  min-height: auto;
+  margin: 0;
+}
+
+.tag-results {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+.tag-results li {
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.94rem;
+}
+.tag-results li:last-child { border-bottom: none; }
+.tag-results li:hover { background: rgba(140,90,43,0.08); }
+.tag-results li.selected { background: rgba(140,90,43,0.18); }
+.tag-results .alias-hint {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+.tag-result-empty {
+  color: var(--muted);
+  font-style: italic;
+  padding: 0.55rem 0.7rem;
+  cursor: default !important;
+  background: transparent !important;
+}
+
+.tag-chosen {
+  margin: 0.35rem 0 0;
+  padding: 0.4rem 0.7rem;
+  background: rgba(80,150,80,0.1);
+  border-left: 3px solid #4a7a4a;
+  color: #2a5a2a;
+  border-radius: 0 3px 3px 0;
+  font-size: 0.9rem;
+}
+
+/* Rend les zones de texte des récits sélectionnables de manière évidente */
+.story .body {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ── Enregistreur audio in-browser ─────────────────────────── */
+.recorder {
+  margin: 0.8rem 0 0.3rem;
+  padding: 0.8rem 0.9rem;
+  background: rgba(140, 90, 43, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.recorder-label {
+  font-weight: 600;
+  color: var(--accent-dark);
+  margin-bottom: 0.55rem;
+}
+.recorder-body > * + * { margin-top: 0.5rem; }
+.rec-live {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.rec-dot {
+  width: 14px;
+  height: 14px;
+  background: #cc3333;
+  border-radius: 50%;
+  animation: pulse 1s infinite alternate;
+}
+@keyframes pulse {
+  from { transform: scale(0.85); opacity: 0.7; }
+  to   { transform: scale(1.1);  opacity: 1;   }
+}
+.rec-timer {
+  font-family: Consolas, Menlo, monospace;
+  font-size: 1rem;
+  color: var(--fg);
+  flex: 1;
+}
+.rec-preview audio {
+  width: 100%;
+}
+.rec-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+}
+.rec-ready {
+  color: #4a7a4a;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.rec-error {
+  color: #a14040;
+  background: rgba(161, 64, 64, 0.08);
+  border: 1px solid rgba(161, 64, 64, 0.3);
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.88rem;
+}
+.recorder-or {
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0.6rem 0 -0.3rem;
+  font-size: 0.88rem;
+}
+
