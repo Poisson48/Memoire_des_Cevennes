@@ -1233,12 +1233,31 @@ dialog .coords {
   padding-top: 0.5rem;
   font-weight: 500;
 }
-.map-layers-opacity {
+.map-layers-overlay-select {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   border-top: 1px dashed var(--border);
   padding-top: 0.5rem;
+  font-size: 0.9rem;
+}
+.map-layers-overlay-select > span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.map-layers-overlay-select select {
+  font: inherit;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  min-height: 32px;
+}
+.map-layers-opacity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.4rem;
 }
 .map-layers-opacity label {
   font-size: 0.82rem;

@@ -8,10 +8,13 @@
 // Couches :
 //   - OSM France (défaut, défini par app.js)
 //   - IGN moderne, photos aériennes actuelles
-//   - Photos aériennes 1950-1965 (cadastre napoléonien à venir, voir phase 2)
+//   - Photos aériennes 1950-1965
 //   - Carte d'État-Major (1820-1866)
 //   - Carte de Cassini (~1750)
 //   - Overlay : cadastre actuel (parcelles)
+//
+// Comparaison passé/présent : un fond + une « couche au-dessus » +
+// un slider qui module l'opacité du dessus pour fondre les deux.
 
 (function () {
   if (typeof map === 'undefined' || !map) return;
@@ -73,14 +76,23 @@
 
   let activeBaseKey = 'osm';
   let cadastreOn = false;
+  let overlayKey = null; // null si pas de couche de comparaison
+
+  function bringOverlaysToFront() {
+    if (overlayKey && BASES[overlayKey]) BASES[overlayKey].layer.bringToFront();
+    if (cadastreOn) cadastreLayer.bringToFront();
+  }
 
   function setBase(key) {
     if (!BASES[key] || activeBaseKey === key) return;
+    // Si l'overlay actuel est la nouvelle base, on retire l'overlay
+    // (impossible d'avoir la même couche en base ET au-dessus).
+    if (overlayKey === key) setOverlay(null);
     map.removeLayer(BASES[activeBaseKey].layer);
     BASES[key].layer.addTo(map);
-    BASES[key].layer.setOpacity(opacitySlider.value / 100);
-    if (cadastreOn) cadastreLayer.bringToFront();
+    BASES[key].layer.setOpacity(1);
     activeBaseKey = key;
+    bringOverlaysToFront();
 
     panel.querySelectorAll('input[name="mdc-base"]').forEach((r) => {
       r.checked = (r.value === key);
@@ -88,14 +100,44 @@
     panel.querySelectorAll('.map-layers-timeline button').forEach((b) => {
       b.classList.toggle('active', b.dataset.base === key);
     });
-    // L'opacité est sans intérêt sur OSM (qui devient blanc) — on grise.
-    opacityRow.classList.toggle('disabled', key === 'osm');
+    syncOverlaySelect();
+  }
+
+  function setOverlay(key) {
+    // Retire l'ancien overlay s'il existe
+    if (overlayKey && BASES[overlayKey]) {
+      map.removeLayer(BASES[overlayKey].layer);
+      BASES[overlayKey].layer.setOpacity(1);
+    }
+    if (key && key !== activeBaseKey && BASES[key]) {
+      overlayKey = key;
+      const layer = BASES[key].layer;
+      layer.addTo(map);
+      layer.setOpacity(opacitySlider.value / 100);
+      bringOverlaysToFront();
+    } else {
+      overlayKey = null;
+    }
+    opacityRow.classList.toggle('disabled', !overlayKey);
+    if (overlaySelect) overlaySelect.value = overlayKey || 'none';
   }
 
   function setCadastre(on) {
     cadastreOn = on;
-    if (on) cadastreLayer.addTo(map).bringToFront();
+    if (on) cadastreLayer.addTo(map);
     else map.removeLayer(cadastreLayer);
+    bringOverlaysToFront();
+  }
+
+  function syncOverlaySelect() {
+    if (!overlaySelect) return;
+    Array.from(overlaySelect.options).forEach((opt) => {
+      if (opt.value === 'none') return;
+      // On masque la base active dans la liste pour éviter de la
+      // proposer comme couche au-dessus d'elle-même.
+      opt.hidden = (opt.value === activeBaseKey);
+    });
+    if (overlayKey === activeBaseKey) overlaySelect.value = 'none';
   }
 
   // ─── UI ──────────────────────────────────────────────────────────────
@@ -116,14 +158,23 @@
           </label>
         `).join('')}
       </fieldset>
+      <label class="map-layers-overlay-select">
+        <span>Comparer avec (au-dessus)</span>
+        <select id="mdc-overlay">
+          <option value="none">— Aucune —</option>
+          ${Object.entries(BASES).map(([k, b]) => `
+            <option value="${k}">${b.label}</option>
+          `).join('')}
+        </select>
+      </label>
+      <div class="map-layers-opacity disabled" id="map-layers-opacity">
+        <label for="mdc-opacity">Opacité de la couche au-dessus</label>
+        <input type="range" id="mdc-opacity" min="0" max="100" value="60" step="5" />
+      </div>
       <label class="map-layers-overlay">
         <input type="checkbox" id="mdc-cadastre" />
         <span>Cadastre actuel (parcelles)</span>
       </label>
-      <div class="map-layers-opacity disabled" id="map-layers-opacity">
-        <label for="mdc-opacity">Opacité du fond</label>
-        <input type="range" id="mdc-opacity" min="20" max="100" value="100" step="5" />
-      </div>
       <div class="map-layers-timeline" role="group" aria-label="Voyager dans le temps">
         <button type="button" data-base="cassini">~1750</button>
         <button type="button" data-base="etatmajor">1830</button>
@@ -145,6 +196,9 @@
   const body = panel.querySelector('.map-layers-body');
   const opacitySlider = panel.querySelector('#mdc-opacity');
   const opacityRow = panel.querySelector('#map-layers-opacity');
+  const overlaySelect = panel.querySelector('#mdc-overlay');
+
+  syncOverlaySelect();
 
   toggle.addEventListener('click', () => {
     const willOpen = body.hasAttribute('hidden');
@@ -159,8 +213,13 @@
   panel.querySelector('#mdc-cadastre').addEventListener('change', (e) => {
     setCadastre(e.target.checked);
   });
+  overlaySelect.addEventListener('change', () => {
+    setOverlay(overlaySelect.value === 'none' ? null : overlaySelect.value);
+  });
   opacitySlider.addEventListener('input', () => {
-    BASES[activeBaseKey].layer.setOpacity(opacitySlider.value / 100);
+    if (overlayKey && BASES[overlayKey]) {
+      BASES[overlayKey].layer.setOpacity(opacitySlider.value / 100);
+    }
   });
   panel.querySelectorAll('.map-layers-timeline button').forEach((b) => {
     b.addEventListener('click', () => setBase(b.dataset.base));

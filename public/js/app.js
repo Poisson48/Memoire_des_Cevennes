@@ -37,7 +37,11 @@ function hasRole(minRole) {
 }
 
 // ─── Carte ──────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+// maxZoom à 19 explicitement : sans ça, Leaflet le déduit des couches
+// actives et le cadastre (maxZoom 20) le faisait monter à 20 — niveau
+// auquel OSM et toutes les autres couches n'ont plus de tuiles → la
+// carte virait au gris dès qu'on zoomait à fond avec le cadastre actif.
+const map = L.map('map', { zoomControl: true, maxZoom: 19 }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 // Fond par défaut. Exposé pour que map-layers.js puisse le piloter via le
 // sélecteur de couches (cadastre, cartes anciennes, photos aériennes IGN).
 const defaultBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
