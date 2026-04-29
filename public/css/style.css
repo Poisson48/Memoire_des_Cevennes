@@ -1338,7 +1338,11 @@ dialog .actions {
     left: 0;
     width: 100%;
     height: 72vh;
-    max-height: 85vh;
+    /* Cap à 100% de <main> : si le topbar wrap sur 3 lignes (cas
+       « non connecté » avec « Connexion membre » + Admin), main est
+       plus court que 72vh et le bouton Fermer en haut du panneau
+       serait rogné par overflow:hidden de main. */
+    max-height: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
@@ -1426,6 +1430,34 @@ dialog .actions {
 
   .place-position { flex-direction: column; align-items: stretch; }
   .place-position .btn-small { width: 100%; }
+}
+
+/* ── Swipe-to-dismiss sur les dialogs (écrans tactiles) ─────
+   Une petite poignée en haut indique qu'on peut tirer le dialog
+   vers le bas pour le fermer. La logique JS vit dans
+   public/js/dialog-swipe.js. */
+@media (pointer: coarse) {
+  dialog {
+    transition: transform 0.22s ease, opacity 0.22s ease;
+    will-change: transform;
+  }
+  dialog::before {
+    content: '';
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 0.6rem;
+    background: rgba(0, 0, 0, 0.22);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  /* welcome-dialog a padding:0 — donner un peu d'air autour de la poignée */
+  .welcome-dialog { padding-top: 0.6rem; }
+  /* Pendant le drag actif, pas de transition pour suivre le doigt 1:1 */
+  dialog.is-swiping,
+  .panel.is-swiping {
+    transition: none;
+  }
 }
 
 /* ── Accessibilité : focus visible ─────────────────────────── */
