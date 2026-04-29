@@ -240,11 +240,32 @@
 
   syncOverlaySelect();
 
+  function closePanel() {
+    if (body.hasAttribute('hidden')) return;
+    body.setAttribute('hidden', '');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  function openPanel() {
+    if (!body.hasAttribute('hidden')) return;
+    body.removeAttribute('hidden');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
   toggle.addEventListener('click', () => {
-    const willOpen = body.hasAttribute('hidden');
-    if (willOpen) body.removeAttribute('hidden');
-    else body.setAttribute('hidden', '');
-    toggle.setAttribute('aria-expanded', String(willOpen));
+    if (body.hasAttribute('hidden')) openPanel();
+    else closePanel();
+  });
+
+  // Tap n'importe où ailleurs (carte, sidebar, header) → fermeture.
+  // pointerdown couvre clic souris + tap tactile et se déclenche avant
+  // click, ce qui évite le flash d'ouverture/fermeture sur mobile.
+  // disableClickPropagation au-dessus empêche les taps DANS le panneau
+  // d'atteindre Leaflet, mais pointerdown remonte quand même au document
+  // — d'où le contains() pour ne pas se fermer en cliquant un radio.
+  document.addEventListener('pointerdown', (e) => {
+    if (body.hasAttribute('hidden')) return;
+    if (panel.contains(e.target)) return;
+    closePanel();
   });
 
   panel.querySelectorAll('input[name="mdc-base"]').forEach((r) => {
