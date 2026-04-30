@@ -5,6 +5,43 @@
   .tagline { font-size: 0.88rem; }
 }
 
+/* ── Panneau bottom-sheet : tablette portrait + mobile ─────── */
+/* Sous 768 px (tablette portrait incluse), le panneau latéral est trop
+   imposant — il mange plus de la moitié de la largeur. On bascule en
+   bottom-sheet, comme sur mobile. Les règles spécifiques mobile (topbar,
+   dialog) restent dans le bloc max-width:600px plus bas. */
+@media (max-width: 768px) {
+  .panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 72vh;
+    max-height: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    padding: 1.1rem 1rem 3rem;
+  }
+  .panel[aria-hidden="false"] {
+    transform: translateY(0);
+  }
+  .panel::before {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: -0.6rem auto 0.6rem;
+  }
+  body.panel-open #map {
+    filter: brightness(0.92);
+  }
+}
+
 /* ── Responsive : mobile ───────────────────────────────────── */
 @media (max-width: 600px) {
   .topbar {

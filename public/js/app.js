@@ -236,9 +236,9 @@ function applyMode() {
   }
 
   // Bouton « + Ajouter un lieu » : visible uniquement pour contributor / admin.
-  // Quand la personne n'a pas le rôle (anonyme ou simple member), on
-  // remplace le bouton par un lien explicite vers /login.html, plutôt
-  // que de juste le masquer (mauvaise UX, on ne sait pas pourquoi).
+  // En anonyme on le masque (le bouton « Connexion membre » fait déjà le job
+  // sans surcharger la topbar). En membre simple non habilité, on garde un
+  // bouton verrouillé qui explique au clic.
   if (addBtn) {
     const canAdd = state.mode === 'live' && hasRole('contributor');
     if (canAdd) {
@@ -248,24 +248,18 @@ function applyMode() {
       addBtn.disabled = false;
       addBtn.title = '';
       addBtn.onclick = null;       // libère pour le handler addEventListener de forms.js
-    } else if (state.mode === 'static') {
+    } else if (state.mode === 'static' || !state.member) {
       addBtn.hidden = true;
+      addBtn.onclick = null;
     } else {
       addBtn.hidden = false;
-      const isLogged = !!state.member;
-      addBtn.textContent = isLogged
-        ? '🔒 Compte non habilité'
-        : '🔒 Connecte-toi pour contribuer';
+      addBtn.textContent = '🔒 Compte non habilité';
       addBtn.classList.add('btn-locked');
       addBtn.disabled = false;
-      addBtn.title = isLogged
-        ? 'Ton compte est en cours de validation par un admin.'
-        : 'Tu dois être connecté avec un compte contributeur pour ajouter un lieu.';
-      // Au clic, redirection /login.html si pas connecté.
+      addBtn.title = 'Ton compte est en cours de validation par un admin.';
       addBtn.onclick = (e) => {
         e.preventDefault();
-        if (!state.member) location.href = 'login.html';
-        else alert(addBtn.title);
+        alert(addBtn.title);
       };
     }
   }
@@ -385,6 +379,15 @@ function openPanel(html) {
   panelContent.querySelectorAll('.btn-move-place').forEach(btn => {
     btn.addEventListener('click', () => enterMovePlaceMode(btn.dataset.placeId));
   });
+  panelContent.querySelectorAll('.btn-share').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.shareUrl;
+      const label = btn.dataset.shareLabel || 'cette page';
+      if (typeof window.openShare === 'function') {
+        window.openShare({ url, label });
+      }
+    });
+  });
 }
 
 function closePanel() {
@@ -417,6 +420,7 @@ function openPlacePanel(placeId) {
     <div class="entity-actions">
       ${canContribute ? `<button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>` : ''}
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
+      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/lieu/${place.id}`)}" data-share-label="${escapeAttr(place.primaryName)}">📤 Partager</button>
       ${canMove ? `<button class="btn-ghost btn-move-place" type="button" data-place-id="${escapeAttr(place.id)}">🔧 Déplacer ce lieu</button>` : ''}
     </div>`;
 
@@ -487,6 +491,7 @@ function openPersonPanel(personId) {
   const actions = `
     <div class="entity-actions">
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
+      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/personne/${person.id}`)}" data-share-label="${escapeAttr(person.primaryName)}">📤 Partager</button>
     </div>`;
 
   openPanel(`
@@ -635,10 +640,12 @@ function renderStoryCard(s, { full = false } = {}) {
   // Actions compactes placées juste après l'entête, pour qu'elles soient
   // visibles sans scroller — surtout sur mobile où le panel est un bottom
   // sheet court et où le corps du récit peut être long.
+  const shareLabel = s.title ? s.title.replace(/<[^>]+>/g, '') : 'ce récit';
   const actions = `
     <div class="story-actions">
       <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}" title="Ajouter un souvenir ou une précision à cette histoire">➕ Compléter</button>
       <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}" title="Proposer une correction du texte">✏️ Modifier</button>
+      <button type="button" class="btn-ghost btn-share" data-share-url="${escapeAttr(`${location.origin}/#/recit/${s.id}`)}" data-share-label="${escapeAttr(shareLabel)}" title="Partager ce récit">📤 Partager</button>
     </div>
   `;
 

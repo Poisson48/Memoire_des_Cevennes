@@ -111,21 +111,30 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       background: white;
     }
+    .shot picture {
+      display: inline-block;
+      max-width: 100%;
+    }
     .shot figcaption {
       font-size: 0.85rem;
       color: var(--muted);
       margin-top: 0.4rem;
       font-style: italic;
     }
-    .shot-pair {
+    /* Sur mobile / tablette portrait, la capture mobile (verticale) prend
+       trop de hauteur si on la laisse en taille naturelle. On la borne. */
+    @media (max-width: 768px) {
+      .shot img { max-height: 70vh; width: auto; }
+    }
+    /* Deux figures côte à côte (étapes du tagging post-coup). */
+    .shot-row {
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
       align-items: flex-start;
       justify-content: center;
     }
-    .shot-pair figure { flex: 1 1 280px; margin: 0; }
-    .shot-pair .shot-mobile img { max-height: 480px; width: auto; }
+    .shot-row figure { flex: 1 1 280px; margin: 0; }
 
     /* ─── Tableau de rôles ──────────────────────────────────────── */
     .tuto-main .role-table {
@@ -238,16 +247,14 @@
         carte centrée sur Saint-Roman-de-Codières. Chaque pin est un lieu
         contenant un ou plusieurs récits.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
-          <img src="screenshots/01-home-anonyme-pc.png" alt="Carte vue desktop, anonyme" />
-          <figcaption>Carte d'accueil, en mode visiteur, sur ordinateur.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/01-home-anonyme-mobile.png" alt="Carte vue mobile, anonyme" />
-          <figcaption>Même vue, sur téléphone.</figcaption>
-        </figure>
-      </div>
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/01-home-anonyme-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/01-home-anonyme-tab.png" />
+          <img src="screenshots/01-home-anonyme-pc.png" alt="Carte d'accueil en mode visiteur" />
+        </picture>
+        <figcaption>Carte d'accueil, en mode visiteur.</figcaption>
+      </figure>
       <div class="step">
         <strong>Cherche un lieu :</strong> tape un nom de village ou d'adresse
         dans la barre de recherche. Suggestions OpenStreetMap.
@@ -263,16 +270,14 @@
         un panneau qui te laisse changer de fond et superposer le cadastre.
         Pratique quand tu cherches une ruine ou une maison disparue.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/15-couches-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/15-couches-tab.png" />
           <img src="screenshots/15-couches-pc.png" alt="Panneau Couches ouvert sur la carte d'État-Major" />
-          <figcaption>Le panneau Couches sur la carte d'État-Major (1820-66).</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/15-couches-mobile.png" alt="Panneau Couches ouvert sur mobile" />
-          <figcaption>Même chose sur téléphone.</figcaption>
-        </figure>
-      </div>
+        </picture>
+        <figcaption>Le panneau Couches sur la carte d'État-Major (1820-66).</figcaption>
+      </figure>
       <div class="step">
         <strong>Cartes disponibles :</strong>
         <ul style="margin:0.4rem 0 0 1rem;">
@@ -307,16 +312,14 @@
         Clique un marqueur sur la carte : un panneau latéral s'ouvre avec le
         nom, la description, et les récits attachés au lieu.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
-          <img src="screenshots/05-panneau-lieu-pc.png" alt="Panneau d'un lieu, anonyme" />
-          <figcaption>Panneau d'un lieu, vu en mode visiteur.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/05-panneau-lieu-mobile.png" alt="Panneau d'un lieu sur mobile" />
-          <figcaption>Sur mobile, le panneau prend l'écran.</figcaption>
-        </figure>
-      </div>
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/05-panneau-lieu-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/05-panneau-lieu-tab.png" />
+          <img src="screenshots/05-panneau-lieu-pc.png" alt="Panneau d'un lieu en mode visiteur" />
+        </picture>
+        <figcaption>Panneau d'un lieu, vu en mode visiteur.</figcaption>
+      </figure>
       <div class="step warn">
         Les fiches de personnes vivantes ne sont <strong>jamais</strong>
         visibles sans être connecté·e — c'est volontaire pour respecter la vie
@@ -329,16 +332,14 @@
         contribuer, clique sur <strong>Connexion membre</strong> en haut, puis
         <em>« Pas encore de compte ? S'inscrire »</em>.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
-          <img src="screenshots/02-login-membre-pc.png" alt="Page de connexion membre" />
-          <figcaption>La page de connexion / inscription membre.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/02-login-membre-mobile.png" alt="Page de connexion membre, mobile" />
-          <figcaption>Idem sur téléphone.</figcaption>
-        </figure>
-      </div>
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/02-login-membre-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/02-login-membre-tab.png" />
+          <img src="screenshots/02-login-membre-pc.png" alt="Page de connexion / inscription membre" />
+        </picture>
+        <figcaption>La page de connexion / inscription membre.</figcaption>
+      </figure>
       <div class="step">
         Ton compte est créé en statut <code>pending</code> — un administrateur
         l'approuve (en général sous 24 h).
@@ -356,16 +357,14 @@
         <a href="signaler.html">page de signalement</a>. L'association traite
         les demandes sous 72 h ouvrées.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/06-signaler-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/06-signaler-tab.png" />
           <img src="screenshots/06-signaler-pc.png" alt="Formulaire de signalement" />
-          <figcaption>Le formulaire de signalement.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/06-signaler-mobile.png" alt="Formulaire de signalement mobile" />
-          <figcaption>Version mobile.</figcaption>
-        </figure>
-      </div>
+        </picture>
+        <figcaption>Le formulaire de signalement.</figcaption>
+      </figure>
     </section>
 
     <!-- ─────────────────────────────────────────────────────────
@@ -440,16 +439,14 @@
         </li>
       </ol>
 
-      <div class="shot-pair">
-        <figure class="shot">
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/15-reset-cle-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/15-reset-cle-tab.png" />
           <img src="screenshots/15-reset-cle-pc.png" alt="Page d'activation : saisie de la clé d'accès et choix du mot de passe" />
-          <figcaption>La page d'activation, avec une clé exemple <code>ABCD-EFGH-JKMN</code> et un mot de passe choisi.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/15-reset-cle-mobile.png" alt="Page d'activation, version mobile" />
-          <figcaption>Même formulaire sur mobile.</figcaption>
-        </figure>
-      </div>
+        </picture>
+        <figcaption>La page d'activation, avec une clé exemple <code>ABCD-EFGH-JKMN</code> et un mot de passe choisi.</figcaption>
+      </figure>
 
       <div class="step">
         ⏰ <strong>La clé expire au bout de 7 jours.</strong> Si tu attends
@@ -471,16 +468,13 @@
         « lecture seule » disparaît, et tu vois les marqueurs et fiches
         réservés aux membres.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/04-home-membre-connecte-mobile.png" />
           <img src="screenshots/04-home-membre-connecte-pc.png" alt="Accueil en tant que membre connecté" />
-          <figcaption>L'accueil, vue d'un membre connecté.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/04-home-membre-connecte-mobile.png" alt="Accueil membre connecté, mobile" />
-          <figcaption>Même vue, sur mobile.</figcaption>
-        </figure>
-      </div>
+        </picture>
+        <figcaption>L'accueil, vue d'un membre connecté.</figcaption>
+      </figure>
 
       <h3 id="member-ajouter-lieu">3. Ajouter un lieu <span style="color:var(--muted);font-weight:normal;font-size:0.9em;">(rôle contributeur requis)</span></h3>
       <ol>
@@ -520,22 +514,19 @@
         des premières lettres d'un nom de personne ou de lieu. Une liste de
         suggestions s'affiche, navigue avec ↑↓ et valide avec ⏎.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
-          <img src="screenshots/07-mentions-pc.png" alt="Suggestions de mentions" />
-          <figcaption>Suggestions de mentions à la frappe.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/07-mentions-mobile.png" alt="Mentions sur mobile" />
-          <figcaption>Sur mobile.</figcaption>
-        </figure>
-      </div>
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/07-mentions-mobile.png" />
+          <img src="screenshots/07-mentions-pc.png" alt="Suggestions de mentions à la frappe" />
+        </picture>
+        <figcaption>Suggestions de mentions à la frappe.</figcaption>
+      </figure>
       <p>
         Tu peux aussi <strong>tagger après coup</strong> : sélectionne un mot
         dans un récit déjà publié, un popover propose de le lier à une fiche
         existante (ou d'en créer une nouvelle).
       </p>
-      <div class="shot-pair">
+      <div class="shot-row">
         <figure class="shot">
           <img src="screenshots/11-tagger-popover.png" alt="Popover de tagging post-coup" />
           <figcaption>Popover qui apparaît quand tu sélectionnes un mot.</figcaption>
@@ -584,16 +575,14 @@
         <a href="legal/confidentialite.html">politique de confidentialité</a>.
         Délai de réponse : 30 jours maximum.
       </p>
-      <div class="shot-pair">
-        <figure class="shot">
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 768px)" srcset="screenshots/08-confidentialite-mobile.png" />
+          <source media="(max-width: 1100px)" srcset="screenshots/08-confidentialite-tab.png" />
           <img src="screenshots/08-confidentialite-pc.png" alt="Politique de confidentialité" />
-          <figcaption>La politique de confidentialité.</figcaption>
-        </figure>
-        <figure class="shot shot-mobile">
-          <img src="screenshots/08-confidentialite-mobile.png" alt="Politique de confidentialité, mobile" />
-          <figcaption>Version mobile.</figcaption>
-        </figure>
-      </div>
+        </picture>
+        <figcaption>La politique de confidentialité.</figcaption>
+      </figure>
       <div class="step">
         Si tu quittes l'association, tu peux demander la suppression de ton
         compte et l'anonymisation de tes contributions.

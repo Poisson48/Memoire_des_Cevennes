@@ -33,24 +33,26 @@ async function runDesktop(browser) {
   page.on('pageerror', err => console.log('  [pageerror]', err.message));
 
   console.log('— Desktop —');
+  // Pré-désactive le welcome dialog (il intercepte tous les clics).
+  await page.goto(BASE);
+  await page.evaluate(() => { try { localStorage.setItem('mdc-welcome-dismissed', '1'); } catch {} });
   await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('dialog[open]').forEach(d => d.close('cancel'));
+  });
   await settleMap(page);
   await shot(page, '01-map-desktop');
 
-  // 1. Cliquer le marqueur Mas de la Coste (2e marqueur attendu)
-  const markers = await page.$$('.leaflet-marker-icon');
-  // Tente de repérer par tooltip / title attribute
-  let masMarker = null;
-  for (const m of markers) {
-    const title = await m.getAttribute('title');
-    if (title && title.toLowerCase().includes('coste')) { masMarker = m; break; }
-  }
-  if (!masMarker && markers.length >= 2) masMarker = markers[1];
-  if (masMarker) {
-    await masMarker.click();
-    await page.waitForTimeout(600);
-    await shot(page, '02-place-panel-desktop');
-  }
+  // 1. Panneau d'un lieu : on passe par le hash plutôt que par un clic
+  // marker (les markers se chevauchent à certains zooms, le clic
+  // intercepterait le mauvais).
+  await page.goto(`${BASE}/#/lieu/saint-roman-de-codieres`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('dialog[open]').forEach(d => d.close('cancel'));
+  });
+  try { await page.waitForSelector('.panel[aria-hidden="false"]', { timeout: 5000 }); } catch {}
+  await page.waitForTimeout(600);
+  await shot(page, '02-place-panel-desktop');
 
   // 2. Naviguer directement sur la fiche Suzanne (la plus riche de nos
   //    exemples : alias, parents, grands-parents dérivés, enfants…)
@@ -117,10 +119,14 @@ async function runDesktop(browser) {
   // Clique le bouton du popover → ouvre la dialog
   const tagBtnEl = await page.$('#tag-btn:not([disabled])');
   if (tagBtnEl) {
-    await tagBtnEl.click();
-    await page.waitForTimeout(600);
-    await shot(page, '12-tagger-dialog');
-    await page.evaluate(() => document.getElementById('dlg-tag').close('cancel'));
+    try {
+      await tagBtnEl.click({ force: true, timeout: 5000 });
+      await page.waitForTimeout(600);
+      await shot(page, '12-tagger-dialog');
+      await page.evaluate(() => document.getElementById('dlg-tag')?.close('cancel'));
+    } catch (e) {
+      console.log('  [tagger-dialog] skip (popover non visible) :', e.message.split('\n')[0]);
+    }
   }
 
   await ctx.close();
@@ -136,23 +142,23 @@ async function runMobile(browser) {
   const page = await ctx.newPage();
 
   console.log('— Mobile —');
+  await page.goto(BASE);
+  await page.evaluate(() => { try { localStorage.setItem('mdc-welcome-dismissed', '1'); } catch {} });
   await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('dialog[open]').forEach(d => d.close('cancel'));
+  });
   await settleMap(page);
   await shot(page, '05-map-mobile');
 
-  // Ouvre Mas de la Coste
-  const markers = await page.$$('.leaflet-marker-icon');
-  let masMarker = null;
-  for (const m of markers) {
-    const title = await m.getAttribute('title');
-    if (title && title.toLowerCase().includes('coste')) { masMarker = m; break; }
-  }
-  if (!masMarker && markers.length >= 2) masMarker = markers[1];
-  if (masMarker) {
-    await masMarker.click();
-    await page.waitForTimeout(800);
-    await shot(page, '06-place-panel-mobile');
-  }
+  // Panneau d'un lieu (via hash, plus robuste que le clic marker).
+  await page.goto(`${BASE}/#/lieu/saint-roman-de-codieres`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('dialog[open]').forEach(d => d.close('cancel'));
+  });
+  try { await page.waitForSelector('.panel[aria-hidden="false"]', { timeout: 5000 }); } catch {}
+  await page.waitForTimeout(700);
+  await shot(page, '06-place-panel-mobile');
 
   // Suzanne
   await page.evaluate(() => { location.hash = '#/personne/suzanne-duval'; });

@@ -20,6 +20,21 @@
   transform: translateX(0);
 }
 
+/* Tablette paysage (~ 769-1100 px) : la carte est trop étroite quand le
+   panneau prend 420 px. On le ramène à ~360 px pour préserver de la
+   spatialisation. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .panel { width: min(360px, 40%); }
+}
+
+/* Quand un dialog modal est ouvert (Proposer une modif, Ajouter un récit,
+   Partager, Tagger…), on replie temporairement le panneau latéral pour
+   éviter l'effet « deux fenêtres concurrentes » (l'une au centre, l'autre
+   à droite). Le panneau revient à la fermeture du dialog. */
+body:has(dialog[open]) .panel[aria-hidden="false"] {
+  transform: translateX(100%);
+}
+
 .panel-close {
   position: absolute;
   top: 0.4rem;
