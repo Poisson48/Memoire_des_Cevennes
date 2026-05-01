@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visites — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
+  <style>
+    .visit-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .visit-stat {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border, #d8cfbf);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      text-align: center;
+    }
+    .visit-stat-value {
+      font-size: 2.4rem;
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--accent-dark, #6b4a1f);
+    }
+    .visit-stat-label {
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+      color: var(--muted, #666);
+    }
+    .visit-stat.online .visit-stat-value::before {
+      content: "● ";
+      color: #2a9d4a;
+      animation: visit-pulse 2s ease-in-out infinite;
+    }
+    @keyframes visit-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .visit-week {
+      margin-top: 2rem;
+    }
+    .visit-week h2 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+    .visit-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 140px;
+      padding: 0.6rem;
+      border: 1px solid var(--border, #d8cfbf);
+      border-radius: 8px;
+      background: var(--card-bg, #fff);
+    }
+    .visit-bar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      min-width: 0;
+    }
+    .visit-bar-fill {
+      width: 100%;
+      min-height: 2px;
+      background: var(--accent, #b58a4d);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s;
+    }
+    .visit-bar.today .visit-bar-fill { background: var(--accent-dark, #6b4a1f); }
+    .visit-bar-label {
+      font-size: 0.75rem;
+      color: var(--muted, #666);
+      white-space: nowrap;
+    }
+    .visit-bar-count {
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .visit-note {
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--muted, #666);
+    }
+  </style>
+</head>
+<body class="legal-body">
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1>📊 Visites du site</h1>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <article>
+      <p>
+        Compteur anonyme de fréquentation. On ne stocke ni adresse IP ni
+        identifiant personnel — seulement un petit jeton aléatoire dans
+        ton navigateur pour ne pas te compter deux fois dans la journée.
+      </p>
+
+      <div class="visit-stats">
+        <div class="visit-stat online">
+          <div class="visit-stat-value" id="stat-online">—</div>
+          <div class="visit-stat-label">en ligne maintenant</div>
+        </div>
+        <div class="visit-stat">
+          <div class="visit-stat-value" id="stat-today">—</div>
+          <div class="visit-stat-label">visites aujourd'hui</div>
+        </div>
+        <div class="visit-stat">
+          <div class="visit-stat-value" id="stat-week">—</div>
+          <div class="visit-stat-label">visites sur 7 jours</div>
+        </div>
+      </div>
+
+      <section class="visit-week">
+        <h2>Sur les 7 derniers jours</h2>
+        <div class="visit-bars" id="visit-bars" aria-label="Visites par jour"></div>
+      </section>
+
+      <p class="visit-note">
+        Mise à jour automatique toutes les 30 secondes.
+        « En ligne » = visiteurs actifs dans les 5 dernières minutes.
+      </p>
+    </article>
+  </main>
+
+  <footer class="legal-footer">
+    <p><a href="legal/mentions.html">Mentions légales</a> · <a href="legal/confidentialite.html">Confidentialité</a></p>
+  </footer>
+
+  <script src="js/visits.js"></script>
+  <script>
+    (function () {
+      const els = {
+        online: document.getElementById('stat-online'),
+        today:  document.getElementById('stat-today'),
+        week:   document.getElementById('stat-week'),
+        bars:   document.getElementById('visit-bars'),
+      };
+      const FR_DAYS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+      const todayKey = (() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      })();
+
+      function renderBars(days) {
+        if (!days || !days.length) { els.bars.innerHTML = ''; return; }
+        const max = Math.max(1, ...days.map(d => d.count));
+        els.bars.innerHTML = days.map(d => {
+          const pct = Math.round((d.count / max) * 100);
+          const dt = new Date(d.date + 'T00:00:00');
+          const label = FR_DAYS[dt.getDay()];
+          const isToday = d.date === todayKey;
+          return `
+            <div class="visit-bar${isToday ? ' today' : ''}">
+              <div class="visit-bar-count">${d.count}</div>
+              <div class="visit-bar-fill" style="height:${pct}%"></div>
+              <div class="visit-bar-label">${label}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function refresh() {
+        try {
+          const r = await fetch('/api/visits/stats', { cache: 'no-store' });
+          if (!r.ok) return;
+          const j = await r.json();
+          els.online.textContent = j.online;
+          els.today.textContent  = j.today;
+          els.week.textContent   = j.week;
+          renderBars(j.days);
+        } catch (_) { /* silencieux */ }
+      }
+
+      refresh();
+      setInterval(() => { if (!document.hidden) refresh(); }, 30_000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+    })();
+  </script>
+</body>
+</html>

@@ -19,6 +19,7 @@ const storiesRouter = require('./src/routes/stories');
 const editsRouter   = require('./src/routes/edits');
 const adminRouter   = require('./src/routes/admin');
 const reportsRouter = require('./src/routes/reports');
+const visitsRouter  = require('./src/routes/visits');
 
 const PORT       = Number(process.env.PORT) || 3003;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -56,6 +57,7 @@ app.use('/api/people',  peopleRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api', editsRouter);         // /api/:type/:id/edits
 app.use('/api/reports', reportsRouter);
+app.use('/api/visits',  visitsRouter);
 
 // API — administration (X-Admin-Token OU JWT admin via requireAdmin)
 app.use('/api/admin',   adminRouter);

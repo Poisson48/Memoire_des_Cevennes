@@ -1,6 +1,6 @@
 {
   "name": "memoire-des-cevennes",
-  "version": "0.14.12",
+  "version": "0.14.13",
   "description": "Carte interactive pour préserver la mémoire vivante des Cévennes : photos, témoignages, histoires, audio, dessins.",
   "main": "server.js",
   "scripts": {
