@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon compte — Mémoire des Cévennes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
+  <link rel="stylesheet" href="css/legal.css" />
+  <style>
+    body { overflow: auto; }
+    .auth-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+    @media (min-width: 720px) {
+      .auth-main { align-items: center; }
+      .auth-card { max-width: 720px; padding: 3rem 3.4rem; }
+      .auth-card h2 { font-size: 2rem; margin-bottom: 1.8rem; }
+      .auth-card label { font-size: 1.2rem; margin-bottom: 1.3rem; }
+      .auth-card input[type="email"],
+      .auth-card input[type="password"],
+      .auth-card input[type="tel"],
+      .auth-card input[type="text"] { font-size: 1.25rem; padding: 0.75rem 1rem; }
+      .auth-card .btn-primary { font-size: 1.15rem; padding: 0.7rem 1.4rem; }
+    }
+    .auth-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem 2.2rem;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: var(--shadow);
+    }
+    .auth-card h2 {
+      margin: 0 0 1.4rem;
+      font-size: 1.35rem;
+      color: var(--accent-dark);
+    }
+    .auth-card h3 {
+      margin: 1.6rem 0 0.8rem;
+      font-size: 1.1rem;
+      color: var(--accent-dark);
+    }
+    .auth-card label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .auth-card input[type="email"],
+    .auth-card input[type="password"],
+    .auth-card input[type="tel"],
+    .auth-card input[type="text"] {
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--fg);
+    }
+    .auth-card input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .auth-card .actions {
+      margin-top: 1.2rem;
+    }
+    .auth-error {
+      background: #fde8e8;
+      color: #8b1a1a;
+      border: 1px solid #f5c6c6;
+      border-radius: 4px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .auth-success {
+      background: #e8f5e9;
+      color: #1b5e20;
+      border: 1px solid #c8e6c9;
+      border-radius: 4px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .auth-warn {
+      background: #fff8e1;
+      color: #6b5a00;
+      border: 1px solid #ffe082;
+      border-radius: 4px;
+      padding: 0.6rem 0.9rem;
+      margin: 0.6rem 0 1rem;
+      font-size: 0.9rem;
+    }
+    .auth-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0.2rem 0 0.4rem;
+    }
+    .auth-sep {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.4rem 0 0;
+    }
+    .hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1><a href="index.html" style="color:inherit;text-decoration:none"><span data-site-title>Mémoire des Cévennes</span></a></h1>
+      <p class="tagline" data-site-tagline>Une carte pour recueillir les récits, les voix et les images de nos vallées.</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <h2>Mon compte</h2>
+      <p id="me-loading" class="auth-meta">Chargement…</p>
+      <p id="me-meta" class="auth-meta" hidden></p>
+
+      <div id="profile-error"   class="auth-error"   hidden></div>
+      <div id="profile-success" class="auth-success" hidden></div>
+      <div id="profile-dups"    class="auth-warn"    hidden></div>
+
+      <form id="form-profile" novalidate hidden>
+        <h3>Mes informations</h3>
+        <label>Nom et prénom
+          <input type="text" name="name" required maxlength="120" />
+        </label>
+        <label>Adresse e-mail
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>Téléphone <span class="hint" style="display:inline;font-weight:normal;">(facultatif)</span>
+          <input type="tel" name="phone" autocomplete="tel" placeholder="06 12 34 56 78" />
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Enregistrer</button>
+        </div>
+      </form>
+
+      <hr class="auth-sep" />
+
+      <h3>Changer mon mot de passe</h3>
+      <div id="pwd-error"   class="auth-error"   hidden></div>
+      <div id="pwd-success" class="auth-success" hidden></div>
+      <form id="form-password" novalidate>
+        <label>Mot de passe actuel
+          <input type="password" name="oldPassword" required autocomplete="current-password" />
+        </label>
+        <label>Nouveau mot de passe
+          <input type="password" name="newPassword" required autocomplete="new-password" minlength="8" />
+          <span class="hint">8 caractères minimum.</span>
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Mettre à jour le mot de passe</button>
+        </div>
+      </form>
+
+      <hr class="auth-sep" />
+      <p style="margin-top:1rem;text-align:center;">
+        <button type="button" id="btn-logout" class="btn-ghost">Se déconnecter</button>
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="position: static;">
+    <a href="aide.html">📘 Tutoriel</a>
+    <span class="sep">·</span>
+    <a href="legal/mentions.html">Mentions légales</a>
+    <span class="sep">·</span>
+    <a href="legal/confidentialite.html">Confidentialité</a>
+    <span class="sep">·</span>
+    <a href="legal/charte-contributeur.html">Charte</a>
+    <span class="sep">·</span>
+    <a href="signaler.html">Signaler</a>
+    <span class="sep">·</span>
+    <span class="version-tag" data-version></span>
+  </footer>
+  <script src="js/version.js"></script>
+  <script src="js/site-config.js"></script>
+
+  <script>
+    const elLoading = document.getElementById('me-loading');
+    const elMeta    = document.getElementById('me-meta');
+    const formProfile = document.getElementById('form-profile');
+    const formPwd     = document.getElementById('form-password');
+    const errProfile  = document.getElementById('profile-error');
+    const okProfile   = document.getElementById('profile-success');
+    const dupProfile  = document.getElementById('profile-dups');
+    const errPwd      = document.getElementById('pwd-error');
+    const okPwd       = document.getElementById('pwd-success');
+
+    function fmtDate(iso) {
+      if (!iso) return '';
+      try { return new Date(iso).toLocaleString('fr-FR'); }
+      catch { return iso; }
+    }
+
+    function fillProfile(member) {
+      formProfile.name.value  = member.name  || '';
+      formProfile.email.value = member.email || '';
+      formProfile.phone.value = member.phone || '';
+      formProfile.hidden = false;
+      const role = member.role === 'admin' ? 'Admin'
+                 : member.role === 'contributor' ? 'Contributeur' : 'Membre';
+      elMeta.hidden = false;
+      elMeta.textContent =
+        `${role} · inscrit le ${fmtDate(member.createdAt)}`
+        + (member.updatedAt ? ` · modifié le ${fmtDate(member.updatedAt)}` : '');
+    }
+
+    function showDuplicates(dups) {
+      const parts = [];
+      if (dups && dups.phone && dups.phone.length) {
+        parts.push('Un autre compte utilise déjà ce numéro de téléphone : '
+          + dups.phone.map(m => `<strong>${m.name}</strong> (${m.email})`).join(', '));
+      }
+      if (dups && dups.name && dups.name.length) {
+        parts.push('Un autre compte porte le même nom : '
+          + dups.name.map(m => `<strong>${m.name}</strong> (${m.email})`).join(', '));
+      }
+      if (parts.length) {
+        dupProfile.innerHTML = '⚠ Doublon possible. ' + parts.join(' — ');
+        dupProfile.hidden = false;
+      } else {
+        dupProfile.hidden = true;
+      }
+    }
+
+    async function loadMe() {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (res.status === 401) {
+          location.href = 'login.html?next=/mon-compte.html';
+          return;
+        }
+        const json = await res.json();
+        elLoading.hidden = true;
+        fillProfile(json.member);
+      } catch {
+        elLoading.textContent = 'Impossible de joindre le serveur.';
+      }
+    }
+
+    formProfile.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errProfile.hidden = true; okProfile.hidden = true; dupProfile.hidden = true;
+      const fd = new FormData(formProfile);
+      const data = {
+        name:  fd.get('name'),
+        email: fd.get('email'),
+        phone: (fd.get('phone') || '').trim() || null,
+      };
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          errProfile.textContent = json.error || 'Erreur lors de la mise à jour.';
+          errProfile.hidden = false;
+          return;
+        }
+        okProfile.textContent = '✓ Profil mis à jour.';
+        okProfile.hidden = false;
+        fillProfile(json.member);
+        showDuplicates(json.duplicates);
+      } catch {
+        errProfile.textContent = 'Impossible de joindre le serveur.';
+        errProfile.hidden = false;
+      }
+    });
+
+    formPwd.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errPwd.hidden = true; okPwd.hidden = true;
+      const fd = new FormData(formPwd);
+      const data = {
+        oldPassword: fd.get('oldPassword'),
+        newPassword: fd.get('newPassword'),
+      };
+      try {
+        const res = await fetch('/api/auth/me/password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          errPwd.textContent = json.error || 'Erreur.';
+          errPwd.hidden = false;
+          return;
+        }
+        okPwd.textContent = '✓ Mot de passe mis à jour.';
+        okPwd.hidden = false;
+        formPwd.reset();
+      } catch {
+        errPwd.textContent = 'Impossible de joindre le serveur.';
+        errPwd.hidden = false;
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      location.href = 'index.html';
+    });
+
+    loadMe();
+  </script>
+</body>
+</html>

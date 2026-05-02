@@ -45,18 +45,17 @@ const DATA_FILES = [
   'site_config.json',
 ];
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // Migrations de schéma : clé = version SOURCE, valeur = fonction qui
 // reçoit l'objet { 'data/foo.json': parsedJson, ... } et le mute pour
 // le faire passer à version+1. Chaîner naturellement vers SCHEMA_VERSION.
-//
-// Aujourd'hui : aucune migration (v1 = baseline). Exemple futur :
-//   1: (files) => {
-//     // Renommer un champ dans toutes les places
-//     for (const p of files['data/places.json'].places) p.newField = p.oldField;
-//   },
-const MIGRATIONS = {};
+const MIGRATIONS = {
+  // v1 → v2 : ajout du champ optionnel `phone` aux membres. Pas de
+  // backfill nécessaire — `undefined` est traité comme « pas de
+  // téléphone » par le code lecteur.
+  1: (_files) => {},
+};
 
 // ─── Chiffrement ──────────────────────────────────────────────────────
 // Si BACKUP_PASSPHRASE est défini dans l'env, toutes les archives sont

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inscription — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
   <style>
     body { overflow: auto; }
@@ -14,6 +15,20 @@
       align-items: flex-start;
       justify-content: center;
       padding: 2.5rem 1rem;
+    }
+    @media (min-width: 720px) {
+      .auth-main { align-items: center; }
+      .auth-card { max-width: 720px; padding: 3rem 3.4rem; }
+      .auth-card h2 { font-size: 2rem; margin-bottom: 1.8rem; }
+      .auth-card label { font-size: 1.2rem; margin-bottom: 1.3rem; }
+      .auth-card input[type="email"],
+      .auth-card input[type="password"],
+      .auth-card input[type="tel"],
+      .auth-card input[type="text"] { font-size: 1.25rem; padding: 0.75rem 1rem; }
+      .auth-card .btn-primary { font-size: 1.15rem; padding: 0.7rem 1.4rem; }
+      .consent-row { font-size: 1.1rem; }
+      .hint { font-size: 0.95rem; }
+      .auth-switch { font-size: 1.05rem; }
     }
     .auth-card {
       background: var(--panel-bg);
@@ -38,6 +53,7 @@
     }
     .auth-card input[type="email"],
     .auth-card input[type="password"],
+    .auth-card input[type="tel"],
     .auth-card input[type="text"] {
       padding: 0.5rem 0.7rem;
       border: 1px solid var(--border);
@@ -122,11 +138,14 @@
       <div id="auth-error" class="auth-error" hidden></div>
       <div id="auth-success" class="auth-success" hidden></div>
       <form id="form-register" novalidate>
-        <label>Votre nom
+        <label>Nom et prénom
           <input type="text" name="name" required autocomplete="name" placeholder="Prénom Nom" />
         </label>
         <label>Adresse e-mail
           <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>Téléphone <span class="hint" style="display:inline;font-weight:normal;">(facultatif)</span>
+          <input type="tel" name="phone" autocomplete="tel" placeholder="06 12 34 56 78" />
         </label>
         <label>Mot de passe
           <input type="password" name="password" required autocomplete="new-password" minlength="8" />
@@ -183,6 +202,7 @@
       const data = {
         name:  fd.get('name'),
         email: fd.get('email'),
+        phone: (fd.get('phone') || '').trim() || null,
         password: fd.get('password'),
         consentGiven: true
       };
@@ -200,7 +220,7 @@
           errEl.hidden = false;
           return;
         }
-        okEl.textContent = 'Compte créé ! Votre accès sera activé après validation par un administrateur. Vous recevrez une confirmation par e-mail.';
+        okEl.textContent = 'Compte créé ! Votre accès sera activé après validation par un administrateur. Vous pourrez ensuite vous connecter avec l\'adresse et le mot de passe que vous venez de choisir.';
         okEl.hidden = false;
         e.target.reset();
       } catch {

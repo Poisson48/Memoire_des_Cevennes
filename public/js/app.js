@@ -139,7 +139,14 @@ function renderAuthNav() {
   loginBtn.hidden  = true;
   logoutBtn.hidden = false;
   greeting.hidden  = false;
-  greeting.textContent = `👤 ${state.member.name}`;
+  greeting.innerHTML = '';
+  const link = document.createElement('a');
+  link.href = 'mon-compte.html';
+  link.title = 'Mon compte';
+  link.style.color = 'inherit';
+  link.style.textDecoration = 'none';
+  link.textContent = `👤 ${state.member.name}`;
+  greeting.appendChild(link);
 
   // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
   logoutBtn.onclick = async () => {
@@ -383,8 +390,9 @@ function openPanel(html) {
     btn.addEventListener('click', () => {
       const url = btn.dataset.shareUrl;
       const label = btn.dataset.shareLabel || 'cette page';
+      const caption = btn.dataset.shareCaption || '';
       if (typeof window.openShare === 'function') {
-        window.openShare({ url, label });
+        window.openShare({ url, label, caption });
       }
     });
   });
@@ -420,7 +428,7 @@ function openPlacePanel(placeId) {
     <div class="entity-actions">
       ${canContribute ? `<button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>` : ''}
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
-      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/lieu/${place.id}`)}" data-share-label="${escapeAttr(place.primaryName)}">📤 Partager</button>
+      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/lieu/${place.id}`)}" data-share-label="${escapeAttr(place.primaryName)}" data-share-caption="${escapeAttr(place.description || '')}">📤 Partager</button>
       ${canMove ? `<button class="btn-ghost btn-move-place" type="button" data-place-id="${escapeAttr(place.id)}">🔧 Déplacer ce lieu</button>` : ''}
     </div>`;
 
@@ -491,7 +499,7 @@ function openPersonPanel(personId) {
   const actions = `
     <div class="entity-actions">
       <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
-      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/personne/${person.id}`)}" data-share-label="${escapeAttr(person.primaryName)}">📤 Partager</button>
+      <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/personne/${person.id}`)}" data-share-label="${escapeAttr(person.primaryName)}" data-share-caption="${escapeAttr(dates || '')}">📤 Partager</button>
     </div>`;
 
   openPanel(`
@@ -641,11 +649,12 @@ function renderStoryCard(s, { full = false } = {}) {
   // visibles sans scroller — surtout sur mobile où le panel est un bottom
   // sheet court et où le corps du récit peut être long.
   const shareLabel = s.title ? s.title.replace(/<[^>]+>/g, '') : 'ce récit';
+  const shareCaption = (s.body || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 240);
   const actions = `
     <div class="story-actions">
       <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}" title="Ajouter un souvenir ou une précision à cette histoire">➕ Compléter</button>
       <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}" title="Proposer une correction du texte">✏️ Modifier</button>
-      <button type="button" class="btn-ghost btn-share" data-share-url="${escapeAttr(`${location.origin}/#/recit/${s.id}`)}" data-share-label="${escapeAttr(shareLabel)}" title="Partager ce récit">📤 Partager</button>
+      <button type="button" class="btn-ghost btn-share" data-share-url="${escapeAttr(`${location.origin}/#/recit/${s.id}`)}" data-share-label="${escapeAttr(shareLabel)}" data-share-caption="${escapeAttr(shareCaption)}" title="Partager ce récit">📤 Partager</button>
     </div>
   `;
 

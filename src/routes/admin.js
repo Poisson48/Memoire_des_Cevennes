@@ -97,9 +97,36 @@ router.put('/site-config', async (req, res, next) => {
 // ─── Membres ──────────────────────────────────────────────────────────
 // Liste, approbation, changement de rôle, journal d'activité.
 router.get('/members', (req, res) => {
-  const members = auth.loadMembers().map(m => {
+  const all = auth.loadMembers().map(m => {
     const { passwordHash: _ph, ...safe } = m;
     return safe;
+  });
+  // Index pour signaler les doublons mous : même téléphone normalisé, ou
+  // même nom (lowercase trim). On expose `duplicateHints` par membre pour
+  // que l'UI puisse afficher un badge "doublon possible".
+  const byPhone = new Map();
+  const byName  = new Map();
+  for (const m of all) {
+    const p = auth.normalizePhone(m.phone);
+    if (p) {
+      if (!byPhone.has(p)) byPhone.set(p, []);
+      byPhone.get(p).push(m.id);
+    }
+    const n = (m.name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    if (n) {
+      if (!byName.has(n)) byName.set(n, []);
+      byName.get(n).push(m.id);
+    }
+  }
+  const members = all.map(m => {
+    const p = auth.normalizePhone(m.phone);
+    const n = (m.name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    const phoneIds = p ? (byPhone.get(p) || []).filter(id => id !== m.id) : [];
+    const nameIds  = n ? (byName.get(n)  || []).filter(id => id !== m.id) : [];
+    const hints = [];
+    if (phoneIds.length) hints.push({ kind: 'phone', ids: phoneIds });
+    if (nameIds.length)  hints.push({ kind: 'name',  ids: nameIds  });
+    return hints.length ? { ...m, duplicateHints: hints } : m;
   });
   res.json({ members });
 });
@@ -111,7 +138,7 @@ router.get('/members', (req, res) => {
 // ne connaît le mot de passe.
 router.post('/members', async (req, res, next) => {
   try {
-    const { name, email, role } = req.body || {};
+    const { name, email, role, phone } = req.body || {};
     if (!name || !email) {
       return res.status(400).json({ error: 'name et email sont requis.' });
     }
@@ -122,6 +149,7 @@ router.post('/members', async (req, res, next) => {
 
     const member = await auth.createInvitedMember(email, name, {
       role: wantedRole,
+      phone: phone || null,
       createdByAdmin: req.member ? req.member.id : null,
     });
     const { request, key } = passwordResets.createInvite({
@@ -139,16 +167,28 @@ router.post('/members', async (req, res, next) => {
     // La clé en clair n'est renvoyée que sur cette réponse — l'admin doit
     // la copier maintenant. Elle reste lisible via GET /password-resets
     // tant que l'invitation est "approved".
+    const dups = auth.findDuplicates({
+      name: member.name,
+      phone: member.phone,
+      excludeId: member.id,
+    });
     res.status(201).json({
       ok: true,
       member,
       key,
       expiresAt: request.expiresAt,
       message: 'Compte créé. Transmets la clé au membre — il choisira son mot de passe.',
+      duplicates: {
+        phone: dups.phone.map(m => ({ id: m.id, name: m.name, email: m.email })),
+        name:  dups.name.map(m  => ({ id: m.id, name: m.name, email: m.email })),
+      },
     });
   } catch (err) {
     if (err.message && err.message.includes('existe déjà')) {
       return res.status(409).json({ error: err.message });
+    }
+    if (/téléphone/i.test(err.message)) {
+      return res.status(400).json({ error: err.message });
     }
     next(err);
   }
@@ -167,6 +207,37 @@ router.post('/members/:id/role', (req, res, next) => {
     const member = auth.setRole(req.params.id, role);
     res.json({ member });
   } catch (err) { next(err); }
+});
+
+// PATCH /members/:id — l'admin met à jour name, email et/ou phone.
+router.patch('/members/:id', (req, res, next) => {
+  try {
+    const { name, email, phone } = req.body || {};
+    const patch = {};
+    if (name  !== undefined) patch.name  = name;
+    if (email !== undefined) patch.email = email;
+    if (phone !== undefined) patch.phone = phone;
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ error: 'Aucun champ à mettre à jour.' });
+    }
+    const member = auth.updateMember(req.params.id, patch);
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'admin.member-update',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+    });
+    res.json({ member });
+  } catch (err) {
+    if (err.message.includes('existe déjà')) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (/téléphone|requis|introuvable/i.test(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
 });
 
 // ─── Demandes de réinitialisation de mot de passe ─────────────────────

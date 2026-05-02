@@ -51,6 +51,55 @@ function safe(member) {
   return rest;
 }
 
+/**
+ * Normalise un numéro de téléphone (FR-friendly).
+ * - Retire espaces, points, tirets, parenthèses.
+ * - Préfixe +33 si le numéro commence par 0 (10 chiffres FR).
+ * - Conserve un préfixe + déjà présent.
+ * Retourne null si vide ou inanalysable.
+ */
+function normalizePhone(raw) {
+  if (raw === undefined || raw === null) return null;
+  const cleaned = String(raw).replace(/[\s.\-()]/g, '').trim();
+  if (!cleaned) return null;
+  if (cleaned.startsWith('+')) {
+    if (!/^\+\d{6,16}$/.test(cleaned)) return null;
+    return cleaned;
+  }
+  if (/^0\d{9}$/.test(cleaned)) return '+33' + cleaned.slice(1);
+  if (/^\d{6,16}$/.test(cleaned)) return cleaned;
+  return null;
+}
+
+/** Normalise un nom pour comparaison de doublons (lowercase + trim + espaces). */
+function normalizeName(raw) {
+  if (!raw) return '';
+  return String(raw).toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+/**
+ * Cherche les doublons potentiels parmi les membres.
+ * - email : exact (case-insensitive). Doublon dur.
+ * - phone : normalisé. Doublon mou (avertissement).
+ * - name  : normalisé. Doublon mou.
+ * Retourne { email: [...], phone: [...], name: [...] } — chaque tableau
+ * contient les membres en collision (hors `excludeId`).
+ */
+function findDuplicates({ email, phone, name, excludeId } = {}) {
+  const members = loadMembers();
+  const out = { email: [], phone: [], name: [] };
+  const ne = email ? String(email).toLowerCase().trim() : null;
+  const np = normalizePhone(phone);
+  const nn = normalizeName(name);
+  for (const m of members) {
+    if (excludeId && m.id === excludeId) continue;
+    if (ne && m.email === ne) out.email.push(safe(m));
+    if (np && normalizePhone(m.phone) === np) out.phone.push(safe(m));
+    if (nn && normalizeName(m.name) === nn) out.name.push(safe(m));
+  }
+  return out;
+}
+
 // ── Gestion des membres ───────────────────────────────────────────────────
 
 /**
@@ -63,15 +112,20 @@ async function createMember(email, password, name, opts = {}) {
     role           = 'member',          // par défaut self-register → "member"
     status         = 'pending',          // par défaut self-register → "pending"
     createdByAdmin = null,               // id admin qui a créé le compte
+    phone          = null,               // téléphone optionnel
   } = opts;
 
   if (!ROLES.includes(role)) throw new Error(`Rôle invalide : ${role}`);
 
   const members = loadMembers();
   const normalizedEmail = String(email).toLowerCase().trim();
+  const normalizedPhone = normalizePhone(phone);
 
   if (members.find(m => m.email === normalizedEmail)) {
     throw new Error('Un compte existe déjà avec cet email.');
+  }
+  if (phone && !normalizedPhone) {
+    throw new Error('Numéro de téléphone invalide.');
   }
 
   const passwordHash = await bcrypt.hash(String(password), SALT_ROUNDS);
@@ -81,6 +135,7 @@ async function createMember(email, password, name, opts = {}) {
     id: randomUUID(),
     name: String(name).trim().slice(0, 120),
     email: normalizedEmail,
+    phone: normalizedPhone,
     passwordHash,
     role,
     status,
@@ -114,15 +169,20 @@ async function createInvitedMember(email, name, opts = {}) {
     charterVersion = '1.0',
     role           = 'member',
     createdByAdmin = null,
+    phone          = null,
   } = opts;
 
   if (!ROLES.includes(role)) throw new Error(`Rôle invalide : ${role}`);
 
   const members = loadMembers();
   const normalizedEmail = String(email).toLowerCase().trim();
+  const normalizedPhone = normalizePhone(phone);
 
   if (members.find(m => m.email === normalizedEmail)) {
     throw new Error('Un compte existe déjà avec cet email.');
+  }
+  if (phone && !normalizedPhone) {
+    throw new Error('Numéro de téléphone invalide.');
   }
 
   const now = new Date().toISOString();
@@ -130,6 +190,7 @@ async function createInvitedMember(email, name, opts = {}) {
     id: randomUUID(),
     name: String(name).trim().slice(0, 120),
     email: normalizedEmail,
+    phone: normalizedPhone,
     passwordHash: '',                    // pas de mot de passe utilisable
     role,
     status: 'active',
@@ -156,6 +217,74 @@ function approveMember(id) {
   member.approvedAt = new Date().toISOString();
   saveMembers(members);
   return safe(member);
+}
+
+/**
+ * Met à jour les champs profil d'un membre (name, email, phone).
+ * - email : vérifie l'unicité (case-insensitive) hors le membre lui-même.
+ * - phone : normalisé (FR), null si vidé.
+ * - name  : trim + max 120.
+ * Tous les champs sont optionnels — seuls les champs fournis sont changés.
+ * Retourne le membre safe.
+ */
+function updateMember(id, patch = {}) {
+  const members = loadMembers();
+  const member = members.find(m => m.id === id);
+  if (!member) throw new Error('Membre introuvable.');
+
+  if (patch.email !== undefined) {
+    const ne = String(patch.email).toLowerCase().trim();
+    if (!ne) throw new Error('Email requis.');
+    if (members.find(m => m.id !== id && m.email === ne)) {
+      throw new Error('Un compte existe déjà avec cet email.');
+    }
+    member.email = ne;
+  }
+  if (patch.name !== undefined) {
+    const nn = String(patch.name).trim().slice(0, 120);
+    if (!nn) throw new Error('Nom requis.');
+    member.name = nn;
+  }
+  if (patch.phone !== undefined) {
+    if (patch.phone === null || patch.phone === '') {
+      member.phone = null;
+    } else {
+      const np = normalizePhone(patch.phone);
+      if (!np) throw new Error('Numéro de téléphone invalide.');
+      member.phone = np;
+    }
+  }
+  member.updatedAt = new Date().toISOString();
+  saveMembers(members);
+  return safe(member);
+}
+
+/**
+ * Change le mot de passe d'un membre, vérifie l'ancien.
+ * Retourne true en cas de succès, false si l'ancien mot de passe est faux.
+ */
+async function changePassword(id, oldPassword, newPassword) {
+  if (!newPassword || String(newPassword).length < 8) {
+    throw new Error('Le nouveau mot de passe doit faire au moins 8 caractères.');
+  }
+  const members = loadMembers();
+  const member = members.find(m => m.id === id);
+  if (!member) throw new Error('Membre introuvable.');
+  if (!member.passwordHash) {
+    throw new Error("Ce compte n'a pas encore de mot de passe — utiliser une clé de réinitialisation.");
+  }
+  const ok = await bcrypt.compare(String(oldPassword || ''), member.passwordHash);
+  if (!ok) return false;
+  member.passwordHash = await bcrypt.hash(String(newPassword), SALT_ROUNDS);
+  member.passwordChangedAt = new Date().toISOString();
+  saveMembers(members);
+  return true;
+}
+
+/** Retourne le membre safe par id, ou null. */
+function getMemberById(id) {
+  const member = loadMembers().find(m => m.id === id);
+  return member ? safe(member) : null;
 }
 
 /**
@@ -250,6 +379,11 @@ module.exports = {
   createInvitedMember,
   approveMember,
   setRole,
+  updateMember,
+  changePassword,
+  getMemberById,
+  findDuplicates,
+  normalizePhone,
   login,
   verifyToken,
   roleIndex,

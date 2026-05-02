@@ -9,8 +9,15 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { rateLimit } = require('express-rate-limit');
-const { createMember, login } = require('../auth');
-const { optionalAuth } = require('../middleware');
+const {
+  createMember,
+  login,
+  updateMember,
+  changePassword,
+  getMemberById,
+  findDuplicates,
+} = require('../auth');
+const { optionalAuth, requireAuth } = require('../middleware');
 const passwordResets = require('../passwordResets');
 const activityLog = require('../activityLog');
 
@@ -77,14 +84,17 @@ const cookieOpts = () => ({
 // ── POST /api/auth/register ───────────────────────────────────────────────
 router.post('/register', registerLimiter, async (req, res, next) => {
   try {
-    const { name, email, password, consentGiven } = req.body || {};
+    const { name, email, password, phone, consentGiven } = req.body || {};
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'name, email et password sont requis.' });
     }
     if (consentGiven !== true) {
       return res.status(400).json({ error: 'Tu dois accepter la charte et la politique de confidentialité.' });
     }
-    const member = await createMember(email, password, name, { charterVersion: '1.0' });
+    const member = await createMember(email, password, name, {
+      charterVersion: '1.0',
+      phone: phone || null,
+    });
     res.status(201).json({
       ok: true,
       member,
@@ -93,6 +103,9 @@ router.post('/register', registerLimiter, async (req, res, next) => {
   } catch (err) {
     if (err.message.includes('existe déjà')) {
       return res.status(409).json({ error: err.message });
+    }
+    if (err.message.includes('téléphone')) {
+      return res.status(400).json({ error: err.message });
     }
     next(err);
   }
@@ -226,11 +239,91 @@ router.post('/reset', resetLimiter, async (req, res, next) => {
 });
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────
+// Renvoie le profil complet (depuis members.json), pas seulement le payload
+// du JWT — pour exposer phone, updatedAt, etc. mis à jour après émission
+// du token.
 router.get('/me', optionalAuth, (req, res) => {
   if (!req.member) {
     return res.status(401).json({ error: 'Non authentifié.' });
   }
-  res.json({ member: req.member });
+  const fresh = getMemberById(req.member.id);
+  if (!fresh) {
+    return res.status(401).json({ error: 'Compte introuvable.' });
+  }
+  res.json({ member: fresh });
+});
+
+// ── PATCH /api/auth/me ────────────────────────────────────────────────────
+// Le membre connecté met à jour son nom, email et/ou téléphone.
+// Vérifie l'unicité de l'email et signale les doublons mous (phone, name).
+router.patch('/me', requireAuth('member'), (req, res, next) => {
+  try {
+    const { name, email, phone } = req.body || {};
+    const patch = {};
+    if (name  !== undefined) patch.name  = name;
+    if (email !== undefined) patch.email = email;
+    if (phone !== undefined) patch.phone = phone;
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ error: 'Aucun champ à mettre à jour.' });
+    }
+    const member = updateMember(req.member.id, patch);
+    activityLog.logActivity({
+      memberId: member.id,
+      action: 'member.self-update',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+    });
+    const dups = findDuplicates({
+      phone: member.phone,
+      name:  member.name,
+      excludeId: member.id,
+    });
+    res.json({
+      ok: true,
+      member,
+      duplicates: {
+        phone: dups.phone.map(m => ({ id: m.id, name: m.name, email: m.email })),
+        name:  dups.name.map(m  => ({ id: m.id, name: m.name, email: m.email })),
+      },
+    });
+  } catch (err) {
+    if (err.message.includes('existe déjà')) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (/téléphone|requis/i.test(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
+});
+
+// ── POST /api/auth/me/password ────────────────────────────────────────────
+// Le membre connecté change son mot de passe en saisissant l'ancien.
+router.post('/me/password', requireAuth('member'), async (req, res, next) => {
+  try {
+    const { oldPassword, newPassword } = req.body || {};
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: 'Ancien et nouveau mot de passe requis.' });
+    }
+    const ok = await changePassword(req.member.id, oldPassword, newPassword);
+    if (!ok) {
+      return res.status(401).json({ error: 'Ancien mot de passe incorrect.' });
+    }
+    activityLog.logActivity({
+      memberId: req.member.id,
+      action: 'member.password-change',
+      entityType: 'member',
+      entityId: req.member.id,
+      ip: req.ip,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    if (/8 caractères|réinitialisation/.test(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
 });
 
 module.exports = router;

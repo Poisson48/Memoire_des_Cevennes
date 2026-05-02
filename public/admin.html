@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administration — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/legal.css" />
 </head>
@@ -111,11 +112,14 @@
             <a href="/reset.html">/reset.html</a>.
           </p>
           <form id="form-create-member" class="legal-form" style="margin-top:0.4rem;">
-            <label>Nom
+            <label>Nom et prénom
               <input type="text" name="name" required maxlength="120" />
             </label>
             <label>Adresse e-mail
               <input type="email" name="email" required maxlength="160" />
+            </label>
+            <label>Téléphone <span class="hint" style="font-weight:normal;">(facultatif)</span>
+              <input type="tel" name="phone" maxlength="32" placeholder="06 12 34 56 78" />
             </label>
             <label>Rôle
               <select name="role">
