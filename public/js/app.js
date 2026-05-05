@@ -212,10 +212,32 @@ async function reload() {
   places.forEach(p => state.places.set(p.id, p));
   people.forEach(p => state.people.set(p.id, p));
   state.stories = stories;
+  buildNamesIndex();
   refreshMarkers();
   applyMode();
   renderAuthNav();
   routeFromHash();
+}
+
+// Index nom : entité, alimenté à chaque reload(). Sert à transformer les
+// portions de récit emphasisées en markdown (`**Auberge de Bourras**`) en
+// liens vers la fiche correspondante quand le nom matche un Lieu ou une
+// Personne du graphe (primaryName ou alias). Lookup case-insensitive.
+const namesIndex = { places: new Map(), people: new Map() };
+function buildNamesIndex() {
+  namesIndex.places.clear();
+  namesIndex.people.clear();
+  function pushNames(entity, indexMap) {
+    if (entity.primaryName) {
+      indexMap.set(entity.primaryName.toLowerCase().trim(), entity);
+    }
+    (entity.aliases || []).forEach(a => {
+      const name = typeof a === 'string' ? a : (a && a.name);
+      if (name) indexMap.set(String(name).toLowerCase().trim(), entity);
+    });
+  }
+  state.places.forEach(p => pushNames(p, namesIndex.places));
+  state.people.forEach(p => pushNames(p, namesIndex.people));
 }
 
 function refreshMarkers() {
@@ -447,7 +469,7 @@ function openPlacePanel(placeId) {
       <h2>${escapeHtml(place.primaryName)}</h2>
       ${aliases ? `<div class="aliases">aussi appelé ${aliases}</div>` : ''}
     </div>
-    ${place.description ? `<p class="desc">${escapeHtml(place.description)}</p>` : ''}
+    ${place.description ? `<p class="desc">${renderEmphasisAndAutoLinks(place.description)}</p>` : ''}
     ${actions}
     <h3 class="section-title">Récits (${related.length})</h3>
     ${related.length === 0
@@ -518,7 +540,7 @@ function openPersonPanel(personId) {
       ${aliases ? `<div class="aliases">aussi appelé·e ${aliases}</div>` : ''}
       ${dates ? `<div class="dates">${dates}</div>` : ''}
     </div>
-    ${person.bio ? `<p class="desc">${escapeHtml(person.bio)}</p>` : ''}
+    ${person.bio ? `<p class="desc">${renderEmphasisAndAutoLinks(person.bio)}</p>` : ''}
     ${actions}
 
     ${hasFamily ? `
@@ -704,25 +726,69 @@ function renderCompletion(c, storyId) {
                 data-story-id="${escapeAttr(storyId || '')}" data-completion-id="${escapeAttr(c.id)}"
                 title="Proposer une modification de ce texte">✏️</button>
       </div>
-      <div class="completion-body">${escapeHtml(c.body)}</div>
+      <div class="completion-body">${renderBodyWithMentions(c.body || '', c.mentions)}</div>
     </div>
   `;
 }
 
 function renderBodyWithMentions(body, mentions) {
-  if (!mentions || !mentions.length) return escapeHtml(body);
+  if (!mentions || !mentions.length) return renderEmphasisAndAutoLinks(body);
   const sorted = [...mentions].sort((a, b) => a.start - b.start);
   let html = '';
   let pos = 0;
   for (const m of sorted) {
     if (m.start < pos || m.end > body.length) continue;
-    html += escapeHtml(body.slice(pos, m.start));
+    html += renderEmphasisAndAutoLinks(body.slice(pos, m.start));
     const span = body.slice(m.start, m.end);
     html += inlineMention(m.type, m.entityId, span);
     pos = m.end;
   }
-  html += escapeHtml(body.slice(pos));
+  html += renderEmphasisAndAutoLinks(body.slice(pos));
   return html;
+}
+
+// Pour les bouts de texte sans mention explicite : escape HTML, puis
+// transforme `**X**` en gras (et `*X*` en italique). Si le texte de
+// l'emphase matche un Lieu ou une Personne du graphe (primaryName ou
+// alias, case-insensitive), on le rend aussi cliquable vers la fiche.
+function renderEmphasisAndAutoLinks(rawText) {
+  if (!rawText) return '';
+  // Capture **bold** ou *italic* (sans imbrication ni saut de ligne).
+  const re = /\*\*([^*\n]+)\*\*|(?:^|(?<=[^*]))\*([^*\n]+)\*(?!\*)/g;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = re.exec(rawText)) !== null) {
+    out += escapeHtml(rawText.slice(last, m.index));
+    const isBold = m[1] !== undefined;
+    const inner = isBold ? m[1] : m[2];
+    const link = autoLinkForName(inner);
+    const tag = isBold ? 'strong' : 'em';
+    if (link) {
+      // Le lien englobe l'emphase (ou l'inverse — peu importe visuellement,
+      // ici l'emphase à l'intérieur du <a>).
+      out += `<a ${link.attrs}><${tag}>${escapeHtml(inner)}</${tag}></a>`;
+    } else {
+      out += `<${tag}>${escapeHtml(inner)}</${tag}>`;
+    }
+    last = m.index + m[0].length;
+  }
+  out += escapeHtml(rawText.slice(last));
+  return out;
+}
+
+function autoLinkForName(rawText) {
+  const key = String(rawText).toLowerCase().trim();
+  if (!key) return null;
+  const place = namesIndex.places.get(key);
+  if (place) {
+    return { attrs: `href="#/lieu/${encodeURIComponent(place.id)}" class="mention mention-place" title="${escapeAttr(place.primaryName)}"` };
+  }
+  const person = namesIndex.people.get(key);
+  if (person) {
+    return { attrs: `href="#/personne/${encodeURIComponent(person.id)}" class="mention mention-person" title="${escapeAttr(person.primaryName)}"` };
+  }
+  return null;
 }
 
 function inlineMention(type, id, span) {
