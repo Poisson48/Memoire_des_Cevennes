@@ -220,10 +220,12 @@ async function reload() {
 }
 
 // Index nom : entité, alimenté à chaque reload(). Sert à transformer les
-// portions de récit emphasisées en markdown (`**Auberge de Bourras**`) en
-// liens vers la fiche correspondante quand le nom matche un Lieu ou une
-// Personne du graphe (primaryName ou alias). Lookup case-insensitive.
-const namesIndex = { places: new Map(), people: new Map() };
+// occurrences de noms de Lieux ou Personnes dans les textes (descriptions,
+// bios, corps de récits, complétions) en liens vers la fiche correspondante.
+// Le regex `regex` est construit à partir des noms triés par longueur
+// décroissante (longest-first) pour qu'un nom plus long matche avant son
+// préfixe (ex. "Saint-Roman-de-Codières" gagne sur "Saint-Roman").
+const namesIndex = { places: new Map(), people: new Map(), regex: null };
 function buildNamesIndex() {
   namesIndex.places.clear();
   namesIndex.people.clear();
@@ -238,6 +240,19 @@ function buildNamesIndex() {
   }
   state.places.forEach(p => pushNames(p, namesIndex.places));
   state.people.forEach(p => pushNames(p, namesIndex.people));
+  // Construit le regex auto-detect : alternance de tous les noms,
+  // longest-first, avec frontières non-lettre/non-chiffre pour ne pas
+  // matcher au milieu d'un mot. \p{L} couvre les lettres accentuées.
+  const all = [...namesIndex.places.keys(), ...namesIndex.people.keys()]
+    .filter(n => n.length >= 3) // évite les noms trop courts (faux positifs)
+    .sort((a, b) => b.length - a.length);
+  if (all.length) {
+    namesIndex.altPattern = all
+      .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+  } else {
+    namesIndex.altPattern = null;
+  }
 }
 
 function refreshMarkers() {
@@ -747,35 +762,53 @@ function renderBodyWithMentions(body, mentions) {
   return html;
 }
 
-// Pour les bouts de texte sans mention explicite : escape HTML, puis
-// transforme `**X**` en gras (et `*X*` en italique). Si le texte de
-// l'emphase matche un Lieu ou une Personne du graphe (primaryName ou
-// alias, case-insensitive), on le rend aussi cliquable vers la fiche.
+// Rend un texte brut en HTML : escape, puis transforme `**X**` en gras,
+// `*X*` en italique, et auto-linke chaque occurrence d'un nom indexé
+// (Lieu ou Personne, primaryName ou alias) vers sa fiche.
+//
+// Trois alternances dans un seul regex : bold, italic, nom. Chaque match
+// produit un fragment HTML adéquat ; les portions intermédiaires sont
+// simplement escapées.
 function renderEmphasisAndAutoLinks(rawText) {
   if (!rawText) return '';
-  // Capture **bold** ou *italic* (sans imbrication ni saut de ligne).
-  const re = /\*\*([^*\n]+)\*\*|(?:^|(?<=[^*]))\*([^*\n]+)\*(?!\*)/g;
+  // Capture **bold** (m[1]), *italic* (m[2]), nom auto-detect (m[3]).
+  const reSrc =
+      '\\*\\*([^*\\n]+)\\*\\*'
+    + '|(?:^|(?<=[^*]))\\*([^*\\n]+)\\*(?!\\*)'
+    + (namesIndex.altPattern
+        ? '|(?<![\\p{L}\\d])(' + namesIndex.altPattern + ')(?![\\p{L}\\d])'
+        : '');
+  const re = new RegExp(reSrc, 'giu');
   let out = '';
   let last = 0;
   let m;
   while ((m = re.exec(rawText)) !== null) {
     out += escapeHtml(rawText.slice(last, m.index));
-    const isBold = m[1] !== undefined;
-    const inner = isBold ? m[1] : m[2];
-    const link = autoLinkForName(inner);
-    const tag = isBold ? 'strong' : 'em';
-    if (link) {
-      // Le lien englobe l'emphase (ou l'inverse — peu importe visuellement,
-      // ici l'emphase à l'intérieur du <a>).
-      out += `<a ${link.attrs}><${tag}>${escapeHtml(inner)}</${tag}></a>`;
-    } else {
-      out += `<${tag}>${escapeHtml(inner)}</${tag}>`;
+    if (m[1] !== undefined) {
+      // bold : le nom à l'intérieur peut aussi être un lien.
+      const inner = m[1];
+      const link = autoLinkForName(inner);
+      out += link
+        ? `<a ${link.attrs}><strong>${escapeHtml(inner)}</strong></a>`
+        : `<strong>${escapeHtml(inner)}</strong>`;
+    } else if (m[2] !== undefined) {
+      const inner = m[2];
+      const link = autoLinkForName(inner);
+      out += link
+        ? `<a ${link.attrs}><em>${escapeHtml(inner)}</em></a>`
+        : `<em>${escapeHtml(inner)}</em>`;
+    } else if (m[3] !== undefined) {
+      // nom plain-text : auto-link direct.
+      const inner = m[3];
+      const link = autoLinkForName(inner);
+      out += link ? `<a ${link.attrs}>${escapeHtml(inner)}</a>` : escapeHtml(inner);
     }
     last = m.index + m[0].length;
   }
   out += escapeHtml(rawText.slice(last));
   return out;
 }
+
 
 function autoLinkForName(rawText) {
   const key = String(rawText).toLowerCase().trim();
