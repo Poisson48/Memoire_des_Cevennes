@@ -26,6 +26,10 @@ html, body {
   color: var(--fg);
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
+  /* Force le rendu en thème clair : Brave Android Auto-Dark redessinait
+     les <dialog> avec une bordure interne de contraste qui produisait un
+     angle 90° visible à l'intérieur du modal arrondi. */
+  color-scheme: only light;
 }
 
 body {
@@ -35,7 +39,10 @@ body {
 }
 
 .topbar {
-  padding: 0.75rem 1.2rem;
+  padding-top:    max(0.75rem, env(safe-area-inset-top));
+  padding-right:  max(1.2rem,  env(safe-area-inset-right));
+  padding-bottom: 0.75rem;
+  padding-left:   max(1.2rem,  env(safe-area-inset-left));
   background: var(--panel-bg);
   border-bottom: 1px solid var(--border);
   display: flex;
