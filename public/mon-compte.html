@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="color-scheme" content="light" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Mon compte — Mémoire des Cévennes</title>
+  <title>Mon compte : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
@@ -240,7 +240,7 @@
           + dups.name.map(m => `<strong>${m.name}</strong> (${m.email})`).join(', '));
       }
       if (parts.length) {
-        dupProfile.innerHTML = '⚠ Doublon possible. ' + parts.join(' — ');
+        dupProfile.innerHTML = '⚠ Doublon possible. ' + parts.join(' : ');
         dupProfile.hidden = false;
       } else {
         dupProfile.hidden = true;

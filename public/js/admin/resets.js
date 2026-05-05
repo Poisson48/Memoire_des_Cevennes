@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / mots de passe oubliés (et invitations)
+// Mémoire des Cévennes : admin / mots de passe oubliés (et invitations)
 // Demandes de réinitialisation publiques (/forgot.html) + invitations
 // créées par l'admin sont gérées ici. Une approbation génère une clé
 // d'usage unique réaffichable tant que la demande est `approved`.
@@ -25,14 +25,14 @@ async function refreshResets() {
 
 function renderResets(container, items, kind) {
   if (!items.length) {
-    container.innerHTML = '<p class="empty">— aucune —</p>';
+    container.innerHTML = '<p class="empty">aucune</p>';
     return;
   }
   container.innerHTML = items.map(r => {
     const memberLine = r.member
       ? `<strong>${escapeHtml(r.member.name || '(sans nom)')}</strong> · <code>${escapeHtml(r.member.email)}</code> · rôle ${escapeHtml(r.member.role)}`
       : `<em>Aucun compte ne correspond à <code>${escapeHtml(r.emailRequested || '?')}</code></em>`;
-    const submittedAt = r.requestedAt ? new Date(r.requestedAt).toLocaleString('fr-FR') : '—';
+    const submittedAt = r.requestedAt ? new Date(r.requestedAt).toLocaleString('fr-FR') : '…';
     const expiresAt   = r.expiresAt   ? new Date(r.expiresAt).toLocaleString('fr-FR')   : null;
     const reviewedAt  = r.reviewedAt  ? new Date(r.reviewedAt).toLocaleString('fr-FR')  : null;
 
@@ -42,7 +42,7 @@ function renderResets(container, items, kind) {
       actionsHtml = `
         <div class="actions">
           <button type="button" class="btn-primary" data-reset-action="approve"
-                  ${canApprove ? '' : 'disabled title="Aucun compte trouvé pour cet email — refuser plutôt"'}>
+                  ${canApprove ? '' : 'disabled title="Aucun compte trouvé pour cet email : refuser plutôt"'}>
             ✓ Approuver
           </button>
           <button type="button" class="btn-ghost" data-reset-action="reject">✕ Refuser</button>
@@ -101,7 +101,7 @@ async function handleResetAction(action, card) {
     return;
   }
   if (action === 'reject') {
-    const reason = prompt('Raison du refus (optionnel — pour l\'audit) :', '');
+    const reason = prompt('Raison du refus (optionnel : pour l\'audit) :', '');
     if (reason === null) return; // annulé
     try {
       await fetchJson(`/api/admin/password-resets/${encodeURIComponent(id)}/reject`,
@@ -146,6 +146,6 @@ document.getElementById('btn-copy-reset-key')?.addEventListener('click', async (
     btn.textContent = '✓ Copié';
     setTimeout(() => { btn.textContent = old; }, 1500);
   } catch {
-    alert('Copie impossible — sélectionne le texte manuellement.');
+    alert('Copie impossible : sélectionne le texte manuellement.');
   }
 });

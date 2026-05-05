@@ -1,6 +1,6 @@
 'use strict';
 
-// Sauvegardes / exports / imports — archives .tar.gz contenant
+// Sauvegardes / exports / imports : archives .tar.gz contenant
 //   manifest.json   (version app, version schéma, sha256 des fichiers)
 //   data/*.json     (places, people, stories, edits, members, reports, activity_log)
 //   uploads/        (médias attachés aux récits)
@@ -52,7 +52,7 @@ const SCHEMA_VERSION = 2;
 // le faire passer à version+1. Chaîner naturellement vers SCHEMA_VERSION.
 const MIGRATIONS = {
   // v1 → v2 : ajout du champ optionnel `phone` aux membres. Pas de
-  // backfill nécessaire — `undefined` est traité comme « pas de
+  // backfill nécessaire : `undefined` est traité comme « pas de
   // téléphone » par le code lecteur.
   1: (_files) => {},
 };
@@ -109,7 +109,7 @@ function decryptFile(srcPath, dstPath, passphrase) {
     throw new Error('Archive chiffrée trop courte ou corrompue');
   }
   if (!data.slice(0, 4).equals(ENC_MAGIC)) {
-    throw new Error('Magic bytes invalides — archive non chiffrée ou format inconnu');
+    throw new Error('Magic bytes invalides : archive non chiffrée ou format inconnu');
   }
   const version = data[4];
   if (version !== ENC_VERSION) {
@@ -454,7 +454,7 @@ async function restoreFromArchive(archivePath, { reviewer, skipPreRestore, sourc
   // snapshot pre-restore inutile.
   const earlyManifest = await readManifestFromArchive(archivePath);
   if (typeof earlyManifest.schemaVersion !== 'number') {
-    throw new Error('Manifest sans schemaVersion — archive non reconnue');
+    throw new Error('Manifest sans schemaVersion : archive non reconnue');
   }
   if (earlyManifest.schemaVersion > SCHEMA_VERSION) {
     throw new Error(
@@ -489,7 +489,7 @@ async function restoreFromArchive(archivePath, { reviewer, skipPreRestore, sourc
     // 4. Manifest + sha256 + migrations
     const manifestPath = path.join(extractDir, 'manifest.json');
     if (!fs.existsSync(manifestPath)) {
-      throw new Error('Archive sans manifest.json — pas un backup Mémoire des Cévennes valide');
+      throw new Error('Archive sans manifest.json : pas un backup Mémoire des Cévennes valide');
     }
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
@@ -557,7 +557,7 @@ async function restoreBackup(id, opts = {}) {
 // kind="import" pour garder une trace.
 async function importArchive(archivePath, { reviewer } = {}) {
   // restoreFromArchive lit le manifest et valide schemaVersion AVANT
-  // de créer un snapshot pre-restore — pas besoin de redoubler ici.
+  // de créer un snapshot pre-restore : pas besoin de redoubler ici.
   const result = await restoreFromArchive(archivePath, { reviewer, sourceLabel: 'import externe' });
 
   // Conserver l'archive importée dans backups/ pour audit, en gardant
@@ -703,7 +703,7 @@ async function getStorageStats() {
       freeBytes:  Number(s.bavail) * Number(s.bsize),
       usedBytes:  (Number(s.blocks) - Number(s.bfree)) * Number(s.bsize),
     };
-  } catch { /* statfs indisponible — on s'en passe */ }
+  } catch { /* statfs indisponible : on s'en passe */ }
 
   return {
     data:    dataS,

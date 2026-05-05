@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — arbre généalogique SVG
+// Mémoire des Cévennes : arbre généalogique SVG
 //
 // API :
 //   FamilyTree.render(el, focusId, peopleMap, { onNavigate, compact })
@@ -12,7 +12,7 @@
 //   - focus + fratrie (même parent) + conjoint(s)
 //   - enfants
 //
-// `compact: true` retire la ligne des grands-parents — utile pour un aperçu
+// `compact: true` retire la ligne des grands-parents : utile pour un aperçu
 // dans un panneau latéral.
 
 (function() {
@@ -23,7 +23,7 @@
   const GY = 72;  // écart vertical entre rangées
   const NAME_PAD = 8; // marge intérieure horizontale réservée au texte
 
-  // Mesure réelle de la largeur (font Georgia 13px bold) — permet de
+  // Mesure réelle de la largeur (font Georgia 13px bold) : permet de
   // décider si un nom déborde. Lazy : créé à la première mesure pour ne
   // pas casser les tests headless qui n'ont pas de canvas.
   let _measureFn = null;
@@ -262,7 +262,7 @@
       }
     }
 
-    // Grandparents row — chaque groupe centré sur son parent
+    // Grandparents row : chaque groupe centré sur son parent
     function placeGP(list, parentCX) {
       if (list.length === 0 || parentCX === null) return;
       const totalW = groupWidth(list.length);
@@ -404,7 +404,7 @@
     });
     g.setAttribute('tabindex', 0);
     g.setAttribute('role', 'button');
-    g.setAttribute('aria-label', `${primary} — ouvrir la fiche`);
+    g.setAttribute('aria-label', `${primary} : ouvrir la fiche`);
 
     svg.appendChild(g);
   }

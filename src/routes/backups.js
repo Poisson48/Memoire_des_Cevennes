@@ -17,7 +17,7 @@ const router = express.Router();
 
 // Multer : on stocke l'archive uploadée dans os.tmpdir() puis on la
 // passe à backup.importArchive() qui se charge des vérifs.
-// Limite 1 Go — au-dessus, l'admin doit faire ça en CLI directement.
+// Limite 1 Go : au-dessus, l'admin doit faire ça en CLI directement.
 const importUpload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, os.tmpdir()),
@@ -67,7 +67,7 @@ router.get('/', async (_req, res, next) => {
 });
 
 // ─── Stats stockage ───────────────────────────────────────────────────
-// Monté à part comme /api/admin/storage par admin.js — dispo aussi ici
+// Monté à part comme /api/admin/storage par admin.js : dispo aussi ici
 // sous /api/admin/backups/_storage pour compat.
 router.get('/_storage', async (_req, res, next) => {
   try { res.json(await backup.getStorageStats()); }

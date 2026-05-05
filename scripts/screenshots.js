@@ -12,7 +12,7 @@ const BASE = `http://localhost:${PORT}`;
 const OUT = path.join(__dirname, '..', 'docs', 'screenshots');
 fs.mkdirSync(OUT, { recursive: true });
 
-// Les tuiles OSM mettent quelques secondes à charger — on attend un peu.
+// Les tuiles OSM mettent quelques secondes à charger : on attend un peu.
 async function settleMap(page) {
   await page.waitForSelector('.leaflet-marker-icon', { timeout: 10000 });
   await page.waitForTimeout(1200);
@@ -32,7 +32,7 @@ async function runDesktop(browser) {
   });
   page.on('pageerror', err => console.log('  [pageerror]', err.message));
 
-  console.log('— Desktop —');
+  console.log(': Desktop :');
   // Pré-désactive le welcome dialog (il intercepte tous les clics).
   await page.goto(BASE);
   await page.evaluate(() => { try { localStorage.setItem('mdc-welcome-dismissed', '1'); } catch {} });
@@ -141,7 +141,7 @@ async function runMobile(browser) {
   });
   const page = await ctx.newPage();
 
-  console.log('— Mobile —');
+  console.log(': Mobile :');
   await page.goto(BASE);
   await page.evaluate(() => { try { localStorage.setItem('mdc-welcome-dismissed', '1'); } catch {} });
   await page.goto(BASE, { waitUntil: 'networkidle' });
@@ -198,7 +198,7 @@ async function runAdmin(browser) {
     }
   });
 
-  console.log('— Admin —');
+  console.log(': Admin :');
   // Dépose le token + reviewer en localStorage via une première visite.
   await page.goto(`${BASE}/admin.html`);
   await page.evaluate((token) => {
@@ -238,7 +238,7 @@ async function runAdmin(browser) {
     await runDesktop(browser);
     await runMobile(browser);
     if (process.env.ADMIN_TOKEN) await runAdmin(browser);
-    else console.log('— Admin — (skip : ADMIN_TOKEN non défini)');
+    else console.log(': Admin : (skip : ADMIN_TOKEN non défini)');
   } finally {
     await browser.close();
   }

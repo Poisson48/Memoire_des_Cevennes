@@ -129,5 +129,5 @@ if (APPLY) {
   saveAll(dbs);
   console.log('✓ fusion appliquée.');
 } else {
-  console.log('(dry-run — relance avec --apply pour écrire)');
+  console.log('(dry-run : relance avec --apply pour écrire)');
 }

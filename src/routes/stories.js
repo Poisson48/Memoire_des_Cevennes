@@ -62,7 +62,7 @@ router.post('/', requireAuth('member'), async (req, res, next) => {
       entityId: story.id,
       ip: req.ip,
     });
-    res.status(201).json({ story, message: 'Ajout reçu — en attente de validation.' });
+    res.status(201).json({ story, message: 'Ajout reçu : en attente de validation.' });
   } catch (err) { next(err); }
 });
 
@@ -93,7 +93,7 @@ router.post('/:id/completions', requireAuth('member'), async (req, res, next) =>
     });
     res.status(201).json({
       completion,
-      message: 'Complétion reçue — en attente de validation admin.',
+      message: 'Complétion reçue : en attente de validation admin.',
     });
   } catch (err) { next(err); }
 });

@@ -1,4 +1,4 @@
-/* Pages légales — rendu typographique lisible en lecture longue. */
+/* Pages légales : rendu typographique lisible en lecture longue. */
 .legal-body {
   background: var(--bg);
   color: var(--fg);
@@ -99,7 +99,7 @@
 }
 
 /* Bandeau footer commun ajouté sur les pages principales. Posé dans le
-   flux (sous la carte) plutôt qu'en absolute par-dessus la carte —
+   flux (sous la carte) plutôt qu'en absolute par-dessus la carte :
    évite que le footer translucide ne rogne les tuiles ou l'attribution
    OSM. La page carte (index.html) fait `<main>` flex-column : le map
    prend `flex: 1`, ce footer occupe la rangée du bas. */
@@ -133,7 +133,7 @@
 }
 
 
-/* Badge version dans le topbar — visible à côté du titre. */
+/* Badge version dans le topbar : visible à côté du titre. */
 .version-badge {
   display: inline-block;
   margin-left: 0.5rem;

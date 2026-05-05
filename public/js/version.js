@@ -59,7 +59,7 @@
       return '<p class="muted">Pas encore de bump de version enregistré.</p>';
     }
     return entries.map(e => {
-      const titleClean = e.subject.replace(/^(?:v|Bump\s+)[0-9.]+\s*[:\-—]?\s*/i, '');
+      const titleClean = e.subject.replace(/^(?:v|Bump\s+)[0-9.]+\s*[:\-:]?\s*/i, '');
       return `
         <article class="changelog-entry">
           <header>

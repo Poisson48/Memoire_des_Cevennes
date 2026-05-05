@@ -1,4 +1,4 @@
-// Onglet « Cadastre (avancé) » — outil de calibration du décalage
+// Onglet « Cadastre (avancé) » : outil de calibration du décalage
 // cadastre IGN ↔ orthophoto, calibré visuellement sur Saint-Roman.
 //
 // UX tactile : pas de drag-and-drop. Une mire fixe au centre de la carte,
@@ -56,12 +56,12 @@
 
     L.tileLayer(photoUrl, {
       maxNativeZoom: 19, maxZoom: 22,
-      attribution: '© IGN — Géoplateforme',
+      attribution: '© IGN : Géoplateforme',
     }).addTo(map);
 
     L.tileLayer(cadUrl, {
       maxNativeZoom: 20, maxZoom: 22, opacity: 0.85,
-      attribution: '© IGN — Cadastre',
+      attribution: '© IGN : Cadastre',
     }).addTo(map);
 
     document.getElementById('cadastre-pose').addEventListener('click', poseAtCenter);
@@ -105,7 +105,7 @@
       btn.textContent = '② Poser le point cadastre (bleu)';
       btn.disabled = false;
     } else {
-      btn.textContent = '✓ Terminé — réinitialiser pour recommencer';
+      btn.textContent = '✓ Terminé : réinitialiser pour recommencer';
       btn.disabled = true;
     }
   }

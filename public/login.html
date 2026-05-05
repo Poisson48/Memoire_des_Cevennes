@@ -2,8 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion — Mémoire des Cévennes</title>
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Connexion : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
@@ -104,6 +105,7 @@
     }
     .auth-admin-note a { color: var(--accent-dark); }
   </style>
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -174,7 +176,7 @@
         const json = await res.json();
         if (!res.ok) {
           if (json.adminLoginUrl) {
-            errEl.innerHTML = (json.error || 'Compte admin — utilise la page admin.')
+            errEl.innerHTML = (json.error || 'Compte admin : utilise la page admin.')
               + ' <a href="' + json.adminLoginUrl + '">Aller sur /admin.html</a>';
           } else {
             errEl.textContent = json.error || 'Identifiants incorrects.';

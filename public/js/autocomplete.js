@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — autocomplétion des noms de contributeur.
+// Mémoire des Cévennes : autocomplétion des noms de contributeur.
 //
 // Chaque <input data-autocomplete="person"> déclenche une recherche
 // debounced via /api/resolve quand l'utilisateur tape. Les Personnes
@@ -14,7 +14,7 @@
 //
 // Objectif UX : quand quelqu'un a déjà contribué ou quand son nom existe
 // déjà dans le graphe (via un témoignage, une mention, l'arbre généalo-
-// gique), son nom lui est automatiquement suggéré — son identité reste
+// gique), son nom lui est automatiquement suggéré : son identité reste
 // cohérente d'un ajout à l'autre, au lieu d'avoir trois variantes du
 // même nom dans la base.
 
@@ -119,7 +119,7 @@
   function renderMenu(menu, input, hits) {
     menu.innerHTML = hits.map(h => {
       const aliasBit = h.source === 'alias' && h.alias
-        ? ` <span class="ac-alias">— alias « ${escapeHtml(h.matched)} »</span>`
+        ? ` <span class="ac-alias">: alias « ${escapeHtml(h.matched)} »</span>`
         : '';
       return `<li role="option" data-id="${escapeAttr(h.id)}" data-name="${escapeAttr(h.name)}">
         <strong>${escapeHtml(h.name)}</strong>${aliasBit}
@@ -146,7 +146,7 @@
 
   // Injection du bloc « nouvelle fiche » après chaque contributor-id.
   // Les champs sont optionnels : date de naissance, parents, bio. Ils ne
-  // servent que si le nom typé ne matche aucune Personne existante — dans
+  // servent que si le nom typé ne matche aucune Personne existante : dans
   // ce cas le serveur crée une Personne pending avec ces infos.
   function attachNewPersonBlock(fieldset) {
     if (fieldset.dataset.newPersonInjected === '1') return;
@@ -154,7 +154,7 @@
     const details = document.createElement('details');
     details.className = 'new-person';
     details.innerHTML = `
-      <summary>🌱 Nouvelle fiche — seulement si mon nom n'existe pas encore dans la base</summary>
+      <summary>🌱 Nouvelle fiche : seulement si mon nom n'existe pas encore dans la base</summary>
       <p class="new-person-hint">
         Tous les champs sont optionnels. Ils seront ignorés si tu as
         choisi ton nom dans la liste suggérée plus haut.

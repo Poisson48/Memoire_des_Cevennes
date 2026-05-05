@@ -73,7 +73,7 @@ router.get('/welcome', (_req, res) => {
   res.json(welcome.load());
 });
 
-// Réglages du site (titre, tagline) — lecture publique, lue par le script
+// Réglages du site (titre, tagline) : lecture publique, lue par le script
 // public/js/site-config.js sur chaque page pour remplacer les valeurs par
 // défaut codées dans le HTML.
 router.get('/site-config', (_req, res) => {

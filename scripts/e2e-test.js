@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Test end-to-end Mémoire des Cévennes — PC (1280×800) + mobile (390×844).
+// Test end-to-end Mémoire des Cévennes : PC (1280×800) + mobile (390×844).
 // Capture les écrans clés dans docs/screenshots/.
 // Usage : PORT=18542 node scripts/e2e-test.js
 //         (admin doit déjà exister, identifiants ci-dessous)
@@ -40,7 +40,7 @@ async function runViewport(browser, label, viewport, suffix) {
   page.on('pageerror', e => errors.push(`[${label}] pageerror: ${e.message}`));
   page.on('response', r => { if (r.status() >= 500) errors.push(`[${label}] ${r.status()} ${r.url()}`); });
 
-  console.log(`\n— ${label} (${viewport.width}×${viewport.height}) —`);
+  console.log(`\n: ${label} (${viewport.width}×${viewport.height}) :`);
 
   // 1. Home anonyme
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });

@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — formulaires (contributions + propositions de modif)
+// Mémoire des Cévennes : formulaires (contributions + propositions de modif)
 //
 // Trois flux, tous en mode live uniquement :
 //   1. Ajouter un lieu : clic sur la carte → modale → POST /api/places.
@@ -7,7 +7,7 @@
 //   3. Proposer une modification d'un Lieu / Personne / Récit :
 //      POST /api/:type/:id/edits avec le delta des champs modifiés.
 //
-// Les trois soumissions aboutissent en `status: pending` côté serveur — un
+// Les trois soumissions aboutissent en `status: pending` côté serveur : un
 // admin approuve depuis /admin.html.
 //
 // Ce fichier doit être chargé APRÈS app.js (qui expose state, map, addBtn,
@@ -88,7 +88,7 @@ function renderMediaCaptions() {
 }
 
 // ── Flux 1 : ajouter un lieu ───────────────────────────────────────────
-// `state.addMode` est partagé (défini dans app.js) — on en lit la valeur
+// `state.addMode` est partagé (défini dans app.js) : on en lit la valeur
 // aussi depuis refreshMarkers() pour que les marqueurs existants ne
 // captent pas le clic en phase de pose d'un nouveau lieu.
 let pendingLatLng = null;
@@ -128,7 +128,7 @@ document.getElementById('btn-place-here').addEventListener('click', () => {
 });
 
 // Exposé (hoisted, scope script) pour que js/geo.js puisse corriger la
-// position pendant que la modale est ouverte — bouton « Utiliser ma
+// position pendant que la modale est ouverte : bouton « Utiliser ma
 // position » à l'intérieur du dialogue.
 function setPendingLatLng(latlng) {
   pendingLatLng = latlng;
@@ -199,7 +199,7 @@ function openStoryDialog(placeId) {
 }
 
 function resetRecorderIfAvailable() {
-  // `resetRecorder` est défini plus bas — on teste sa présence pour éviter
+  // `resetRecorder` est défini plus bas : on teste sa présence pour éviter
   // une ReferenceError si le widget n'a pas été initialisé (nav sans
   // MediaRecorder par ex.).
   if (typeof resetRecorder === 'function') resetRecorder();
@@ -234,20 +234,20 @@ async function runCompression(file, label) {
   try {
     const result = await window.Compress.compressIfNeeded(file, {
       onProgress: (p) => updateCompressUI(p),
-      onStatus: (s) => updateCompressUI(null, `${label} — ${s}`),
+      onStatus: (s) => updateCompressUI(null, `${label} : ${s}`),
     });
     // Petit récap visuel avant de passer au suivant
     if (!result.skipped) {
       const ratio = Math.round((1 - result.compressed / result.original) * 100);
       const from = Math.round(result.original / 1024);
       const to   = Math.round(result.compressed / 1024);
-      updateCompressUI(1, `${label} — compressé : ${from} Ko → ${to} Ko (-${ratio}%)`);
+      updateCompressUI(1, `${label} compressé : ${from} Ko → ${to} Ko (-${ratio}%)`);
       await sleep(400);
     }
     return result;
   } catch (err) {
     console.warn('compression error:', err);
-    updateCompressUI(null, `${label} — compression ignorée (${err.message}), envoi du fichier original`);
+    updateCompressUI(null, `${label} : compression ignorée (${err.message}), envoi du fichier original`);
     await sleep(600);
     return { blob: file, filename: file.name };
   }
@@ -273,7 +273,7 @@ function readMentions(textarea, currentBody) {
 
 // Extraction cohérente de l'identité du contributeur depuis un FormData.
 // Tous les dialogs utilisent les mêmes noms de champs (name, writtenFrom,
-// relationship, email) — voir le fieldset.contributor-id dans index.html.
+// relationship, email) : voir le fieldset.contributor-id dans index.html.
 // Retourne `personId` si l'utilisateur a piqué son nom dans l'autocomplétion.
 function extractSubmittedBy(fd) {
   const out = {};
@@ -293,7 +293,7 @@ function extractSubmittedBy(fd) {
 
 // Extrait l'objet newPerson (création à la volée d'une Personne dans le
 // graphe) si l'utilisateur a rempli au moins un champ optionnel. N'est
-// exploité par le serveur que si submittedBy.personId est vide — sinon
+// exploité par le serveur que si submittedBy.personId est vide : sinon
 // le nom est déjà lié à une fiche existante.
 function extractNewPerson(fd) {
   const out = {};
@@ -364,7 +364,7 @@ formStory.addEventListener('submit', async (e) => {
     // Fichiers sélectionnés (plusieurs possibles) + enregistrement in-browser.
     // On passe chaque fichier dans le compresseur client avant upload.
     // Les légendes saisies sont envoyées dans des champs `captions[]` du
-    // même ordre que les fichiers — multer les récupère via req.body.
+    // même ordre que les fichiers : multer les récupère via req.body.
     const mediaForm = new FormData();
     let added = 0;
     const filesToProcess = [...(storyMediaInput.files || [])];
@@ -372,7 +372,7 @@ formStory.addEventListener('submit', async (e) => {
       const file = filesToProcess[idx];
       if (!file || file.size <= 0) continue;
       const label = filesToProcess.length > 1
-        ? `Fichier ${idx + 1}/${filesToProcess.length} — ${file.name}`
+        ? `Fichier ${idx + 1}/${filesToProcess.length} : ${file.name}`
         : `${file.name}`;
       const result = await runCompression(file, label);
       mediaForm.append('media', result.blob, result.filename || file.name);
@@ -621,7 +621,7 @@ formComplete.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
     dlgComplete.close('submit');
-    alert(data.message || 'Complétion reçue — en attente de validation.');
+    alert(data.message || 'Complétion reçue : en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }
@@ -666,7 +666,7 @@ document.getElementById('form-edit-completion').addEventListener('submit', async
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
     document.getElementById('dlg-edit-completion').close('submit');
-    alert(data.message || 'Proposition envoyée — en attente de validation.');
+    alert(data.message || 'Proposition envoyée : en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }
@@ -709,7 +709,7 @@ formEdit.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
     dlgEdit.close('submit');
-    alert(data.message || 'Proposition reçue — en attente de validation.');
+    alert(data.message || 'Proposition reçue : en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }

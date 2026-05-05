@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / page d'accueil
+// Mémoire des Cévennes : admin / page d'accueil
 // Édition du markdown affiché dans le modal d'accueil de la home. Aperçu
 // live via le parseur partagé public/js/markdown.js.
 
@@ -31,7 +31,7 @@ function refreshWelcomePreview() {
 
 async function refreshWelcome() {
   if (!welcomeMd) return;
-  welcomeMd.value = '— chargement —';
+  welcomeMd.value = 'chargement...';
   try {
     // /api/welcome est public, pas besoin d'auth headers
     const res = await fetch('/api/welcome', { credentials: 'same-origin' });
@@ -40,7 +40,7 @@ async function refreshWelcome() {
     welcomeMd.value = data.content || '';
     _welcomeOriginal = welcomeMd.value;
     if (welcomeMeta) {
-      const when = data.updatedAt ? new Date(data.updatedAt).toLocaleString('fr-FR') : '— jamais modifié —';
+      const when = data.updatedAt ? new Date(data.updatedAt).toLocaleString('fr-FR') : 'jamais modifié';
       welcomeMeta.textContent = `Dernière modif : ${when}${data.updatedBy ? ` par ${data.updatedBy}` : ''}`;
     }
     refreshWelcomePreview();

@@ -1,9 +1,9 @@
-// Mémoire des Cévennes — recherche d'adresse + géolocalisation
+// Mémoire des Cévennes : recherche d'adresse + géolocalisation
 //
 // Deux aides pour poser un lieu sans se battre avec le zoom :
 //   1. Recherche d'adresse (Nominatim/OSM) en surimpression sur la carte.
 //      L'utilisateur tape une adresse / un village / un lieu-dit et la
-//      carte s'y positionne — biaisée sur les Cévennes, mais non bornée.
+//      carte s'y positionne : biaisée sur les Cévennes, mais non bornée.
 //   2. Géolocalisation (navigator.geolocation) : deux entrées,
 //        - bouton dans l'astuce d'ajout (pose directe + ouvre la modale),
 //        - bouton dans la modale (corrige la position après coup).
@@ -18,7 +18,7 @@
 
 // ── Config Nominatim ──────────────────────────────────────────────────
 // Viewbox large autour des Cévennes pour biaiser les suggestions sans
-// les limiter — si la personne cherche Montpellier ou Paris, ça marche
+// les limiter : si la personne cherche Montpellier ou Paris, ça marche
 // quand même.
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const CEVENNES_VIEWBOX = '3.3,44.5,4.3,43.7';   // lon1,lat1,lon2,lat2
@@ -190,8 +190,8 @@ function geolocate({ onSuccess, onError }) {
     (pos) => onSuccess(L.latLng(pos.coords.latitude, pos.coords.longitude), pos.coords.accuracy),
     (err) => {
       const msgs = {
-        1: 'Autorisation refusée — active la localisation dans les réglages du navigateur.',
-        2: 'Position indisponible — réessaye dans un instant.',
+        1: 'Autorisation refusée : active la localisation dans les réglages du navigateur.',
+        2: 'Position indisponible : réessaye dans un instant.',
         3: 'La localisation met trop de temps à répondre.',
       };
       onError(msgs[err.code] || ('Erreur : ' + err.message));

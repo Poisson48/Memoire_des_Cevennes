@@ -2,8 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inscription — Mémoire des Cévennes</title>
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Inscription : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
@@ -120,6 +121,7 @@
       margin-top: 0.15rem;
     }
   </style>
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -145,7 +147,7 @@
           <input type="email" name="email" required autocomplete="email" />
         </label>
         <label>Téléphone <span class="hint" style="display:inline;font-weight:normal;">(facultatif)</span>
-          <input type="tel" name="phone" autocomplete="tel" placeholder="06 12 34 56 78" />
+          <input type="tel" name="phone" autocomplete="tel" placeholder="06.12.34.56.78" />
         </label>
         <label>Mot de passe
           <input type="password" name="password" required autocomplete="new-password" minlength="8" />

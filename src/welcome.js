@@ -1,6 +1,6 @@
 'use strict';
 
-// Page d'accueil personnalisable — contenu markdown stocké dans
+// Page d'accueil personnalisable : contenu markdown stocké dans
 // data/welcome.json. Accessible publiquement en lecture (le modal
 // d'accueil le récupère au boot du frontend), modifiable uniquement par
 // l'admin.

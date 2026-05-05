@@ -31,7 +31,7 @@ const PAGE_MAP = [
   { pdfPage: 555, story: 'l-oppidum-romain-et-le-chateau-des-bermond',
     caption: 'N°17, p. 34-35 : le château de Saint-Roman-de-Codières et les vallons (Récodier, Vidourle, Savel).' },
   { pdfPage: 556, story: 'la-reforme-et-les-guerres-de-religion-1568-1629',
-    caption: 'N°17, p. 36-37 : couverture Partie 2 — hameaux de Bouras et Drioles, maréchal de Montrevel.' },
+    caption: 'N°17, p. 36-37 : couverture Partie 2 : hameaux de Bouras et Drioles, maréchal de Montrevel.' },
   { pdfPage: 557, story: 'des-delpuech-aux-camplan',
     caption: 'N°17, p. 38-39 : mas de la Nible vu de la tour, et mas de Fromental dans le vallon du Récodier.' },
   { pdfPage: 558, story: 'la-seigneurie-des-aubanel-aux-serre-1620-1789',
@@ -47,7 +47,7 @@ const PAGE_MAP = [
   { pdfPage: 563, story: 'revocation-de-1685-et-conversions-forcees',
     caption: 'N°17, p. 50-51 : appels de notes ; cahier de doléances de 1789.' },
   { pdfPage: 564, story: 'une-eglise-ravagee-et-reconstruite',
-    caption: 'N°17, p. 52-53 : couverture Partie 3 — l\'église plusieurs fois remaniée (1960-1982), le temple de Bourras (1855), la tour rénovée en 1838.' },
+    caption: 'N°17, p. 52-53 : couverture Partie 3 : l\'église plusieurs fois remaniée (1960-1982), le temple de Bourras (1855), la tour rénovée en 1838.' },
   { pdfPage: 565, story: 'massacre-du-29-fevrier-1944',
     caption: 'N°17, p. 54-55 : la maison qu\'occupait la famille Ordinez au hameau de Driolle, incendiée par les SS en 1944 et jamais reconstruite. Mas de La Coste.' },
 ];

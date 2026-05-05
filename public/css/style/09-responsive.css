@@ -7,7 +7,7 @@
 
 /* ── Panneau bottom-sheet : tablette portrait + mobile ─────── */
 /* Sous 768 px (tablette portrait incluse), le panneau latéral est trop
-   imposant — il mange plus de la moitié de la largeur. On bascule en
+   imposant : il mange plus de la moitié de la largeur. On bascule en
    bottom-sheet, comme sur mobile. Les règles spécifiques mobile (topbar,
    dialog) restent dans le bloc max-width:600px plus bas. */
 @media (max-width: 768px) {

@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / boot
+// Mémoire des Cévennes : admin / boot
 // Bascule des onglets + ping initial. Chargé EN DERNIER pour que toutes
 // les fonctions refreshXxx() soient déjà définies dans le scope global.
 
@@ -16,6 +16,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (backupsSection) backupsSection.hidden = currentTab !== 'backups';
     if (welcomeSection) welcomeSection.hidden = currentTab !== 'welcome';
     if (settingsSection) settingsSection.hidden = currentTab !== 'settings';
+    if (accountSection)  accountSection.hidden  = currentTab !== 'account';
     if (cadastreSection) cadastreSection.hidden = currentTab !== 'cadastre';
     if (helpSection)    helpSection.hidden    = currentTab !== 'help';
     if (currentTab === 'queue')    renderQueue(lastQueue);
@@ -26,6 +27,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (currentTab === 'backups')  refreshBackups();
     if (currentTab === 'welcome')  refreshWelcome();
     if (currentTab === 'settings') refreshSettings();
+    if (currentTab === 'account')  refreshAccount();
     if (currentTab === 'cadastre' && window.cadastreCalibrationActivate) {
       window.cadastreCalibrationActivate();
     }

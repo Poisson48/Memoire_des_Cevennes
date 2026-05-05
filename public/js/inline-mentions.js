@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — mentions inline @nom dans les textareas
+// Mémoire des Cévennes : mentions inline @nom dans les textareas
 //
 // Comportement : sur tout textarea marqué `data-mentions="on"`, taper @
 // suivi de lettres ouvre un popover de suggestions (personnes, lieux,
@@ -19,7 +19,7 @@
 // / dates) pour distinguer plusieurs personnes au même prénom.
 //
 // Architecture : un seul popover global réutilisé pour tous les textareas.
-// Pas de bibliothèque externe — vanilla DOM.
+// Pas de bibliothèque externe : vanilla DOM.
 
 (function () {
   if (!document.body) return;
@@ -413,7 +413,7 @@
   }
 
   function onBlur(e) {
-    // mousedown sur popover préemptait déjà — ce blur est juste un nettoyage.
+    // mousedown sur popover préemptait déjà : ce blur est juste un nettoyage.
     setTimeout(hidePopover, 120);
   }
 

@@ -1,10 +1,10 @@
 'use strict';
 
 // Routes d'authentification membres.
-// POST /api/auth/register  — inscription (status: pending)
-// POST /api/auth/login     — connexion → cookie JWT httpOnly
-// POST /api/auth/logout    — effacement du cookie
-// GET  /api/auth/me        — profil du membre connecté
+// POST /api/auth/register  : inscription (status: pending)
+// POST /api/auth/login     : connexion → cookie JWT httpOnly
+// POST /api/auth/logout    : effacement du cookie
+// GET  /api/auth/me        : profil du membre connecté
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
@@ -28,7 +28,7 @@ const router = express.Router();
 // faut que le serveur Express ait `app.set("trust proxy", 1)` pour récupérer
 // la vraie IP. C'est fait dans server.js si NODE_ENV=production.
 //
-// Limites volontairement strictes — on accepte de gêner un user honnête qui
+// Limites volontairement strictes : on accepte de gêner un user honnête qui
 // se trompe 5 fois plutôt que d'autoriser un brute-force en ligne.
 
 const loginLimiter = rateLimit({
@@ -36,7 +36,7 @@ const loginLimiter = rateLimit({
   limit: 5,                            // 5 tentatives par fenêtre
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: 'Trop de tentatives — réessaie dans 15 minutes.' },
+  message: { error: 'Trop de tentatives : réessaie dans 15 minutes.' },
   // Ne compte que les échecs : si le user se connecte du premier coup,
   // ses 4 essais "réussis" précédents (en SSO multi-onglets par ex.) ne
   // déclenchent pas le verrou.
@@ -48,17 +48,17 @@ const registerLimiter = rateLimit({
   limit: 5,                            // 5 inscriptions max / IP / heure
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: 'Trop d\'inscriptions depuis cette adresse — réessaie plus tard.' },
+  message: { error: 'Trop d\'inscriptions depuis cette adresse : réessaie plus tard.' },
 });
 
-// Demande "mot de passe oublié" — rare, manuel côté admin. On limite
+// Demande "mot de passe oublié" : rare, manuel côté admin. On limite
 // surtout pour empêcher un script de polluer la file de modération.
 const forgotLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,            // 1 heure
   limit: 5,                            // 5 demandes max / IP / heure
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: 'Trop de demandes — réessaie plus tard.' },
+  message: { error: 'Trop de demandes : réessaie plus tard.' },
 });
 
 // Tentatives de saisie d'une clé de réinitialisation. Plus généreux que
@@ -69,7 +69,7 @@ const resetLimiter = rateLimit({
   limit: 20,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: 'Trop de tentatives — réessaie dans 15 minutes.' },
+  message: { error: 'Trop de tentatives : réessaie dans 15 minutes.' },
 });
 
 /** Options du cookie JWT. */
@@ -98,7 +98,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
     res.status(201).json({
       ok: true,
       member,
-      message: 'Inscription enregistrée — en attente de validation par un administrateur.',
+      message: 'Inscription enregistrée : en attente de validation par un administrateur.',
     });
   } catch (err) {
     if (err.message.includes('existe déjà')) {
@@ -112,7 +112,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────
-// Login membre — refuse les comptes admin (séparation des deux espaces).
+// Login membre : refuse les comptes admin (séparation des deux espaces).
 // Les admins se connectent via /admin.html avec X-Admin-Token, ou via
 // /api/auth/admin-login s'ils veulent leur cookie JWT admin.
 router.post('/login', loginLimiter, async (req, res, next) => {
@@ -130,7 +130,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
     const payload = jwt.decode(token);
     if (payload && payload.role === 'admin') {
       return res.status(403).json({
-        error: 'Compte administrateur — connecte-toi via /admin.html',
+        error: 'Compte administrateur : connecte-toi via /admin.html',
         adminLoginUrl: '/admin.html',
       });
     }
@@ -158,7 +158,7 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     if (!payload || payload.role !== 'admin') {
       return res.status(403).json({ error: "Ce compte n'a pas le rôle administrateur." });
     }
-    // Double cookie : un admin est techniquement aussi un membre — il peut
+    // Double cookie : un admin est techniquement aussi un membre : il peut
     // contribuer comme un contributeur. On pose donc admin_jwt (pour les
     // routes /api/admin/*) ET token (pour optionalAuth / requireAuth sur
     // les routes membres).
@@ -180,7 +180,7 @@ router.post('/logout', (_req, res) => {
 // ── POST /api/auth/forgot ─────────────────────────────────────────────────
 // Soumet une demande de réinitialisation. Toujours répondre 200 (anti-
 // énumération de comptes). L'admin verra la demande dans la file et
-// décidera si elle est légitime — la vérification d'identité se fait
+// décidera si elle est légitime : la vérification d'identité se fait
 // hors-ligne (téléphone, en personne…).
 router.post('/forgot', forgotLimiter, async (req, res, next) => {
   try {
@@ -204,7 +204,7 @@ router.post('/forgot', forgotLimiter, async (req, res, next) => {
     });
     res.json({ ok: true });
   } catch (err) {
-    // Même en erreur interne, on ne donne pas de signal — log côté serveur.
+    // Même en erreur interne, on ne donne pas de signal : log côté serveur.
     console.error('[forgot]', err.message);
     res.json({ ok: true });
   }
@@ -213,7 +213,7 @@ router.post('/forgot', forgotLimiter, async (req, res, next) => {
 // ── POST /api/auth/reset ──────────────────────────────────────────────────
 // Le membre saisit la clé reçue de l'admin + son nouveau mot de passe.
 // Réponse générique en cas d'échec : la clé est invalide, expirée, ou
-// déjà consommée — on ne dit pas laquelle.
+// déjà consommée : on ne dit pas laquelle.
 router.post('/reset', resetLimiter, async (req, res, next) => {
   try {
     const { key, password } = req.body || {};
@@ -240,7 +240,7 @@ router.post('/reset', resetLimiter, async (req, res, next) => {
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────
 // Renvoie le profil complet (depuis members.json), pas seulement le payload
-// du JWT — pour exposer phone, updatedAt, etc. mis à jour après émission
+// du JWT : pour exposer phone, updatedAt, etc. mis à jour après émission
 // du token.
 router.get('/me', optionalAuth, (req, res) => {
   if (!req.member) {

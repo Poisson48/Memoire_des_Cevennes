@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / membres
+// Mémoire des Cévennes : admin / membres
 // Création de comptes par invitation (clé d'usage unique générée serveur),
 // approbation des inscriptions en attente, changement de rôle, édition
 // du profil (nom / email / téléphone) et signalement des doublons.
@@ -41,12 +41,12 @@ if (formCreateMember) {
         if (j.duplicates.name && j.duplicates.name.length) {
           dupBits.push('même nom que : ' + j.duplicates.name.map(d => `${d.name} (${d.email})`).join(', '));
         }
-        if (dupBits.length) msg += ' ⚠ Doublon possible — ' + dupBits.join(' ; ');
+        if (dupBits.length) msg += ' ⚠ Doublon possible : ' + dupBits.join(' ; ');
       }
       okEl.textContent = msg;
       okEl.hidden = false;
       formCreateMember.reset();
-      // Affiche la clé une seule fois — l'admin doit la copier maintenant.
+      // Affiche la clé une seule fois : l'admin doit la copier maintenant.
       // (Elle reste réaffichable depuis l'onglet Mots de passe oubliés
       // tant que l'invitation est "approved".)
       showResetKeyDialog(j.key, { member: j.member });
@@ -86,7 +86,7 @@ function dupBadge(member) {
 
 function renderMembers(container, members, showApprove) {
   if (!members.length) {
-    container.innerHTML = '<p class="empty">— aucun —</p>';
+    container.innerHTML = '<p class="empty">aucun</p>';
     return;
   }
   container.innerHTML = members.map(m => `

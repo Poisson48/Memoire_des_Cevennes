@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / file de modération
+// Mémoire des Cévennes : admin / file de modération
 // Liste les contributions en attente : créations (lieu/personne/récit),
 // modifications proposées (diff), complétions de récit. Un clic sur
 // approve/reject/delete frappe l'API correspondante.
@@ -41,7 +41,7 @@ function renderQueue(items) {
     return i.kind === currentFilter;
   });
   if (filtered.length === 0) {
-    queueEl.innerHTML = '<p class="empty">✨ Rien à modérer — tout est à jour.</p>';
+    queueEl.innerHTML = '<p class="empty">✨ Rien à modérer : tout est à jour.</p>';
     return;
   }
   queueEl.innerHTML = filtered.map(renderItem).join('');
@@ -198,7 +198,7 @@ async function handleAction(btn) {
     if (reason === null) return;
   }
   if (action === 'delete') {
-    if (!confirm('Suppression DÉFINITIVE — cette contribution sera retirée de la base et ses médias effacés du serveur. Continuer ?')) return;
+    if (!confirm('Suppression DÉFINITIVE : cette contribution sera retirée de la base et ses médias effacés du serveur. Continuer ?')) return;
   }
 
   let url, method = 'POST';

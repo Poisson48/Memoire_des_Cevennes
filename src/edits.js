@@ -2,12 +2,12 @@
 // changement sur un Lieu, une Personne ou un Récit ; la proposition entre en
 // file d'attente ; un admin la valide ou la refuse.
 //
-// Un edit est un delta — il ne stocke que les champs qui changent, pas
+// Un edit est un delta : il ne stocke que les champs qui changent, pas
 // l'entité entière. L'application d'un edit approuvé fait un Object.assign
 // du delta sur l'entité cible.
 //
 // Note : le champ `note` est analogue au "résumé de modification" de
-// Wikipédia — pourquoi ce changement. Fortement recommandé pour que l'admin
+// Wikipédia : pourquoi ce changement. Fortement recommandé pour que l'admin
 // comprenne l'intention.
 
 const storage = require('./storage');

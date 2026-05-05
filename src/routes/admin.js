@@ -131,7 +131,7 @@ router.get('/members', (req, res) => {
   res.json({ members });
 });
 
-// Création d'un compte par un admin — par invitation, sans mot de passe.
+// Création d'un compte par un admin : par invitation, sans mot de passe.
 // Mécanisme identique à un reset : on génère une clé d'usage unique que
 // l'admin transmet de la main à la main. Le membre choisit lui-même son
 // mot de passe sur reset.html en saisissant la clé. À aucun moment l'admin
@@ -144,7 +144,7 @@ router.post('/members', async (req, res, next) => {
     }
     const validRoles = ['member', 'admin'];
     // Rétro-compat : si un appelant envoie encore "contributor", on traite
-    // comme "member" — la fusion l'a remplacé.
+    // comme "member" : la fusion l'a remplacé.
     const normalizedRole = role === 'contributor' ? 'member' : role;
     const wantedRole = validRoles.includes(normalizedRole) ? normalizedRole : 'member';
     const reviewerId   = (req.member && req.member.id) || 'admin-token';
@@ -167,7 +167,7 @@ router.post('/members', async (req, res, next) => {
       entityId: member.id,
       ip: req.ip,
     });
-    // La clé en clair n'est renvoyée que sur cette réponse — l'admin doit
+    // La clé en clair n'est renvoyée que sur cette réponse : l'admin doit
     // la copier maintenant. Elle reste lisible via GET /password-resets
     // tant que l'invitation est "approved".
     const dups = auth.findDuplicates({
@@ -180,7 +180,7 @@ router.post('/members', async (req, res, next) => {
       member,
       key,
       expiresAt: request.expiresAt,
-      message: 'Compte créé. Transmets la clé au membre — il choisira son mot de passe.',
+      message: 'Compte créé. Transmets la clé au membre : il choisira son mot de passe.',
       duplicates: {
         phone: dups.phone.map(m => ({ id: m.id, name: m.name, email: m.email })),
         name:  dups.name.map(m  => ({ id: m.id, name: m.name, email: m.email })),
@@ -233,7 +233,7 @@ router.post('/members/:id/role', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// DELETE /members/:id — supprime un membre (actif ou pending) et anonymise
+// DELETE /members/:id : supprime un membre (actif ou pending) et anonymise
 // ses contributions. Refuse l'auto-suppression et la suppression du dernier
 // admin actif.
 router.delete('/members/:id', async (req, res, next) => {
@@ -257,7 +257,7 @@ router.delete('/members/:id', async (req, res, next) => {
   }
 });
 
-// PATCH /members/:id — l'admin met à jour name, email et/ou phone.
+// PATCH /members/:id : l'admin met à jour name, email et/ou phone.
 router.patch('/members/:id', (req, res, next) => {
   try {
     const { name, email, phone } = req.body || {};
@@ -309,7 +309,7 @@ router.post('/password-resets/:id/approve', (req, res, next) => {
       entityId: request.id,
       ip: req.ip,
     });
-    // La clé en clair n'est renvoyée que sur cette réponse — l'admin doit
+    // La clé en clair n'est renvoyée que sur cette réponse : l'admin doit
     // la copier maintenant. (Elle reste lisible via GET /password-resets
     // tant que la demande est "approved", utile en cas de fermeture
     // d'onglet, mais on encourage à la noter immédiatement.)
@@ -404,7 +404,7 @@ router.post('/stories/:storyId/completions/:completionId/reject', async (req, re
 });
 
 // ─── Créations (Place / Person / Story pending → approved) ────────────
-// Wildcard en dernier — contrainte via regex pour que 'edits' / 'stories'
+// Wildcard en dernier : contrainte via regex pour que 'edits' / 'stories'
 // avec un sous-path ne tombent PAS ici par erreur.
 router.post('/:type(places|people|stories)/:id/approve', async (req, res, next) => {
   try {
@@ -452,7 +452,7 @@ router.patch('/places/:id/move', async (req, res, next) => {
       entityType: 'place',
       entityId: req.params.id,
       ip: req.ip,
-      // Le journal accepte des champs additionnels — on stocke les coords
+      // Le journal accepte des champs additionnels : on stocke les coords
       // d'avant/après pour pouvoir reconstituer l'historique.
       meta: { from: before, to: { lat, lng } },
     });

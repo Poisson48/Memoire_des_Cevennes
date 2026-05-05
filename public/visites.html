@@ -2,9 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visites — Mémoire des Cévennes</title>
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Visites : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
   <style>
     .visit-stats {
@@ -83,6 +85,7 @@
       color: var(--muted, #666);
     }
   </style>
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body class="legal-body">
   <header class="topbar">
@@ -98,21 +101,21 @@
     <article>
       <p>
         Compteur anonyme de fréquentation. On ne stocke ni adresse IP ni
-        identifiant personnel — seulement un petit jeton aléatoire dans
+        identifiant personnel : seulement un petit jeton aléatoire dans
         ton navigateur pour ne pas te compter deux fois dans la journée.
       </p>
 
       <div class="visit-stats">
         <div class="visit-stat online">
-          <div class="visit-stat-value" id="stat-online">—</div>
+          <div class="visit-stat-value" id="stat-online">…</div>
           <div class="visit-stat-label">en ligne maintenant</div>
         </div>
         <div class="visit-stat">
-          <div class="visit-stat-value" id="stat-today">—</div>
+          <div class="visit-stat-value" id="stat-today">…</div>
           <div class="visit-stat-label">visites aujourd'hui</div>
         </div>
         <div class="visit-stat">
-          <div class="visit-stat-value" id="stat-week">—</div>
+          <div class="visit-stat-value" id="stat-week">…</div>
           <div class="visit-stat-label">visites sur 7 jours</div>
         </div>
       </div>

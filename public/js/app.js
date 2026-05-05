@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — frontend v0.2
+// Mémoire des Cévennes : frontend v0.2
 // Architecture :
 //   - 3 entités chargées au boot (places, people, stories) depuis /api/* en
 //     mode serveur, ou depuis /data/*.json en statique (GitHub Pages).
@@ -32,7 +32,7 @@ const ROLES_ORDER = ['member', 'admin'];
 /** Retourne true si le membre connecté a au moins le rôle minRole. */
 function hasRole(minRole) {
   // Si le serveur a renvoyé un membre via /api/auth/me, le JWT était valide
-  // au moment de la décodage — pas besoin de re-vérifier le status côté
+  // au moment de la décodage : pas besoin de re-vérifier le status côté
   // client (le serveur a déjà refusé si status !== 'active' au login).
   if (!state.member) return false;
   // Alias rétro-compat : JWT pré-fusion peuvent encore porter role="contributor".
@@ -44,7 +44,7 @@ function hasRole(minRole) {
 // ─── Carte ──────────────────────────────────────────────────────────────
 // maxZoom à 22 : permet à l'utilisateur de zoomer au-delà de la résolution
 // native des tuiles (Leaflet upscale les tuiles natives, ça devient flou
-// mais reste exploitable — utile pour aligner précisément un point au
+// mais reste exploitable : utile pour aligner précisément un point au
 // doigt sur tél, par ex. la calibration cadastre). Chaque couche a son
 // propre `maxNativeZoom` pour que l'upscale parte du bon niveau au lieu
 // de virer au gris.
@@ -60,7 +60,7 @@ const defaultBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z
 // Mire fixe au centre de la carte. Affichée via la classe `add-mode` ou
 // `move-mode` sur <body> (forms.js / app.js gèrent ces classes). On
 // pane/zoome la carte sous la mire au lieu de glisser un marker sous
-// le doigt — le doigt n'occulte plus la cible.
+// le doigt : le doigt n'occulte plus la cible.
 {
   const ch = document.createElement('div');
   ch.className = 'map-crosshair';
@@ -130,7 +130,7 @@ function renderAuthNav() {
   const greeting   = document.getElementById('member-greeting');
 
   if (!loginBtn || !logoutBtn || !greeting) {
-    // Page sans ces hooks (login/register/admin) — rien à faire.
+    // Page sans ces hooks (login/register/admin) : rien à faire.
     return;
   }
 
@@ -226,7 +226,7 @@ function refreshMarkers() {
     marker.bindTooltip(p.primaryName);
     marker.on('click', (e) => {
       // En mode ajout d'un lieu, on laisse le clic « traverser » le
-      // marqueur — l'utilisateur pose sa nouvelle épingle même s'il a
+      // marqueur : l'utilisateur pose sa nouvelle épingle même s'il a
       // tapé tout près d'un marqueur existant. Sinon, Leaflet stoppe
       // la propagation et l'événement 'click' de la carte ne se déclenche
       // jamais (bug observé sur mobile près de Saint-Roman).
@@ -280,7 +280,7 @@ function applyMode() {
     }
   }
   // L'astuce « Touche la carte… » ne doit s'afficher QUE quand on a basculé
-  // en mode addMode (clic sur « + Ajouter un lieu »), pas en permanence —
+  // en mode addMode (clic sur « + Ajouter un lieu »), pas en permanence :
   // elle prend trop de place dans le topbar mobile.
   if (addHint) {
     addHint.hidden = !state.addMode;
@@ -292,7 +292,7 @@ function applyMode() {
 // on est en statique (l'appelant doit abandonner).
 function blockedByStaticMode(what = 'Cette action') {
   if (state.mode === 'static') {
-    alert(`Aperçu en lecture seule — ${what} est visible pour montrer le design, mais aucun envoi n'est effectué.\n\nPour contribuer vraiment : clone le dépôt et lance \`./run.sh\` en local.`);
+    alert(`Aperçu en lecture seule : ${what} est visible pour montrer le design, mais aucun envoi n'est effectué.\n\nPour contribuer vraiment : clone le dépôt et lance \`./run.sh\` en local.`);
     return true;
   }
   return false;
@@ -429,7 +429,7 @@ function openPlacePanel(placeId) {
   }).join('');
 
   // Bouton d'ajout de contenu uniquement pour contributor/admin.
-  // Bouton "Déplacer" uniquement pour admin — corrige une position
+  // Bouton "Déplacer" uniquement pour admin : corrige une position
   // approximative directement, sans passer par la file de modération.
   const canContribute = state.mode === 'live' && hasRole('member');
   const canMove       = state.mode === 'live' && hasRole('admin');
@@ -586,7 +586,7 @@ function openFullTree(personId) {
   }
   overlay.dataset.personId = personId;
   overlay.querySelector('.tree-overlay-title').innerHTML =
-    `🌳 <strong>${escapeHtml(person.primaryName)}</strong> — arbre généalogique`;
+    `🌳 <strong>${escapeHtml(person.primaryName)}</strong> : arbre généalogique`;
   const body = overlay.querySelector('.tree-overlay-body');
   if (window.FamilyTree) {
     FamilyTree.render(body, personId, state.people, {
@@ -624,7 +624,7 @@ function renderStoryCard(s, { full = false } = {}) {
     video: 'Vidéo', drawing: 'Dessin', note: 'Note',
   }[s.type] || s.type;
 
-  // Bloc "raconté par" — mis en avant plutôt que mélangé aux autres méta.
+  // Bloc "raconté par" : mis en avant plutôt que mélangé aux autres méta.
   const contributor = s.contributorId ? state.people.get(s.contributorId) : null;
   const contribBlock = s.contributorId
     ? `<div class="story-byline">
@@ -649,13 +649,13 @@ function renderStoryCard(s, { full = false } = {}) {
     return `<p><a href="${f.url}" target="_blank" rel="noopener">Ouvrir le document</a></p>`;
   }).join('');
 
-  // Complétions approuvées — chaque ajout attribué à son auteur·rice.
+  // Complétions approuvées : chaque ajout attribué à son auteur·rice.
   const completions = (s.completions || [])
     .filter(c => c.status === 'approved')
     .map(c => renderCompletion(c, s.id)).join('');
 
   // Actions compactes placées juste après l'entête, pour qu'elles soient
-  // visibles sans scroller — surtout sur mobile où le panel est un bottom
+  // visibles sans scroller : surtout sur mobile où le panel est un bottom
   // sheet court et où le corps du récit peut être long.
   const shareLabel = s.title ? s.title.replace(/<[^>]+>/g, '') : 'ce récit';
   const shareCaption = (s.body || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 240);
@@ -686,7 +686,7 @@ function renderStoryCard(s, { full = false } = {}) {
 function renderCompletion(c, storyId) {
   const who = c.submittedBy || {};
   // Si submittedBy.personId est renseigné, on lie le nom à la fiche de la
-  // Personne correspondante — le graphe reste cohérent.
+  // Personne correspondante : le graphe reste cohérent.
   const nameHtml = who.personId
     ? inlineEntity('personne', who.personId)
     : (who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>');
@@ -765,12 +765,12 @@ function escapeAttr(str) {
 }
 
 // ─── Déplacement d'un lieu (admin) ──────────────────────────────────────
-// Mode déplacement de marker (admin) — pattern mire au centre de la
+// Mode déplacement de marker (admin) : pattern mire au centre de la
 // carte + bouton Valider, comme la calibration cadastre. Le marker
 // d'origine reste affiché en fondu pour repère ; on pane/zoome la
 // carte sous la mire jusqu'à la nouvelle position, puis on valide.
 // Tant qu'on n'a pas validé, libre de re-paner et re-zoomer autant
-// qu'on veut — pas de drag-and-drop qui se valide à chaque relâché.
+// qu'on veut : pas de drag-and-drop qui se valide à chaque relâché.
 
 let _moveBanner = null;
 let _moveOriginalLatLng = null;
@@ -814,7 +814,7 @@ function enterMovePlaceMode(placeId) {
 
   const banner = ensureMoveBanner();
   banner.querySelector('.move-banner-text').innerHTML =
-    `🔧 <strong>Déplacement de</strong> <em>${escapeHtml(place.primaryName)}</em> — ` +
+    `🔧 <strong>Déplacement de</strong> <em>${escapeHtml(place.primaryName)}</em> : ` +
     `pane la carte pour amener la mire centrale sur la nouvelle position, puis tape ✓.`;
   banner.classList.add('active');
 

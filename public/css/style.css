@@ -1,4 +1,4 @@
-/* Mémoire des Cévennes — feuille principale (façade)
+/* Mémoire des Cévennes : feuille principale (façade)
    Le fichier de styles d'origine (1639 l.) a été découpé par responsabilité
    en plusieurs sous-feuilles dans `style/`. L'ordre d'@import compte :
    les feuilles tardives surchargent les précédentes (notamment `responsive`
@@ -14,3 +14,4 @@
 @import url("style/09-responsive.css");
 @import url("style/10-welcome.css");
 @import url("style/11-admin-mode.css");
+@import url("style/12-text-size.css");

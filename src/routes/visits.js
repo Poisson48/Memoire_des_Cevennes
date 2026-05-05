@@ -1,4 +1,4 @@
-// Routes /api/visits — compteur public, anonyme.
+// Routes /api/visits : compteur public, anonyme.
 //   POST /api/visits/heartbeat { sessionId? } → { sessionId, online }
 //   GET  /api/visits/stats                    → { today, week, online, days }
 'use strict';

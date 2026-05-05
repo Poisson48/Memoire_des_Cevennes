@@ -1,5 +1,5 @@
 // Normalisation automatique du gain audio via ffmpeg.
-// Filtre `loudnorm` (norme EBU R128) — niveau cible -16 LUFS, true peak -1.5 dBTP,
+// Filtre `loudnorm` (norme EBU R128) : niveau cible -16 LUFS, true peak -1.5 dBTP,
 // large dynamique 11 LU. Bonne base pour des témoignages oraux où on veut :
 //   - éviter d'avoir un témoin chuchoté inaudible et un autre qui sature,
 //   - ne pas écraser la dynamique d'une voix expressive.
@@ -30,7 +30,7 @@ function checkFfmpeg() {
     ffmpegAvailable = true;
   } catch {
     ffmpegAvailable = false;
-    console.warn('[audio-normalize] ffmpeg introuvable — gain non normalisé.');
+    console.warn('[audio-normalize] ffmpeg introuvable : gain non normalisé.');
   }
   return ffmpegAvailable;
 }

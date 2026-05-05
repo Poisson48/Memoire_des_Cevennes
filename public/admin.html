@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="color-scheme" content="light" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Administration — Mémoire des Cévennes</title>
+  <title>Administration : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/admin.css" />
@@ -14,7 +14,7 @@
 <body class="admin-body">
   <header class="topbar admin-topbar">
     <div class="topbar-titles">
-      <h1>🛡️ Administration — <span data-site-title>Mémoire des Cévennes</span> <span class="version-badge" data-version></span></h1>
+      <h1>🛡️ Administration : <span data-site-title>Mémoire des Cévennes</span> <span class="version-badge" data-version></span></h1>
       <p class="tagline">Validation des ajouts et des propositions de modification.</p>
     </div>
     <div class="topbar-actions">
@@ -145,7 +145,7 @@
 
       <div id="resets" class="queue" hidden>
         <p class="backups-intro">
-          Clés d'usage unique — deux usages partagent la même file :
+          Clés d'usage unique. Deux usages partagent la même file :
           les <strong>réinitialisations</strong> demandées par les membres
           via <a href="/oubli.html">/oubli.html</a> (à approuver une fois
           l'identité vérifiée hors-ligne) et les <strong>invitations</strong>
@@ -166,13 +166,13 @@
 
       <!-- Modale d'affichage de la clé après approbation -->
       <dialog id="reset-key-dialog">
-        <h2>Clé générée — à transmettre maintenant</h2>
+        <h2>Clé générée : à transmettre maintenant</h2>
         <p class="hint" style="margin-bottom:0.6rem;">
           Note-la ou copie-la tout de suite, puis transmets-la au membre par
           téléphone ou en personne. Elle expire dans 7 jours et ne sert
           qu'une fois.
         </p>
-        <div id="reset-key-value" style="font-family: ui-monospace, Menlo, monospace; font-size: 1.5rem; letter-spacing: 0.1em; padding: 0.8rem 1rem; background: #f6f0e7; border: 2px dashed var(--accent); border-radius: 6px; text-align: center; user-select: all;">—</div>
+        <div id="reset-key-value" style="font-family: ui-monospace, Menlo, monospace; font-size: 1.5rem; letter-spacing: 0.1em; padding: 0.8rem 1rem; background: #f6f0e7; border: 2px dashed var(--accent); border-radius: 6px; text-align: center; user-select: all;">…</div>
         <p class="hint" id="reset-key-meta" style="margin-top:0.6rem;"></p>
         <div class="actions" style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button type="button" id="btn-copy-reset-key" class="btn-primary">📋 Copier</button>
@@ -359,8 +359,8 @@
         <h3 id="help-connexion">1. Me connecter à l'espace admin</h3>
         <p>Deux moyens, exclusifs :</p>
         <ul>
-          <li><strong>Compte admin personnel</strong> (recommandé) — onglet <em>Compte admin</em>, login + mot de passe.</li>
-          <li><strong>Token partagé</strong> — onglet <em>Token partagé</em>, valeur de la variable <code>ADMIN_TOKEN</code> du serveur. Utile pour le bootstrap initial ou un accès d'urgence.</li>
+          <li><strong>Compte admin personnel</strong> (recommandé) : onglet <em>Compte admin</em>, login + mot de passe.</li>
+          <li><strong>Token partagé</strong> : onglet <em>Token partagé</em>, valeur de la variable <code>ADMIN_TOKEN</code> du serveur. Utile pour le bootstrap initial ou un accès d'urgence.</li>
         </ul>
         <div class="shot-pair">
           <figure class="shot">
@@ -374,13 +374,13 @@
         </div>
         <div class="step warn">
           Tenter de se connecter à <code>/login.html</code> avec un compte admin
-          ne fonctionne pas — l'admin a son propre espace.
+          ne fonctionne pas : l'admin a son propre espace.
         </div>
 
         <h3 id="help-file">2. Valider les contributions en attente</h3>
         <p>
           L'onglet <strong>« File de modération »</strong> liste toutes les
-          créations et propositions de modifications en <code>pending</code> —
+          créations et propositions de modifications en <code>pending</code> :
           nouveaux lieux, nouvelles personnes, nouveaux récits, modifications
           proposées par les contributeurs.
         </p>
@@ -395,13 +395,13 @@
         </ol>
         <div class="step tip">
           <strong>Astuce :</strong> tu peux laisser un commentaire interne au
-          moment du refus — il sera visible dans le journal et utile à un autre
+          moment du refus : il sera visible dans le journal et utile à un autre
           admin qui re-traite la proposition plus tard.
         </div>
 
         <h3 id="help-membres">3. Approuver et gérer les membres</h3>
         <p>
-          L'onglet <strong>« Membres »</strong> liste les comptes — en attente
+          L'onglet <strong>« Membres »</strong> liste les comptes : en attente
           d'approbation, actifs, suspendus. Tu peux :
         </p>
         <ul>
@@ -417,7 +417,7 @@
           <code>XXXX-XXXX-XXXX</code> (valable 7 jours, alphabet sans
           0/O/1/I/L). Le titulaire la saisit sur <code>/reset.html</code>
           pour choisir lui-même son mot de passe. La clé n'est affichée
-          qu'une seule fois — pense à la copier ; sinon elle reste
+          qu'une seule fois : pense à la copier ; sinon elle reste
           réaffichable depuis l'onglet « Mots de passe oubliés » tant que
           l'invitation est <code>approved</code>.
         </div>
@@ -504,7 +504,7 @@
           <strong>Chiffrement :</strong> si la variable <code>BACKUP_PASSPHRASE</code>
           est définie côté serveur, toutes les archives sortent chiffrées
           (extension <code>.tar.gz.enc</code>). Garde la passphrase ailleurs
-          que sur le serveur — sans elle, les archives chiffrées sont
+          que sur le serveur : sans elle, les archives chiffrées sont
           irrécupérables.
         </div>
         <div class="step tip">
@@ -529,7 +529,7 @@
         <p>
           L'onglet <strong>« 🎯 Cadastre »</strong> sert à mesurer le décalage
           entre les tuiles cadastre IGN et la réalité OSM/aérienne sur la
-          zone — utile uniquement quand on remarque des bâtiments décalés
+          zone : utile uniquement quand on remarque des bâtiments décalés
           systématiquement de quelques mètres. La procédure : on pose un
           point sur le cadastre (la position « erronée »), puis on pose un
           point sur la photo aérienne (la position « réelle »). L'app
@@ -540,7 +540,7 @@
         <h3 id="help-aussi-membre">11. Admin et membre à la fois</h3>
         <p>
           Tu peux être <strong>connecté·e simultanément</strong> à l'espace
-          admin <em>et</em> à l'espace membre — deux cookies distincts. C'est
+          admin <em>et</em> à l'espace membre : deux cookies distincts. C'est
           utile : tu modères depuis ton compte admin, et tu contribues depuis
           ton compte membre, sans confusion d'identité dans le journal d'activité.
         </p>
@@ -586,7 +586,7 @@
           <strong>Action irréversible :</strong> approuver une création est
           irréversible côté file (le contenu passe en <code>active</code>). Pour
           retirer un contenu approuvé, il faut le repasser en
-          <code>pending</code> ou le supprimer — ces actions sont aussi tracées
+          <code>pending</code> ou le supprimer : ces actions sont aussi tracées
           dans le journal.
         </div>
       </div>

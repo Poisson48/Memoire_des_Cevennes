@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sauvegarde datée de data/ et uploads/ — à planifier en cron hebdo :
+# Sauvegarde datée de data/ et uploads/ : à planifier en cron hebdo :
 #   0 3 * * 1  /home/memoire/memoire_des_cevennes/scripts/backup.sh
 #
 # Garde les 12 dernières sauvegardes, supprime les plus anciennes.

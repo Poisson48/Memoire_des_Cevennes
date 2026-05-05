@@ -34,7 +34,7 @@ function requireAdmin(req, res, next) {
   const sharedToken = ADMIN_TOKEN();
   if (!sharedToken && !adminJwt) {
     return res.status(503).json({
-      error: 'Aucun ADMIN_TOKEN configuré côté serveur — définir ADMIN_TOKEN=… avant de lancer.',
+      error: 'Aucun ADMIN_TOKEN configuré côté serveur : définir ADMIN_TOKEN=… avant de lancer.',
     });
   }
   const header = req.header('x-admin-token') || '';
@@ -72,7 +72,7 @@ function optionalAuth(req, res, next) {
  * Middleware d'authentification obligatoire.
  * Requiert un membre authentifié dont le rôle est >= minRole.
  * Hiérarchie : member < admin (le rôle "contributor" historique a été
- * fusionné avec "member" — voir auth.roleIndex pour l'alias rétro-compat).
+ * fusionné avec "member" : voir auth.roleIndex pour l'alias rétro-compat).
  *
  * @param {string} minRole  'member' | 'admin'
  */

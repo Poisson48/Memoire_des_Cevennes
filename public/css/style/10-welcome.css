@@ -17,7 +17,7 @@
     border-radius: 2px;
     pointer-events: none;
   }
-  /* welcome-dialog a padding:0 — donner un peu d'air autour de la poignée */
+  /* welcome-dialog a padding:0 : donner un peu d'air autour de la poignée */
   .welcome-dialog { padding-top: 0.6rem; }
   /* Pendant le drag actif, pas de transition pour suivre le doigt 1:1 */
   dialog.is-swiping,

@@ -66,7 +66,7 @@ router.post('/', requireAuth('member'), async (req, res, next) => {
       entityId: person.id,
       ip: req.ip,
     });
-    res.status(201).json({ person, message: 'Ajout reçu — en attente de validation.' });
+    res.status(201).json({ person, message: 'Ajout reçu : en attente de validation.' });
   } catch (err) { next(err); }
 });
 

@@ -1,4 +1,4 @@
-// Compteur de visites — léger, pas de tracking individuel.
+// Compteur de visites : léger, pas de tracking individuel.
 //
 // Persistance : data/visits.json ne stocke qu'un compte par jour calendaire
 //   { days: { "YYYY-MM-DD": <visites uniques>, ... }, updatedAt }

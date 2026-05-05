@@ -3,7 +3,7 @@
 // dans les récits importés (Cahiers du Haut-Vidourle n°17), et tague les
 // occurrences correspondantes dans stories.json (mentions / titleMentions).
 //
-// Idempotent : régénère les fichiers à partir de la spec ci-dessous —
+// Idempotent : régénère les fichiers à partir de la spec ci-dessous :
 // ré-exécuter écrase. Si un humain a déjà ajouté des mentions à la main,
 // elles seront perdues, donc à utiliser sur jeu de données vierge.
 
@@ -20,7 +20,7 @@ const REVIEWED_BY = 'Administrateur démo';
 
 // ── Fiches Personne ────────────────────────────────────────────────────
 const PERSONS = [
-  // Locales — Saint-Roman / haut Vidourle
+  // Locales : Saint-Roman / haut Vidourle
   {
     id: 'pierre-bermond-de-sauve',
     primaryName: 'Pierre Bermond de Sauve',
@@ -138,7 +138,7 @@ const PERSONS = [
     id: 'innocent-iii',
     primaryName: 'Innocent III',
     aliases: [{ name: 'pape Innocent III' }],
-    bio: "Pape de 1198 à 1216. Au concile de Saint-Gilles (1209), il reçoit le serment de seize vassaux du Languedoc — dont Pierre Bermond de Sauve — contre l'hérésie cathare. En 1215, il donne à Simon de Montfort les moyens de combattre Raymond VI de Toulouse.",
+    bio: "Pape de 1198 à 1216. Au concile de Saint-Gilles (1209), il reçoit le serment de seize vassaux du Languedoc : dont Pierre Bermond de Sauve : contre l'hérésie cathare. En 1215, il donne à Simon de Montfort les moyens de combattre Raymond VI de Toulouse.",
     death: { year: 1216 },
   },
   {
@@ -389,7 +389,7 @@ function main() {
   fs.writeFileSync(PEOPLE_PATH, JSON.stringify(peopleData, null, 2) + '\n');
   console.log(`✔ ${peopleData.people.length} personnes écrites dans data/people.json`);
 
-  // stories.json — patch des mentions
+  // stories.json : patch des mentions
   const storiesData = JSON.parse(fs.readFileSync(STORIES_PATH, 'utf8'));
   let totalMentions = 0;
   for (const story of storiesData.stories) {

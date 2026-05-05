@@ -1,4 +1,4 @@
-// Mini parseur markdown maison — pas de dépendance externe.
+// Mini parseur markdown maison : pas de dépendance externe.
 // Sortie HTML rendue dans innerHTML, donc on prend la sécurité au sérieux :
 //   1. Tout le texte source est échappé HTML AVANT d'appliquer les
 //      transformations (titres, gras, liens…).
@@ -8,7 +8,7 @@
 // Couvre : titres (#, ##, ###), gras (**…**), italique (*…*),
 // code inline (`…`), liens [t](u), listes - et 1., paragraphes,
 // lignes vides comme séparateurs. Pas de tableaux ni de blocs de code
-// — pas le besoin pour la page d'accueil.
+// : pas le besoin pour la page d'accueil.
 (function (global) {
   'use strict';
 

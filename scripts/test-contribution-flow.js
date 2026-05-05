@@ -14,7 +14,7 @@ const ADMIN  = { email: 'admin@memoire-cevennes.local',  password: 'h_DYG8o8TSnI
 const errs = [];
 
 async function step(page, num, label, fn) {
-  console.log(`\n— ${num}. ${label} —`);
+  console.log(`\n: ${num}. ${label} :`);
   await fn();
   await page.screenshot({ path: path.join(SHOTS, `${String(num).padStart(2, '0')}-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`) });
 }
@@ -191,7 +191,7 @@ async function logoutAll(page) {
   // ─── Étape 6 : vérification visiteur anonyme ────────────────────
   await logoutAll(page);
 
-  await step(page, 14, 'visiteur anonyme — le contenu visibility=members reste invisible', async () => {
+  await step(page, 14, 'visiteur anonyme : le contenu visibility=members reste invisible', async () => {
     await page.goto(BASE + '/');
     await page.waitForSelector('.leaflet-marker-icon');
     await page.waitForTimeout(800);

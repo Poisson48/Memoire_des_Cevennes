@@ -2,10 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signaler un contenu — Mémoire des Cévennes</title>
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Signaler un contenu : Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body class="legal-body">
   <header class="topbar">
@@ -33,7 +36,7 @@
         </label>
         <label>Nature du problème
           <select name="category" required>
-            <option value="">— choisir —</option>
+            <option value="">choisir...</option>
             <option value="privacy">Atteinte à la vie privée / à l'image</option>
             <option value="defamation">Diffamation / propos injurieux</option>
             <option value="copyright">Droit d'auteur (contenu non autorisé)</option>
@@ -43,7 +46,7 @@
         </label>
         <label>Description précise
           <textarea name="description" rows="5" required maxlength="5000"
-                    placeholder="Expliquez la raison du signalement — l'association en a besoin pour statuer."></textarea>
+                    placeholder="Expliquez la raison du signalement : l'association en a besoin pour statuer."></textarea>
         </label>
         <label>Votre identité (facultatif mais utile pour vous recontacter)
           <input type="text" name="name" maxlength="120" placeholder="Nom / prénom" />

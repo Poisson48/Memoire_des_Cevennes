@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — page admin / noyau
+// Mémoire des Cévennes : page admin / noyau
 // Helpers d'auth (token partagé OU JWT cookie), DOM refs login/dashboard,
 // formulaires de connexion, échappement HTML, formatage de tailles.
 // Visible par tous les autres modules /js/admin/* (chargés ensuite).
@@ -38,9 +38,14 @@ const backupsSection  = document.getElementById('backups');
 const welcomeSection  = document.getElementById('welcome');
 const settingsSection = document.getElementById('settings');
 const cadastreSection = document.getElementById('cadastre');
+const accountSection  = document.getElementById('account');
 const helpSection     = document.getElementById('help');
 
 btnLogout.addEventListener('click', async () => {
+  const ok = window.MdcConfirm
+    ? await window.MdcConfirm('Vous allez être déconnecté de votre compte.')
+    : window.confirm('Vous allez être déconnecté de votre compte.');
+  if (!ok) return;
   // Côté serveur : efface les cookies (admin_jwt + token membre).
   try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch {}
   // Côté client : oublie le token partagé en localStorage.

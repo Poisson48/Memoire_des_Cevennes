@@ -1,4 +1,4 @@
-// Route /api/reports — signalement de contenu par un visiteur.
+// Route /api/reports : signalement de contenu par un visiteur.
 // POST anonyme (pas d'auth requise), écrit dans data/reports.json en file.
 // Les signalements sont relus depuis la page admin.
 'use strict';
@@ -50,7 +50,7 @@ router.post('/', (req, res, next) => {
     res.status(201).json({
       ok: true,
       id: report.id,
-      message: 'Signalement enregistré — nous revenons vers vous sous 72 h ouvrées.',
+      message: 'Signalement enregistré : nous revenons vers vous sous 72 h ouvrées.',
     });
   } catch (err) { next(err); }
 });

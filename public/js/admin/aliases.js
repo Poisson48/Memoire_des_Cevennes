@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / alias des Lieux et Personnes
+// Mémoire des Cévennes : admin / alias des Lieux et Personnes
 // Hors file de modération : la requête PATCH /api/admin/{type}/:id/aliases
 // remplace l'array d'alias d'un coup. UI : recherche + carte par entité,
 // chaque alias éditable inline (texte + bouton supprimer), bouton ➕ pour

@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — admin / réglages du site (titre, tagline)
+// Mémoire des Cévennes : admin / réglages du site (titre, tagline)
 
 const formSettings = document.getElementById('form-settings');
 const settingsFeedback = document.getElementById('settings-feedback');
@@ -17,7 +17,7 @@ async function refreshSettings() {
     if (settingsMeta) {
       settingsMeta.textContent = cfg.updatedAt
         ? `Dernière mise à jour : ${new Date(cfg.updatedAt).toLocaleString('fr-FR')}${cfg.updatedBy ? ' par ' + cfg.updatedBy : ''}`
-        : 'Pas encore modifié — valeurs par défaut affichées.';
+        : 'Pas encore modifié : valeurs par défaut affichées.';
     }
   } catch (err) {
     if (settingsFeedback) {

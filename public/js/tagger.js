@@ -1,14 +1,14 @@
-// Mémoire des Cévennes — post-tagging des mentions
+// Mémoire des Cévennes : post-tagging des mentions
 //
 // Dans un récit affiché, on peut sélectionner un bout de texte (« Suzette »,
 // « chez Marie »…) et le lier à une Personne ou un Lieu existant. La
 // proposition est envoyée en file de modération via /api/stories/:id/edits
-// (système style Wikipédia déjà en place) — l'admin valide.
+// (système style Wikipédia déjà en place) : l'admin valide.
 //
 // Principes :
 // - On ne laisse proposer un tag que sur des récits rendus dans un
 //   panneau (live mode uniquement). En mode statique (GitHub Pages),
-//   aucun endpoint d'écriture — le widget se cache.
+//   aucun endpoint d'écriture : le widget se cache.
 // - Les offsets `start` / `end` sont calculés en code units UTF-16 dans
 //   le `body` original, en comparant les positions dans le textContent
 //   de l'élément .body rendu.
@@ -32,7 +32,7 @@ let pendingTag = null;       // { storyId, start, end, text, bodyEl }
 let chosenEntity = null;     // { type, id, name } ou null
 
 // ── Détection de la sélection ─────────────────────────────────────────
-// En mode statique (preview), on montre aussi le popover — seule la
+// En mode statique (preview), on montre aussi le popover : seule la
 // soumission finale affiche un message "aperçu, pas d'envoi".
 document.addEventListener('selectionchange', () => {
   const sel = window.getSelection();
@@ -147,7 +147,7 @@ async function runSearch(q) {
     tagResultsEl.innerHTML = filtered.map(r => `
       <li data-type="${r.type}" data-id="${escapeAttr(r.id)}" data-name="${escapeAttr(r.name)}">
         <strong>${escapeHtml(r.name)}</strong>
-        ${r.source === 'alias' && r.alias ? `<span class="alias-hint"> — alias « ${escapeHtml(r.matched)} »${r.alias.context ? ' (' + escapeHtml(r.alias.context) + ')' : ''}</span>` : ''}
+        ${r.source === 'alias' && r.alias ? `<span class="alias-hint"> : alias « ${escapeHtml(r.matched)} »${r.alias.context ? ' (' + escapeHtml(r.alias.context) + ')' : ''}</span>` : ''}
       </li>
     `).join('');
     tagResultsEl.querySelectorAll('li[data-id]').forEach(li => {
@@ -202,7 +202,7 @@ formTag.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
     dlgTag.close('submit');
-    alert(data.message || 'Proposition de tag envoyée — en attente de validation.');
+    alert(data.message || 'Proposition de tag envoyée : en attente de validation.');
   } catch (err) {
     alert('Erreur : ' + err.message);
   }

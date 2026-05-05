@@ -1,5 +1,5 @@
 // File d'attente et décisions de modération.
-// Les admins partagent le même compte (ADMIN_TOKEN) — voir server.js pour la garde.
+// Les admins partagent le même compte (ADMIN_TOKEN) : voir server.js pour la garde.
 const places = require('./places');
 const people = require('./people');
 const stories = require('./stories');

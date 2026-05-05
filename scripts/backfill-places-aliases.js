@@ -15,7 +15,7 @@ const ALIASES = {
     { name: 'Sanctus Romanus de Codeyra', context: 'forme latine médiévale' },
     { name: 'Saint-Roman-de-Codeyra',     context: 'orthographe ancienne' },
     { name: 'Codeyra',                    context: 'forme courte ancienne' },
-    // Région englobante au haut Moyen Âge — Saint-Roman en faisait partie
+    // Région englobante au haut Moyen Âge : Saint-Roman en faisait partie
     { name: 'Aristum',                    context: 'pays d\'Aristum, VIᵉ-VIIIᵉ siècle' },
     { name: 'pays d\'Aristum',            context: 'haut Moyen Âge' },
     { name: 'Hierle',                     context: 'pays d\'Hierle, diocèse de Nîmes' },

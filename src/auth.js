@@ -10,7 +10,7 @@ const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
 const LOG_FILE     = path.join(__dirname, '..', 'data', 'activity_log.json');
 
 // Hiérarchie des rôles : member < admin (le rôle "contributor" historique
-// a été fusionné avec "member" — voir roleIndex pour l'alias rétro-compat
+// a été fusionné avec "member" : voir roleIndex pour l'alias rétro-compat
 // qui permet aux JWT déjà émis de continuer à valider).
 const ROLES = ['member', 'admin'];
 const SALT_ROUNDS = 12;
@@ -84,7 +84,7 @@ function normalizeName(raw) {
  * - email : exact (case-insensitive). Doublon dur.
  * - phone : normalisé. Doublon mou (avertissement).
  * - name  : normalisé. Doublon mou.
- * Retourne { email: [...], phone: [...], name: [...] } — chaque tableau
+ * Retourne { email: [...], phone: [...], name: [...] } : chaque tableau
  * contient les membres en collision (hors `excludeId`).
  */
 function findDuplicates({ email, phone, name, excludeId } = {}) {
@@ -250,7 +250,7 @@ function rejectMember(id) {
  * `contributorId` dans places/people/stories par un pseudonyme stable
  * `__anonyme-<short-id>__` pour préserver l'intégrité du graphe.
  *
- * Retourne `{ member, counts }` — counts = nb d'entités touchées par
+ * Retourne `{ member, counts }` : counts = nb d'entités touchées par
  * type. Asynchrone (locks sur les fichiers data via storage.mutate).
  */
 async function deleteMember(id, { actorId } = {}) {
@@ -310,7 +310,7 @@ async function deleteMember(id, { actorId } = {}) {
  * - email : vérifie l'unicité (case-insensitive) hors le membre lui-même.
  * - phone : normalisé (FR), null si vidé.
  * - name  : trim + max 120.
- * Tous les champs sont optionnels — seuls les champs fournis sont changés.
+ * Tous les champs sont optionnels : seuls les champs fournis sont changés.
  * Retourne le membre safe.
  */
 function updateMember(id, patch = {}) {
@@ -357,7 +357,7 @@ async function changePassword(id, oldPassword, newPassword) {
   const member = members.find(m => m.id === id);
   if (!member) throw new Error('Membre introuvable.');
   if (!member.passwordHash) {
-    throw new Error("Ce compte n'a pas encore de mot de passe — utiliser une clé de réinitialisation.");
+    throw new Error("Ce compte n'a pas encore de mot de passe : utiliser une clé de réinitialisation.");
   }
   const ok = await bcrypt.compare(String(oldPassword || ''), member.passwordHash);
   if (!ok) return false;

@@ -1,6 +1,6 @@
 // Routes publiques pour proposer et consulter les éditions d'une entité.
-// POST /api/:type/:id/edits — proposition de modification (style Wikipédia).
-// GET  /api/:type/:id/edits — historique des propositions pour cette cible.
+// POST /api/:type/:id/edits : proposition de modification (style Wikipédia).
+// GET  /api/:type/:id/edits : historique des propositions pour cette cible.
 const express = require('express');
 const edits = require('../edits');
 const { resolveContributor } = require('../contributor');
@@ -21,7 +21,7 @@ router.post('/:type(places|people|stories)/:id/edits', async (req, res, next) =>
       note: (req.body && req.body.note) || '',
       submittedBy,
     });
-    res.status(201).json({ edit, message: 'Proposition reçue — en attente de validation admin.' });
+    res.status(201).json({ edit, message: 'Proposition reçue : en attente de validation admin.' });
   } catch (err) { next(err); }
 });
 
@@ -47,7 +47,7 @@ router.post('/stories/:sid/completions/:cid/edits', async (req, res, next) => {
       note: (req.body && req.body.note) || '',
       submittedBy,
     });
-    res.status(201).json({ edit, message: 'Proposition reçue — en attente de validation admin.' });
+    res.status(201).json({ edit, message: 'Proposition reçue : en attente de validation admin.' });
   } catch (err) { next(err); }
 });
 

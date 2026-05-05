@@ -19,7 +19,7 @@
     var tagline = cfg.tagline || DEFAULTS.tagline;
 
     // <title> de l'onglet : on remplace toute occurrence du titre par défaut
-    // par le titre dynamique. Robuste pour les variantes "X — Mémoire des
+    // par le titre dynamique. Robuste pour les variantes "X : Mémoire des
     // Cévennes" comme pour "Mémoire des Cévennes" tout court.
     if (document.title && title !== DEFAULTS.title) {
       document.title = document.title.split(DEFAULTS.title).join(title);

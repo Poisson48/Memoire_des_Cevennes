@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — compression côté client.
+// Mémoire des Cévennes : compression côté client.
 //
 // Pourquoi : les témoignages vidéo/audio/photo sortent des téléphones en
 // gros (une vidéo 4K fait vite 100 Mo). On réduit *avant* upload pour ne
@@ -11,7 +11,7 @@
 //              fallback H.264 (libx264). Container MP4, CRF 28, preset
 //              ultrafast côté encodeur pour limiter le temps de calcul.
 //
-// ffmpeg.wasm est chargé *à la demande* (~25 Mo) — uniquement quand on
+// ffmpeg.wasm est chargé *à la demande* (~25 Mo) : uniquement quand on
 // rencontre un audio/vidéo pour la première fois. Le load est mémoïsé.
 //
 // API exposée sur `window.Compress` :
@@ -29,7 +29,7 @@
   const VIDEO_MAX_HEIGHT = 720;          // on redescend à 720p max
   const SKIP_THRESHOLD_BYTES = 200 * 1024; // < 200 Ko : pas la peine
 
-  // ── ffmpeg.wasm — lazy load ──────────────────────────────────────
+  // ── ffmpeg.wasm : lazy load ──────────────────────────────────────
   let ffmpegPromise = null;
   let preferredVideoCodec = null; // résolu au premier appel vidéo
 
@@ -64,7 +64,7 @@
     });
   }
 
-  // Détecte si libx265 est dispo dans le build courant — sinon on
+  // Détecte si libx265 est dispo dans le build courant : sinon on
   // basculera sur libx264.
   async function detectVideoCodec(ffmpeg) {
     if (preferredVideoCodec) return preferredVideoCodec;

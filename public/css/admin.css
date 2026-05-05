@@ -1,4 +1,4 @@
-/* Admin page — réutilise les variables de style.css */
+/* Admin page : réutilise les variables de style.css */
 
 .admin-body {
   /* Override le body fixe (overflow:hidden + height:100%) du layout carte */
@@ -81,7 +81,7 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
-/* Affichage du contenu en file de modération — l'admin doit voir le récit
+/* Affichage du contenu en file de modération : l'admin doit voir le récit
    complet, les mentions, et les médias attachés avant de cliquer Approuver. */
 .story-body {
   white-space: pre-wrap;
@@ -691,7 +691,7 @@
   height: 100%;
   background: #e8e3d4;
 }
-/* Mire fixe au centre — c'est elle qu'on aligne, pas le doigt */
+/* Mire fixe au centre : c'est elle qu'on aligne, pas le doigt */
 .cadastre-crosshair {
   position: absolute;
   top: 50%; left: 50%;

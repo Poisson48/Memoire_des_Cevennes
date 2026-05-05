@@ -54,24 +54,24 @@ function normAliases(list) {
 
 // --- moderation ----------------------------------------------------------
 // Par défaut, toute nouvelle entrée tombe en "pending".
-// Le champ `submittedBy` est libre (pseudo + email optionnel, non vérifiés —
+// Le champ `submittedBy` est libre (pseudo + email optionnel, non vérifiés :
 // la vérification se fait manuellement par les admins au moment de la
 // validation).
 // Identité d'un·e contributeur·rice. Schéma unifié pour tous les flux
 // (ajout de lieu/récit/personne, proposition de modif, complétion d'une
 // histoire, tag de mention…). L'idée : qui tu es, d'où tu écris, ton
-// lien avec le contenu — donner du contexte à chaque contribution
+// lien avec le contenu : donner du contexte à chaque contribution
 // plutôt qu'un pseudo sec.
 function normSubmittedBy(sb) {
   if (!sb) return null;
   const out = {};
-  // `pseudo` reste accepté en entrée pour compat — on renormalise en `name`.
+  // `pseudo` reste accepté en entrée pour compat : on renormalise en `name`.
   const name = sb.name || sb.pseudo;
   if (name)            out.name         = str(name, 120);
   if (sb.writtenFrom)  out.writtenFrom  = str(sb.writtenFrom, 120);
   if (sb.relationship) out.relationship = str(sb.relationship, 200);
   if (sb.email)        out.email        = str(sb.email, 160);
-  // Lien vers une Personne du graphe — renseigné quand le contributeur
+  // Lien vers une Personne du graphe : renseigné quand le contributeur
   // pioche son nom dans l'autocomplétion. Permet d'afficher le nom comme
   // lien cliquable partout où la contribution est citée (récits, fiches,
   // file admin…).
@@ -91,7 +91,7 @@ function freshModerationFields(input) {
 }
 
 // Visibilité "public" (accessible aux visiteurs non-connectés) ou "members"
-// (exige un compte connecté). Défaut "members" — plus strict, RGPD-friendly,
+// (exige un compte connecté). Défaut "members" : plus strict, RGPD-friendly,
 // particulièrement pour les personnes vivantes.
 function normVisibility(v) {
   return v === 'public' ? 'public' : 'members';

@@ -214,7 +214,7 @@ const newStories = [
     placeId: 'les-castagniers',
     type: 'text',
     title: "Le séchage des châtaignes à l'automne",
-    body: "Aux Castagniers, les clèdes — petites cabanes en pierre où l'on séchait les châtaignes au feu de bois pendant trois semaines — étaient encore en activité dans les années 1960. Deux familles du hameau perpétuent la tradition à titre privé. L'odeur du feu de châtaignier embaume tout le versant en novembre.",
+    body: "Aux Castagniers, les clèdes : petites cabanes en pierre où l'on séchait les châtaignes au feu de bois pendant trois semaines : étaient encore en activité dans les années 1960. Deux familles du hameau perpétuent la tradition à titre privé. L'odeur du feu de châtaignier embaume tout le versant en novembre.",
     memoryDate: 'XXe siècle',
     mentions: [
       { start: 4, end: 17, type: 'place', entityId: 'les-castagniers' },
@@ -346,4 +346,4 @@ const addedH = injectInto('people.json',  'people',  newPeople);
 const addedS = injectInto('stories.json', 'stories', newStories);
 
 console.log(`✓ démo : +${addedP} lieux, +${addedH} personnes, +${addedS} récits.`);
-console.log('  (entrées idempotentes — relancer ne duplique pas).');
+console.log('  (entrées idempotentes : relancer ne duplique pas).');

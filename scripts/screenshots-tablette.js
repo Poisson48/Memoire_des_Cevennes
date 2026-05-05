@@ -40,7 +40,7 @@ async function dismissWelcome(page) {
 }
 
 async function captureFormat(browser, fmt) {
-  console.log(`\n— ${fmt.suffix} (${fmt.viewport.width}×${fmt.viewport.height}) —`);
+  console.log(`\n: ${fmt.suffix} (${fmt.viewport.width}×${fmt.viewport.height}) :`);
   const ctx = await browser.newContext({
     viewport: fmt.viewport,
     deviceScaleFactor: fmt.scale || 1,

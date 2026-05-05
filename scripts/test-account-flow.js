@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Test E2E API : inscription avec téléphone, edition self-service, edition admin,
-// détection de doublons. Snapshot data/ avant, restaure après — n'écrit
+// détection de doublons. Snapshot data/ avant, restaure après : n'écrit
 // rien de durable.
 //
 // Lancement :

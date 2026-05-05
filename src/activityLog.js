@@ -1,6 +1,6 @@
 'use strict';
 
-// Journal d'activité membres — écrit dans data/activity_log.json.
+// Journal d'activité membres : écrit dans data/activity_log.json.
 
 const fs   = require('fs');
 const path = require('path');

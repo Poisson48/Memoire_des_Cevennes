@@ -52,7 +52,7 @@ const TABS = [
   // Sanity : dashboard visible ?
   const dashHidden = await page.evaluate(() => document.getElementById('dashboard').hidden);
   if (dashHidden) {
-    console.log('❌ Dashboard caché — login a échoué');
+    console.log('❌ Dashboard caché : login a échoué');
     console.log('Erreurs :', errors);
     process.exit(1);
   }

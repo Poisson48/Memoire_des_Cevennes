@@ -1,15 +1,15 @@
 'use strict';
 
-// Demandes de clé d'usage unique — flux 100% humain, pas de mail.
+// Demandes de clé d'usage unique : flux 100% humain, pas de mail.
 //
 // Deux usages partagent le même mécanisme (champ `kind`) :
 //
-//   • kind = "reset"  — mot de passe oublié.
+//   • kind = "reset"  : mot de passe oublié.
 //     1. Le membre remplit oubli.html (email + nom + message) → "pending".
 //     2. L'admin vérifie l'identité hors-ligne, approuve → clé générée.
 //     3. Le membre saisit la clé sur reset.html → nouveau mot de passe.
 //
-//   • kind = "invite" — création d'un compte par un admin.
+//   • kind = "invite" : création d'un compte par un admin.
 //     1. L'admin crée le compte (sans mot de passe) → on génère
 //        directement une entrée "approved" avec une clé.
 //     2. L'admin transmet la clé au futur membre, de la main à la main.
@@ -32,7 +32,7 @@ const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
 const KIND_RESET  = 'reset';
 const KIND_INVITE = 'invite';
 
-// 7 jours — l'admin a le temps de joindre le membre.
+// 7 jours : l'admin a le temps de joindre le membre.
 const KEY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Alphabet sans caractères ambigus à dicter au téléphone : pas de 0/O,
@@ -107,7 +107,7 @@ function hashKey(key) {
 }
 
 function keyHint(key) {
-  // "ABCD-…-WXYZ" — utile pour distinguer plusieurs demandes en attente.
+  // "ABCD-…-WXYZ" : utile pour distinguer plusieurs demandes en attente.
   const parts = key.split('-');
   if (parts.length < 2) return key;
   return `${parts[0]}-…-${parts[parts.length - 1]}`;
@@ -127,7 +127,7 @@ function createRequest({ email, name, message, ip } = {}) {
   const cleanMessage = String(message || '').trim().slice(0, 2000);
 
   // Tente de matcher un membre existant pour aider l'admin à décider.
-  // On garde la demande même sans match — c'est un signal pour l'admin.
+  // On garde la demande même sans match : c'est un signal pour l'admin.
   const members = loadMembers();
   const matched = members.find(m => m.email === normalizedEmail);
 
@@ -154,7 +154,7 @@ function createRequest({ email, name, message, ip } = {}) {
 /**
  * Crée une entrée "invite" directement en status "approved" (l'admin
  * authentifié a déjà la légitimité d'agir, pas de phase pending).
- * Génère la clé en clair et la retourne — elle reste lisible dans
+ * Génère la clé en clair et la retourne : elle reste lisible dans
  * `keyPlain` tant que l'invite est "approved", comme pour les resets.
  *
  * @param {{memberId: string, reviewerId?: string, reviewerName?: string}} opts
@@ -218,7 +218,7 @@ function listAll() {
  * stocke le hash + une copie en clair pour réaffichage tant que la demande
  * est active (consume/expire l'efface).
  *
- * Retourne { request, key } — la clé en clair n'est PAS dans request.keyPlain
+ * Retourne { request, key } : la clé en clair n'est PAS dans request.keyPlain
  * du payload pour forcer l'admin à la copier maintenant (mais elle reste
  * lisible via l'API tant que la demande est "approved").
  */

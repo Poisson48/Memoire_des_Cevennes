@@ -1,6 +1,6 @@
-// Mémoire des Cévennes — admin / sauvegardes & stockage
+// Mémoire des Cévennes : admin / sauvegardes & stockage
 // Création / liste / téléchargement / restauration / suppression / import.
-// Toutes les routes sont sous /api/admin/* — protégées par requireAdmin
+// Toutes les routes sont sous /api/admin/* : protégées par requireAdmin
 // côté serveur. L'export se fait par lien direct (création + download).
 
 const backupsList    = document.getElementById('backups-list');
@@ -25,7 +25,7 @@ function backupKindLabel(kind) {
     'pre-restore': 'Pré-restauration',
     export: 'Export',
     import: 'Import',
-  })[kind] || (kind || '—');
+  })[kind] || (kind || '…');
 }
 
 async function refreshBackups() {
@@ -115,7 +115,7 @@ function renderStoragePanel(s) {
 
 function renderBackups(items, serverSchema, serverEncryption) {
   if (!items.length) {
-    backupsList.innerHTML = '<p class="empty">— aucune sauvegarde —</p>';
+    backupsList.innerHTML = '<p class="empty">aucune sauvegarde</p>';
     return;
   }
   backupsList.innerHTML = items.map(b => {

@@ -31,7 +31,7 @@ async function resolveContributor({ submittedBy, newPerson }) {
     submittedBy = copy;
   }
 
-  // Match exact sur un nom existant (alias compris) — lie sans créer.
+  // Match exact sur un nom existant (alias compris) : lie sans créer.
   const hits = resolve(submittedBy.name).filter(r => r.type === 'person');
   const strong = hits.find(h => h.score >= STRONG_MATCH_SCORE);
   if (strong) {
