@@ -132,7 +132,12 @@ function renderMembers(container, members, showApprove) {
       const m = members.find(x => x.id === id);
       el.addEventListener('click', () => handleMemberDelete(id, card, m));
     } else if (el.tagName === 'SELECT') {
-      el.addEventListener('change', () => handleMemberRole(id, el.value, card));
+      // Mémorise le rôle avant changement pour pouvoir revenir en arrière
+      // si la pop-up de confirmation est annulée.
+      const m = members.find(x => x.id === id);
+      const previousRole = m && m.role === 'contributor' ? 'member' : (m && m.role) || 'member';
+      el.dataset.previousRole = previousRole;
+      el.addEventListener('change', () => handleMemberRole(id, el, card));
     }
   });
 }
@@ -220,12 +225,42 @@ async function handleMemberReject(id, card, member) {
   } catch (err) { alert('Erreur : ' + err.message); }
 }
 
-async function handleMemberRole(id, role, card) {
+async function handleMemberRole(id, selectEl, card) {
+  const newRole = selectEl.value;
+  const oldRole = selectEl.dataset.previousRole || 'member';
+  // Promotion ou rétrogradation impliquant le rôle admin → confirmation.
+  const promoting   = newRole === 'admin' && oldRole !== 'admin';
+  const demoting    = oldRole === 'admin' && newRole !== 'admin';
+  if (promoting || demoting) {
+    const nameEl = card.querySelector('.m-name');
+    const label  = (nameEl && nameEl.textContent) || 'ce compte';
+    const msg = promoting
+      ? `Promouvoir ${label} en admin ?\n\nUn admin a tous les droits : ` +
+        `valider/refuser les contributions, créer des comptes, changer les ` +
+        `rôles, supprimer des données, accéder aux sauvegardes, etc.`
+      : `Rétrograder ${label} d'admin à membre ?\n\nLe compte perdra ` +
+        `immédiatement l'accès à /admin.html et à toutes les routes ` +
+        `d'administration. La déconnexion forcera la prise en compte ` +
+        `(le JWT existant garde le rôle « admin » jusqu'à expiration).`;
+    const ok = window.MdcConfirm
+      ? await window.MdcConfirm(msg, { okLabel: promoting ? 'Promouvoir' : 'Rétrograder' })
+      : window.confirm(msg);
+    if (!ok) {
+      // Annulation : on remet le select à l'ancienne valeur.
+      selectEl.value = oldRole;
+      return;
+    }
+  }
   try {
     await fetchJson(`/api/admin/members/${encodeURIComponent(id)}/role`, {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({ role }),
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ role: newRole }),
     });
-  } catch (err) { alert('Erreur : ' + err.message); refreshMembers(); }
+    selectEl.dataset.previousRole = newRole;
+  } catch (err) {
+    alert('Erreur : ' + err.message);
+    selectEl.value = oldRole;
+    refreshMembers();
+  }
 }
 
 async function handleMemberDelete(id, card, member) {

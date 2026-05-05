@@ -175,3 +175,18 @@ dialog .coords {
   box-shadow: var(--shadow);
 }
 
+
+/* ── Boîte de confirmation simple (window.MdcConfirm) ─────────── */
+.mdc-confirm-dialog .mdc-confirm-message {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  /* Conserve les \n littéraux des messages (paragraphes via \n\n). */
+  white-space: pre-line;
+}
+.mdc-confirm-dialog .actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
