@@ -201,12 +201,57 @@ router.post('/members/:id/approve', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Refuse un membre en attente : suppression définitive.
+router.post('/members/:id/reject', (req, res, next) => {
+  try {
+    const reviewerId = (req.member && req.member.id) || 'admin-token';
+    const member = auth.rejectMember(req.params.id);
+    activityLog.logActivity({
+      memberId: reviewerId,
+      action: 'member.reject',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+    });
+    res.json({ member });
+  } catch (err) {
+    if (/introuvable|actif/i.test(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
+});
+
 router.post('/members/:id/role', (req, res, next) => {
   try {
     const role = req.body && req.body.role;
     const member = auth.setRole(req.params.id, role);
     res.json({ member });
   } catch (err) { next(err); }
+});
+
+// DELETE /members/:id — supprime un membre (actif ou pending) et anonymise
+// ses contributions. Refuse l'auto-suppression et la suppression du dernier
+// admin actif.
+router.delete('/members/:id', async (req, res, next) => {
+  try {
+    const actorId = (req.member && req.member.id) || null;
+    const { member, counts, pseudo } = await auth.deleteMember(req.params.id, { actorId });
+    activityLog.logActivity({
+      memberId: actorId || 'admin-token',
+      action: 'admin.member-delete',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+      details: { email: member.email, name: member.name, pseudo, counts },
+    });
+    res.json({ ok: true, member, counts, pseudo });
+  } catch (err) {
+    if (/dernier admin|propre compte|introuvable/i.test(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
 });
 
 // PATCH /members/:id — l'admin met à jour name, email et/ou phone.

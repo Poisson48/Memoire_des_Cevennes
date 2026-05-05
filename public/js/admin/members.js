@@ -3,6 +3,10 @@
 // approbation des inscriptions en attente, changement de rôle, édition
 // du profil (nom / email / téléphone) et signalement des doublons.
 
+function formatPhoneForDisplay(raw) {
+  return window.MdcPhone ? window.MdcPhone.format(raw || '') : (raw || '');
+}
+
 // Formulaire de création directe d'un compte (admin seulement, route protégée)
 const formCreateMember = document.getElementById('form-create-member');
 if (formCreateMember) {
@@ -90,7 +94,7 @@ function renderMembers(container, members, showApprove) {
       <header>
         <strong class="m-name">${escapeHtml(m.name || '(sans nom)')}</strong>
         · <code class="m-email">${escapeHtml(m.email)}</code>
-        ${m.phone ? `· <span class="m-phone">${escapeHtml(m.phone)}</span>` : ''}
+        ${m.phone ? `· <span class="m-phone">${escapeHtml(formatPhoneForDisplay(m.phone))}</span>` : ''}
         · <span class="status">${escapeHtml(m.status)}</span>
         · rôle : <strong>${escapeHtml(m.role)}</strong>
         ${dupBadge(m)}
@@ -102,12 +106,14 @@ function renderMembers(container, members, showApprove) {
       </p>
       <div class="actions">
         ${showApprove ? `<button type="button" class="btn-primary" data-member-action="approve">✓ Approuver</button>` : ''}
+        ${showApprove ? `<button type="button" class="btn-ghost" data-member-action="reject">✗ Refuser</button>` : ''}
         <button type="button" class="btn-ghost" data-member-action="edit">✏️ Éditer</button>
         <select data-member-action="role" aria-label="Rôle">
           <option value="member"       ${m.role === 'member' ? 'selected' : ''}>Membre</option>
           <option value="contributor"  ${m.role === 'contributor' ? 'selected' : ''}>Contributeur</option>
           <option value="admin"        ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
         </select>
+        <button type="button" class="btn-ghost" data-member-action="delete" style="margin-left:auto;">🗑 Supprimer</button>
       </div>
       <div class="member-edit-form" hidden></div>
     </article>
@@ -117,9 +123,15 @@ function renderMembers(container, members, showApprove) {
     const id = card.dataset.memberId;
     if (el.tagName === 'BUTTON' && el.dataset.memberAction === 'approve') {
       el.addEventListener('click', () => handleMemberApprove(id, card));
+    } else if (el.tagName === 'BUTTON' && el.dataset.memberAction === 'reject') {
+      const m = members.find(x => x.id === id);
+      el.addEventListener('click', () => handleMemberReject(id, card, m));
     } else if (el.tagName === 'BUTTON' && el.dataset.memberAction === 'edit') {
       const m = members.find(x => x.id === id);
       el.addEventListener('click', () => openEdit(card, m));
+    } else if (el.tagName === 'BUTTON' && el.dataset.memberAction === 'delete') {
+      const m = members.find(x => x.id === id);
+      el.addEventListener('click', () => handleMemberDelete(id, card, m));
     } else if (el.tagName === 'SELECT') {
       el.addEventListener('change', () => handleMemberRole(id, el.value, card));
     }
@@ -140,7 +152,7 @@ function openEdit(card, m) {
         <input type="email" name="email" required maxlength="160" value="${escapeAttr(m.email || '')}" />
       </label>
       <label>Téléphone
-        <input type="tel" name="phone" maxlength="32" value="${escapeAttr(m.phone || '')}" placeholder="06 12 34 56 78" />
+        <input type="tel" name="phone" maxlength="32" value="${escapeAttr(formatPhoneForDisplay(m.phone || ''))}" placeholder="06.12.34.56.78" />
       </label>
       <div class="auth-error edit-err" hidden></div>
       <div class="hint edit-ok" style="color:#2a6e40;" hidden></div>
@@ -194,10 +206,55 @@ async function handleMemberApprove(id, card) {
   } catch (err) { alert('Erreur : ' + err.message); }
 }
 
+async function handleMemberReject(id, card, member) {
+  const label = (member && (member.name || member.email)) || 'ce compte';
+  const msg = `Refuser ${label} ? Le compte sera supprimé définitivement.`;
+  const ok = window.MdcConfirm
+    ? await window.MdcConfirm(msg, { okLabel: 'Refuser' })
+    : window.confirm(msg);
+  if (!ok) return;
+  try {
+    await fetchJson(`/api/admin/members/${encodeURIComponent(id)}/reject`,
+      { method: 'POST', headers: authHeaders() });
+    card.style.opacity = '0.5';
+    setTimeout(refreshMembers, 300);
+  } catch (err) { alert('Erreur : ' + err.message); }
+}
+
 async function handleMemberRole(id, role, card) {
   try {
     await fetchJson(`/api/admin/members/${encodeURIComponent(id)}/role`, {
       method: 'POST', headers: authHeaders(), body: JSON.stringify({ role }),
     });
   } catch (err) { alert('Erreur : ' + err.message); refreshMembers(); }
+}
+
+async function handleMemberDelete(id, card, member) {
+  const label = (member && (member.name || member.email)) || 'ce compte';
+  const msg = `Supprimer définitivement ${label} ?\n\n` +
+    `Le compte sera retiré de la base. Ses contributions (lieux, personnes, ` +
+    `récits) seront anonymisées (signées « anonyme ») mais conservées pour ` +
+    `préserver l'intégrité du graphe.`;
+  const ok = window.MdcConfirm
+    ? await window.MdcConfirm(msg, { okLabel: 'Supprimer', danger: true })
+    : window.confirm(msg);
+  if (!ok) return;
+  try {
+    const res = await fetch(`/api/admin/members/${encodeURIComponent(id)}`, authFetchOpts({
+      method: 'DELETE',
+    }));
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert('Erreur : ' + (j.error || res.status));
+      return;
+    }
+    const c = j.counts || { places: 0, people: 0, stories: 0 };
+    const total = c.places + c.people + c.stories;
+    if (total > 0) {
+      alert(`✓ Compte supprimé. ${total} contribution(s) anonymisée(s) ` +
+            `(${c.places} lieux, ${c.people} personnes, ${c.stories} récits).`);
+    }
+    card.style.opacity = '0.5';
+    setTimeout(refreshMembers, 300);
+  } catch (err) { alert('Erreur : ' + err.message); }
 }

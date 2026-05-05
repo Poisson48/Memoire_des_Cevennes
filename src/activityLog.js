@@ -24,17 +24,20 @@ function readLog() {
  * @param {string} opts.entityType  - 'place' | 'person' | 'story' | 'completion'
  * @param {string} opts.entityId    - ID de l'entité concernée
  * @param {string} [opts.ip]        - adresse IP de la requête
+ * @param {object} [opts.details]   - metadata libre (counts, motif, etc.)
  */
-function logActivity({ memberId, action, entityType, entityId, ip }) {
+function logActivity({ memberId, action, entityType, entityId, ip, details }) {
   const log = readLog();
-  log.push({
+  const entry = {
     memberId,
     action,
     entityType,
     entityId,
     timestamp: new Date().toISOString(),
     ip: ip || 'unknown',
-  });
+  };
+  if (details && typeof details === 'object') entry.details = details;
+  log.push(entry);
   fs.writeFileSync(LOG_PATH, JSON.stringify(log, null, 2), 'utf8');
 }
 

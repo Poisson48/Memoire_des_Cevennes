@@ -220,6 +220,90 @@ function approveMember(id) {
 }
 
 /**
+ * Refuse un membre en attente : le retire de la base.
+ * Lance une erreur si le membre est introuvable ou n'est pas pending.
+ * Refuser un membre actif n'est pas autorisé (utiliser un autre flux).
+ */
+function rejectMember(id) {
+  const members = loadMembers();
+  const idx = members.findIndex(m => m.id === id);
+  if (idx === -1) throw new Error('Membre introuvable.');
+  const member = members[idx];
+  if (member.status === 'active') {
+    throw new Error('Impossible de refuser un membre déjà actif.');
+  }
+  members.splice(idx, 1);
+  saveMembers(members);
+  return safe(member);
+}
+
+/**
+ * Supprime un membre (actif ou pending) et anonymise ses contributions.
+ *
+ * Sécurités :
+ *   - on ne peut pas se supprimer soi-même
+ *   - on ne peut pas supprimer le dernier admin actif
+ *
+ * Anonymisation : remplace `submittedBy` (par memberId ou email) et
+ * `contributorId` dans places/people/stories par un pseudonyme stable
+ * `__anonyme-<short-id>__` pour préserver l'intégrité du graphe.
+ *
+ * Retourne `{ member, counts }` — counts = nb d'entités touchées par
+ * type. Asynchrone (locks sur les fichiers data via storage.mutate).
+ */
+async function deleteMember(id, { actorId } = {}) {
+  const members = loadMembers();
+  const member = members.find(m => m.id === id);
+  if (!member) throw new Error('Membre introuvable.');
+  if (actorId && actorId === id) {
+    throw new Error('Impossible de supprimer son propre compte.');
+  }
+  if (member.role === 'admin' && member.status === 'active') {
+    const otherActiveAdmins = members.filter(m =>
+      m.id !== id && m.role === 'admin' && m.status === 'active'
+    );
+    if (otherActiveAdmins.length === 0) {
+      throw new Error('Impossible de supprimer le dernier admin actif.');
+    }
+  }
+
+  const pseudo = `__anonyme-${member.id.slice(0, 8)}__`;
+  const email = (member.email || '').toLowerCase();
+  const counts = { places: 0, people: 0, stories: 0 };
+
+  // Lazy-require pour éviter une dépendance circulaire au chargement.
+  const storage = require('./storage');
+
+  function scrub(items) {
+    if (!Array.isArray(items)) return 0;
+    let touched = 0;
+    for (const item of items) {
+      if (item.submittedBy && (
+        item.submittedBy.memberId === member.id ||
+        (email && item.submittedBy.email === email)
+      )) {
+        item.submittedBy = { name: pseudo };
+        touched++;
+      }
+      if (item.contributorId === member.id) {
+        delete item.contributorId;
+        touched++;
+      }
+    }
+    return touched;
+  }
+
+  await storage.mutate('places',  (items) => { counts.places  = scrub(items); });
+  await storage.mutate('people',  (items) => { counts.people  = scrub(items); });
+  await storage.mutate('stories', (items) => { counts.stories = scrub(items); });
+
+  // Retire le membre de members.json
+  const next = members.filter(m => m.id !== id);
+  saveMembers(next);
+  return { member: safe(member), counts, pseudo };
+}
+
+/**
  * Met à jour les champs profil d'un membre (name, email, phone).
  * - email : vérifie l'unicité (case-insensitive) hors le membre lui-même.
  * - phone : normalisé (FR), null si vidé.
@@ -378,6 +462,8 @@ module.exports = {
   createMember,
   createInvitedMember,
   approveMember,
+  rejectMember,
+  deleteMember,
   setRole,
   updateMember,
   changePassword,
