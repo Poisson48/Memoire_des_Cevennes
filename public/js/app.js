@@ -753,10 +753,17 @@ function renderBodyWithMentions(body, mentions) {
   let pos = 0;
   for (const m of sorted) {
     if (m.start < pos || m.end > body.length) continue;
-    html += renderEmphasisAndAutoLinks(body.slice(pos, m.start));
+    // Si la mention est entourée de ** dans le body, on absorbe les **
+    // dans le rendu : le lien devient gras, les marqueurs disparaissent.
+    const wrappedBold = m.start - 2 >= pos
+      && body.slice(m.start - 2, m.start) === '**'
+      && body.slice(m.end, m.end + 2) === '**';
+    const preEnd    = wrappedBold ? m.start - 2 : m.start;
+    const postStart = wrappedBold ? m.end + 2  : m.end;
+    html += renderEmphasisAndAutoLinks(body.slice(pos, preEnd));
     const span = body.slice(m.start, m.end);
-    html += inlineMention(m.type, m.entityId, span);
-    pos = m.end;
+    html += inlineMention(m.type, m.entityId, span, { bold: wrappedBold });
+    pos = postStart;
   }
   html += renderEmphasisAndAutoLinks(body.slice(pos));
   return html;
@@ -824,13 +831,16 @@ function autoLinkForName(rawText) {
   return null;
 }
 
-function inlineMention(type, id, span) {
+function inlineMention(type, id, span, opts = {}) {
   const label = type === 'person'
     ? (state.people.get(id)?.primaryName || id)
     : (state.places.get(id)?.primaryName || id);
   const typeSlug = type === 'person' ? 'personne' : 'lieu';
   const cls = `mention mention-${type}`;
-  return `<a href="#/${typeSlug}/${encodeURIComponent(id)}" class="${cls}" title="${escapeAttr(label)}">${escapeHtml(span)}</a>`;
+  const inner = opts.bold
+    ? `<strong>${escapeHtml(span)}</strong>`
+    : escapeHtml(span);
+  return `<a href="#/${typeSlug}/${encodeURIComponent(id)}" class="${cls}" title="${escapeAttr(label)}">${inner}</a>`;
 }
 
 function inlineEntity(typeSlug, id) {
