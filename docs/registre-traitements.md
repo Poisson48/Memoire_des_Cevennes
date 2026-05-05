@@ -1,6 +1,6 @@
 # Registre des traitements de données personnelles
 
-Document interne — à conserver avec les statuts de l'association. À présenter
+Document interne : à conserver avec les statuts de l'association. À présenter
 en cas de contrôle CNIL (article 30 du RGPD).
 
 ## Coordonnées
@@ -30,7 +30,7 @@ en cas de contrôle CNIL (article 30 du RGPD).
 | Champ | Valeur |
 |---|---|
 | Finalité | Constitution d'un fonds patrimonial numérique sur la mémoire des Cévennes |
-| Base légale | Intérêt légitime (art. 6-1-f RGPD) — documentation historique associative |
+| Base légale | Intérêt légitime (art. 6-1-f RGPD) : documentation historique associative |
 | Catégories de personnes | Habitants, anciens habitants, témoins, parents et grands-parents cités |
 | Données | Nom, alias, dates de naissance/décès, biographie, relations familiales, coordonnées géographiques |
 | Destinataires | Public (fiches `visibility: public`) ou membres connectés (fiches `visibility: members`) |
@@ -48,14 +48,14 @@ en cas de contrôle CNIL (article 30 du RGPD).
 | Données | Voix, image, textes associés (transcriptions, légendes) |
 | Conservation du consentement | Formulaire papier signé, archivé dans les dossiers de l'association |
 | Durée de conservation | Durée de vie de l'association, sauf retrait à la demande du témoin |
-| Retrait | Sur simple demande — traitement sous 30 jours |
+| Retrait | Sur simple demande : traitement sous 30 jours |
 
 ### 4. Journal d'activité
 
 | Champ | Valeur |
 |---|---|
 | Finalité | Traçabilité des contributions, prévention des abus |
-| Base légale | Intérêt légitime (art. 6-1-f RGPD) — sécurité du service |
+| Base légale | Intérêt légitime (art. 6-1-f RGPD) : sécurité du service |
 | Données | ID membre, action, type d'entité, horodatage, adresse IP |
 | Destinataires | Administrateurs du site |
 | Durée de conservation | 12 mois glissants |

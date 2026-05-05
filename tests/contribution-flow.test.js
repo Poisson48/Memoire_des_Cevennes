@@ -64,7 +64,7 @@ test('serveur joignable et seeds en place', async () => {
   assert.equal(r.ok, true, `${BASE}/api/places ne répond pas (${r.status})`);
   const j = await r.json();
   assert.ok(Array.isArray(j.places), 'réponse /api/places malformée');
-  assert.ok(j.places.length >= 1, 'aucun lieu seedé — lance scripts/seed-bootstrap.js');
+  assert.ok(j.places.length >= 1, 'aucun lieu seedé : lance scripts/seed-bootstrap.js');
 });
 
 test('flow contribution : membre crée, admin approuve, visibility=members protège', async (t) => {

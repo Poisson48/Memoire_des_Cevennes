@@ -1,0 +1,86 @@
+{
+  "dialogState": {
+    "present": true,
+    "open": true,
+    "rect": {
+      "x": 8,
+      "y": 107.5625,
+      "w": 304,
+      "h": 442.859375
+    }
+  },
+  "darkBordered": [
+    {
+      "tag": "header",
+      "id": null,
+      "cls": "topbar",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 93
+      },
+      "border": {
+        "top": "0px none rgb(43, 42, 39)",
+        "right": "0px none rgb(43, 42, 39)",
+        "bottom": "1px solid rgb(217, 207, 189)",
+        "left": "0px none rgb(43, 42, 39)"
+      },
+      "outline": null
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "cls": "text-size-banner",
+      "rect": {
+        "x": 0,
+        "y": 93,
+        "w": 320,
+        "h": 98
+      },
+      "border": {
+        "top": "0px none rgb(43, 42, 39)",
+        "right": "0px none rgb(43, 42, 39)",
+        "bottom": "1px solid rgb(217, 207, 189)",
+        "left": "0px none rgb(43, 42, 39)"
+      },
+      "outline": null
+    },
+    {
+      "tag": "aside",
+      "id": "panel",
+      "cls": "panel",
+      "rect": {
+        "x": 0,
+        "y": 658,
+        "w": 320,
+        "h": 467
+      },
+      "border": {
+        "top": "1px solid rgb(217, 207, 189)",
+        "right": "0px none rgb(43, 42, 39)",
+        "bottom": "0px none rgb(43, 42, 39)",
+        "left": "0px none rgb(43, 42, 39)"
+      },
+      "outline": null
+    },
+    {
+      "tag": "form",
+      "id": null,
+      "cls": "welcome-actions",
+      "rect": {
+        "x": 8,
+        "y": 483,
+        "w": 304,
+        "h": 67
+      },
+      "border": {
+        "top": "1px solid rgba(0, 0, 0, 0.06)",
+        "right": "0px none rgb(43, 42, 39)",
+        "bottom": "0px none rgb(43, 42, 39)",
+        "left": "0px none rgb(43, 42, 39)"
+      },
+      "outline": null
+    }
+  ]
+}

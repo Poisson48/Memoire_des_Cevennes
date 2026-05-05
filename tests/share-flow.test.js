@@ -37,7 +37,7 @@ async function openSharedDialogForPlace(page) {
   return dlg;
 }
 
-test('partage lieu — dialog ouvre, QR + URL #/lieu/<id>', async () => {
+test('partage lieu : dialog ouvre, QR + URL #/lieu/<id>', async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
   const page = await ctx.newPage();
@@ -58,7 +58,7 @@ test('partage lieu — dialog ouvre, QR + URL #/lieu/<id>', async () => {
   }
 });
 
-test('partage lieu — bouton Copier place le lien dans le presse-papier', async () => {
+test('partage lieu : bouton Copier place le lien dans le presse-papier', async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
   const page = await ctx.newPage();
@@ -72,7 +72,7 @@ test('partage lieu — bouton Copier place le lien dans le presse-papier', async
   }
 });
 
-test('partage lieu — bouton Télécharger déclenche un PNG', async () => {
+test('partage lieu : bouton Télécharger déclenche un PNG', async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
@@ -88,7 +88,7 @@ test('partage lieu — bouton Télécharger déclenche un PNG', async () => {
   }
 });
 
-test('partage mobile — bouton « Partager via… » appelle navigator.share()', async () => {
+test('partage mobile : bouton « Partager via… » appelle navigator.share()', async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({
     ...devices['Pixel 5'],
@@ -118,7 +118,7 @@ test('partage mobile — bouton « Partager via… » appelle navigator.share()'
   }
 });
 
-test('partage personne — URL #/personne/<id>', async () => {
+test('partage personne : URL #/personne/<id>', async () => {
   const PERSON_ID = 'pierre-bermond-de-sauve';
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
@@ -140,7 +140,7 @@ test('partage personne — URL #/personne/<id>', async () => {
   }
 });
 
-test('partage récit — URL #/recit/<id>', async () => {
+test('partage récit : URL #/recit/<id>', async () => {
   const STORY_ID = 'geographie-et-origines-antiques';
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
@@ -162,7 +162,7 @@ test('partage récit — URL #/recit/<id>', async () => {
   }
 });
 
-test('partage desktop — bouton « Partager via… » caché si pas de Web Share API', async () => {
+test('partage desktop : bouton « Partager via… » caché si pas de Web Share API', async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const page = await ctx.newPage();

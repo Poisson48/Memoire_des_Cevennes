@@ -1,7 +1,7 @@
-# Déploiement VPS — Mémoire des Cévennes
+# Déploiement VPS : Mémoire des Cévennes
 
 Note : ce guide suppose un VPS Linux avec accès root (Debian 12 / Ubuntu
-22.04+). Prestataires adaptés : OVH, Hetzner, Scaleway — tous proposent des
+22.04+). Prestataires adaptés : OVH, Hetzner, Scaleway : tous proposent des
 offres < 10 €/mois adaptées à la charge anticipée.
 
 ## Prérequis
@@ -94,7 +94,7 @@ sudo systemctl status memoire
 
 ## 5. Reverse proxy + HTTPS (Caddy)
 
-Caddy fait le certificat Let's Encrypt automatiquement — le plus simple.
+Caddy fait le certificat Let's Encrypt automatiquement : le plus simple.
 
 ```bash
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https

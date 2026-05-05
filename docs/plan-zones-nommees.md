@@ -1,12 +1,12 @@
-# Plan — Zones nommées (vallons, hameaux étendus, micro-régions)
+# Plan : Zones nommées (vallons, hameaux étendus, micro-régions)
 
-Statut : **prêt à coder** — implémentation prévue ce week-end (2-3 mai 2026).
+Statut : **prêt à coder** : implémentation prévue ce week-end (2-3 mai 2026).
 
 À ne pas confondre avec [`plan-zone-osm.md`](plan-zone-osm.md), qui décrit
 la **zone-racine d'une instance** (1 commune ou département choisi via
 OpenStreetMap au déploiement). Le présent document décrit des **sous-zones
-nommées** dessinées par l'admin à l'intérieur de la zone couverte —
-vallons, hameaux étendus, parcelles historiques, micro-toponymes — qui
+nommées** dessinées par l'admin à l'intérieur de la zone couverte :
+vallons, hameaux étendus, parcelles historiques, micro-toponymes : qui
 servent de repère contextuel sur la carte.
 
 ## Objectif
@@ -21,7 +21,7 @@ servent de repère contextuel sur la carte.
 
 ## Modèle de données
 
-### `data/zones.json` — nouveau fichier
+### `data/zones.json` : nouveau fichier
 
 ```json
 {
@@ -55,7 +55,7 @@ Mêmes conventions que `places.json` / `people.json` :
 - `submittedBy` / `reviewedBy`.
 - `aliases[]` au format `normAliases()` existant.
 
-### Schéma — ajout dans `src/schema.js`
+### Schéma : ajout dans `src/schema.js`
 
 ```js
 function makeZone(input, existingIds) {
@@ -83,7 +83,7 @@ borne le nombre de points (≤ 5000 pour éviter les abus).
 
 `normColor` : regex hex `#[0-9a-f]{6}` ou nom CSS court (`red`, `blue`…).
 
-## Module — `src/zones.js`
+## Module : `src/zones.js`
 
 Calque sur `src/people.js` / `src/places.js` :
 ```js
@@ -133,7 +133,7 @@ via la file de modération serait pénible.
 
 ## Frontend
 
-### Carte — `public/js/app.js`
+### Carte : `public/js/app.js`
 
 Au boot, `fetch('/api/zones')` puis pour chaque zone :
 
@@ -151,9 +151,9 @@ zonesLayerGroup.addLayer(layer);
 ```
 
 Toggle dans le sélecteur de fonds (« Voir les zones / masquer »). Les
-zones doivent rester en arrière-plan visuel, pas en avant — `bringToBack()`.
+zones doivent rester en arrière-plan visuel, pas en avant : `bringToBack()`.
 
-### Overlay « tu es ici » — nouveau composant
+### Overlay « tu es ici » : nouveau composant
 
 Petite boîte fixée en bas-gauche de la carte (sur mobile : bas-centre,
 condensée) :
@@ -179,7 +179,7 @@ Logique :
 4. Format : `nom de zone · nom de zone · commune`. Tronquer à 3 zones
    max si overlap.
 
-### Module nouveau — `public/js/zones-overlay.js`
+### Module nouveau : `public/js/zones-overlay.js`
 
 ```js
 window.ZonesOverlay = (function () {
@@ -206,7 +206,7 @@ window.ZonesOverlay = (function () {
 })();
 ```
 
-### CSS — `public/css/style.css`
+### CSS : `public/css/style.css`
 
 ```css
 .zones-overlay {
@@ -234,7 +234,7 @@ window.ZonesOverlay = (function () {
 }
 ```
 
-## UI admin — onglet « Zones »
+## UI admin : onglet « Zones »
 
 Nouvel onglet dans `/admin.html` à côté de « Alias » :
 
@@ -298,7 +298,7 @@ au moins une zone publique. Sinon, refuser ou flagger selon le mode.
 8. **Données initiales pour Saint-Roman** : tracer les vallons listés
    sur la fiche Wikipédia
    <https://fr.wikipedia.org/wiki/Saint-Roman-de-Codi%C3%A8res>
-   (section Géographie / Hydrographie — c'est la source de référence,
+   (section Géographie / Hydrographie : c'est la source de référence,
    plus complète que les Cahiers du Haut-Vidourle qui n'en mentionnent
    que 3 : Récodier, Vidourle, Savel). Vérifier au moment du seed que
    la liste Wikipédia est cohérente avec le terrain ; idéalement faire

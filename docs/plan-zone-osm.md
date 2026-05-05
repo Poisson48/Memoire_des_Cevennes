@@ -1,4 +1,4 @@
-# Plan — Déploiement multi-zone via OSM
+# Plan : Déploiement multi-zone via OSM
 
 Statut : **en attente** (idée validée, à implémenter plus tard).
 
@@ -21,7 +21,7 @@ une fois depuis l'admin, et tout le reste en découle :
 
 ## Modèle de données
 
-### `data/site_config.json` — étendu
+### `data/site_config.json` : étendu
 
 ```json
 {
@@ -42,7 +42,7 @@ une fois depuis l'admin, et tout le reste en découle :
 }
 ```
 
-### `data/zone.geojson` — sidecar (cache du polygone)
+### `data/zone.geojson` : sidecar (cache du polygone)
 
 GeoJSON Feature complet de la zone (Polygon ou MultiPolygon). Téléchargé
 une fois lors du choix de la zone, puis servi en statique. Re-téléchargeable
@@ -89,7 +89,7 @@ mondial si `zone` absente.
 
 ### `public/js/site-config.js`
 
-Inchangé — déjà gère le titre dynamique.
+Inchangé : déjà gère le titre dynamique.
 
 ### Pages statiques
 
@@ -107,7 +107,7 @@ Nouvel onglet ou section **« Zone couverte »** dans `/admin.html` :
 ```
 ┌─ Zone couverte ────────────────────────────────────┐
 │ Zone actuelle : Saint-Roman-de-Codières (relation │
-│   OSM #8295914) — bbox 3.74,43.97 → 3.81,44.03    │
+│   OSM #8295914) : bbox 3.74,43.97 → 3.81,44.03    │
 │ [ Voir sur la carte ]  [ Rafraîchir la géométrie ] │
 │                                                    │
 │ Changer de zone :                                  │
@@ -124,7 +124,7 @@ Nouvel onglet ou section **« Zone couverte »** dans `/admin.html` :
 
 Pour chaque nouveau lieu / récit avec coordonnées :
 - Si `data/zone.geojson` existe, point-in-polygon côté serveur (lib
-  `@turf/boolean-point-in-polygon` — ~30 ko, raisonnable).
+  `@turf/boolean-point-in-polygon` : ~30 ko, raisonnable).
 - Si hors zone, **pas de blocage dur** : flag `outOfZone: true` sur
   l'entité + badge dans la file de modération admin (« hors zone »).
 - L'admin peut toujours valider (cas légitime : ancien habitant qui
@@ -136,7 +136,7 @@ défaut false).
 ## Migration
 
 `SCHEMA_VERSION` à bumper dans `src/backup.js`. Migration depuis l'ancien
-schéma : si `site_config.json` n'a pas de `zone`, on n'en met pas — le
+schéma : si `site_config.json` n'a pas de `zone`, on n'en met pas : le
 frontend tombe sur le fallback hardcodé (Saint-Roman) jusqu'à ce que
 l'admin choisisse une zone.
 
@@ -165,7 +165,7 @@ Backup : ajouter `data/zone.geojson` à la liste des fichiers du tar.gz
 - **Nominatim down** : prévoir un input manuel `osmType, osmId` + upload
   d'une GeoJSON locale en fallback.
 - **Ré-écriture de l'identité** : ne pas changer `data/zone.geojson` sans
-  prévenir — les contributions « hors zone » d'avant resteraient flaggées.
+  prévenir : les contributions « hors zone » d'avant resteraient flaggées.
   Snapshot pre-restore obligatoire avant changement.
 - **Politique Nominatim** : User-Agent identifiant + 1 req/s + cache
   agressif. Documenter dans le code.
@@ -182,7 +182,7 @@ Backup : ajouter `data/zone.geojson` à la liste des fichiers du tar.gz
 7. **Purge « Cévennes » en dur** dans HTML statiques.
 8. **Modération hors-zone** : point-in-polygon + flag.
 9. **Backup** : ajouter `zone.geojson` au tar.gz, bump SCHEMA_VERSION.
-10. **Tests** : Playwright — création d'une instance vide, choix d'une
+10. **Tests** : Playwright : création d'une instance vide, choix d'une
     zone, vérification que la carte se centre, qu'un point hors zone est
     flaggé.
 
