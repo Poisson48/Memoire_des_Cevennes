@@ -71,9 +71,10 @@ function optionalAuth(req, res, next) {
 /**
  * Middleware d'authentification obligatoire.
  * Requiert un membre authentifié dont le rôle est >= minRole.
- * Hiérarchie : member < contributor < admin.
+ * Hiérarchie : member < admin (le rôle "contributor" historique a été
+ * fusionné avec "member" — voir auth.roleIndex pour l'alias rétro-compat).
  *
- * @param {string} minRole  'member' | 'contributor' | 'admin'
+ * @param {string} minRole  'member' | 'admin'
  */
 function requireAuth(minRole) {
   return function (req, res, next) {

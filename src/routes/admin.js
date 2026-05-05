@@ -142,8 +142,11 @@ router.post('/members', async (req, res, next) => {
     if (!name || !email) {
       return res.status(400).json({ error: 'name et email sont requis.' });
     }
-    const validRoles = ['member', 'contributor', 'admin'];
-    const wantedRole = validRoles.includes(role) ? role : 'member';
+    const validRoles = ['member', 'admin'];
+    // Rétro-compat : si un appelant envoie encore "contributor", on traite
+    // comme "member" — la fusion l'a remplacé.
+    const normalizedRole = role === 'contributor' ? 'member' : role;
+    const wantedRole = validRoles.includes(normalizedRole) ? normalizedRole : 'member';
     const reviewerId   = (req.member && req.member.id) || 'admin-token';
     const reviewerName = (req.member && (req.member.name || req.member.email)) || 'admin';
 

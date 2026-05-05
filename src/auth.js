@@ -9,8 +9,10 @@ const { randomUUID } = require('crypto');
 const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
 const LOG_FILE     = path.join(__dirname, '..', 'data', 'activity_log.json');
 
-// Hiérarchie des rôles : member < contributor < admin
-const ROLES = ['member', 'contributor', 'admin'];
+// Hiérarchie des rôles : member < admin (le rôle "contributor" historique
+// a été fusionné avec "member" — voir roleIndex pour l'alias rétro-compat
+// qui permet aux JWT déjà émis de continuer à valider).
+const ROLES = ['member', 'admin'];
 const SALT_ROUNDS = 12;
 
 // ── Lecture / écriture ────────────────────────────────────────────────────
@@ -373,7 +375,7 @@ function getMemberById(id) {
 
 /**
  * Change le rôle d'un membre.
- * Rôles valides : member | contributor | admin.
+ * Rôles valides : member | admin.
  */
 function setRole(id, role) {
   if (!ROLES.includes(role)) throw new Error(`Rôle invalide : ${role}`);
@@ -436,6 +438,9 @@ function verifyToken(token) {
  * Retourne -1 si le rôle est inconnu.
  */
 function roleIndex(role) {
+  // Alias rétro-compat : les JWT émis avant la fusion ont role="contributor".
+  // On les traite comme "member" jusqu'à ce qu'ils expirent naturellement.
+  if (role === 'contributor') return ROLES.indexOf('member');
   return ROLES.indexOf(role);
 }
 

@@ -2,9 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Tutoriel — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/legal.css" />
   <style>
     /* Override le layout fixe du body (height:100% + overflow:hidden) qui
@@ -180,6 +182,7 @@
     }
     .admin-pointer a { color: var(--accent-dark); }
   </style>
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -345,9 +348,9 @@
         l'approuve (en général sous 24 h).
       </div>
       <div class="step tip">
-        Une fois approuvé·e, tu deviens <strong>membre</strong> (lecture du
-        contenu protégé). Pour pouvoir <em>contribuer</em>, demande à l'admin
-        de te promouvoir <strong>contributeur</strong>.
+        Une fois approuvé·e, tu deviens <strong>membre</strong> : tu accèdes
+        au contenu protégé <em>et</em> tu peux contribuer (ajouter des lieux,
+        personnes, récits — chaque création passe par la file de modération).
       </div>
 
       <h3 id="guest-signaler">5. Signaler un contenu</h3>
@@ -368,16 +371,16 @@
     </section>
 
     <!-- ─────────────────────────────────────────────────────────
-         SECTION 2 : MEMBRE (connecté, member ou contributor)
+         SECTION 2 : MEMBRE (connecté)
          ───────────────────────────────────────────────────────── -->
     <section id="section-member" class="role-section" role="tabpanel" aria-labelledby="tab-member">
       <h2>👤 Tu es membre connecté·e</h2>
       <p>
         En tant que membre, tu accèdes au contenu en visibilité <em>members</em>
-        — les fiches plus personnelles que les contributeurs ont voulu réserver
-        au cercle. Si tu as le rôle <strong>contributeur</strong>, tu peux en
-        plus ajouter des lieux, des personnes, des récits, et corriger des
-        fiches existantes.
+        — les fiches plus personnelles que les autres membres ont voulu
+        réserver au cercle. Tu peux aussi ajouter des lieux, des personnes,
+        des récits, et corriger des fiches existantes ; toutes tes créations
+        passent par la file de modération avant publication.
       </p>
 
       <nav class="tuto-toc">
@@ -476,7 +479,7 @@
         <figcaption>L'accueil, vue d'un membre connecté.</figcaption>
       </figure>
 
-      <h3 id="member-ajouter-lieu">3. Ajouter un lieu <span style="color:var(--muted);font-weight:normal;font-size:0.9em;">(rôle contributeur requis)</span></h3>
+      <h3 id="member-ajouter-lieu">3. Ajouter un lieu</h3>
       <ol>
         <li>Clique sur <strong>« + Ajouter un lieu »</strong> dans la barre du haut.</li>
         <li>Tape sur la carte à l'endroit voulu, ou clique <em>« utilise ma position »</em>.</li>

@@ -109,9 +109,8 @@ function renderMembers(container, members, showApprove) {
         ${showApprove ? `<button type="button" class="btn-ghost" data-member-action="reject">✗ Refuser</button>` : ''}
         <button type="button" class="btn-ghost" data-member-action="edit">✏️ Éditer</button>
         <select data-member-action="role" aria-label="Rôle">
-          <option value="member"       ${m.role === 'member' ? 'selected' : ''}>Membre</option>
-          <option value="contributor"  ${m.role === 'contributor' ? 'selected' : ''}>Contributeur</option>
-          <option value="admin"        ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
+          <option value="member"  ${m.role === 'member' || m.role === 'contributor' ? 'selected' : ''}>Membre</option>
+          <option value="admin"   ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
         </select>
         <button type="button" class="btn-ghost" data-member-action="delete" style="margin-left:auto;">🗑 Supprimer</button>
       </div>

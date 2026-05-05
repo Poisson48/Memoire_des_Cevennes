@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Mon compte — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
@@ -115,6 +116,7 @@
       margin-top: 0.15rem;
     }
   </style>
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -146,7 +148,7 @@
           <input type="email" name="email" required autocomplete="email" />
         </label>
         <label>Téléphone <span class="hint" style="display:inline;font-weight:normal;">(facultatif)</span>
-          <input type="tel" name="phone" autocomplete="tel" placeholder="06 12 34 56 78" />
+          <input type="tel" name="phone" autocomplete="tel" placeholder="06.12.34.56.78" />
         </label>
         <div class="actions">
           <button type="submit" class="btn-primary">Enregistrer</button>
@@ -193,6 +195,8 @@
   </footer>
   <script src="js/version.js"></script>
   <script src="js/site-config.js"></script>
+  <script src="js/phone-format.js"></script>
+  <script src="js/confirm-dialog.js"></script>
 
   <script>
     const elLoading = document.getElementById('me-loading');
@@ -214,10 +218,11 @@
     function fillProfile(member) {
       formProfile.name.value  = member.name  || '';
       formProfile.email.value = member.email || '';
-      formProfile.phone.value = member.phone || '';
+      formProfile.phone.value = window.MdcPhone
+        ? window.MdcPhone.format(member.phone || '')
+        : (member.phone || '');
       formProfile.hidden = false;
-      const role = member.role === 'admin' ? 'Admin'
-                 : member.role === 'contributor' ? 'Contributeur' : 'Membre';
+      const role = member.role === 'admin' ? 'Admin' : 'Membre';
       elMeta.hidden = false;
       elMeta.textContent =
         `${role} · inscrit le ${fmtDate(member.createdAt)}`
@@ -320,6 +325,10 @@
     });
 
     document.getElementById('btn-logout').addEventListener('click', async () => {
+      const ok = window.MdcConfirm
+        ? await window.MdcConfirm('Vous allez être déconnecté de votre compte.')
+        : window.confirm('Vous allez être déconnecté de votre compte.');
+      if (!ok) return;
       try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
       location.href = 'index.html';
     });

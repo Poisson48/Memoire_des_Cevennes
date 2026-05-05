@@ -25,7 +25,9 @@ const state = {
 };
 
 // ─── Rôles ──────────────────────────────────────────────────────────────
-const ROLES_ORDER = ['member', 'contributor', 'admin'];
+// member < admin. "contributor" historique fusionné avec member ; on garde
+// un alias rétro-compat dans hasRole() pour les vieux JWT pas encore expirés.
+const ROLES_ORDER = ['member', 'admin'];
 
 /** Retourne true si le membre connecté a au moins le rôle minRole. */
 function hasRole(minRole) {
@@ -33,7 +35,10 @@ function hasRole(minRole) {
   // au moment de la décodage — pas besoin de re-vérifier le status côté
   // client (le serveur a déjà refusé si status !== 'active' au login).
   if (!state.member) return false;
-  return ROLES_ORDER.indexOf(state.member.role) >= ROLES_ORDER.indexOf(minRole);
+  // Alias rétro-compat : JWT pré-fusion peuvent encore porter role="contributor".
+  const role = state.member.role === 'contributor' ? 'member' : state.member.role;
+  const need = minRole === 'contributor' ? 'member' : minRole;
+  return ROLES_ORDER.indexOf(role) >= ROLES_ORDER.indexOf(need);
 }
 
 // ─── Carte ──────────────────────────────────────────────────────────────
@@ -150,6 +155,10 @@ function renderAuthNav() {
 
   // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
   logoutBtn.onclick = async () => {
+    const ok = window.MdcConfirm
+      ? await window.MdcConfirm('Vous allez être déconnecté de votre compte.')
+      : window.confirm('Vous allez être déconnecté de votre compte.');
+    if (!ok) return;
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
     state.member = null;
     renderAuthNav();
@@ -247,7 +256,7 @@ function applyMode() {
   // sans surcharger la topbar). En membre simple non habilité, on garde un
   // bouton verrouillé qui explique au clic.
   if (addBtn) {
-    const canAdd = state.mode === 'live' && hasRole('contributor');
+    const canAdd = state.mode === 'live' && hasRole('member');
     if (canAdd) {
       addBtn.hidden = false;
       addBtn.textContent = '+ Ajouter un lieu';
@@ -294,7 +303,7 @@ function blockedByStaticMode(what = 'Cette action') {
  * Retourne true (et affiche un message) si l'utilisateur n'a pas le rôle
  * requis. L'appelant doit abandonner dans ce cas.
  */
-function blockedByAuth(minRole = 'contributor', what = 'Cette action') {
+function blockedByAuth(minRole = 'member', what = 'Cette action') {
   if (!state.member) {
     if (confirm(`${what} nécessite d'être connecté.\n\nAller à la page de connexion ?`)) {
       window.location.href = '/login.html';
@@ -422,7 +431,7 @@ function openPlacePanel(placeId) {
   // Bouton d'ajout de contenu uniquement pour contributor/admin.
   // Bouton "Déplacer" uniquement pour admin — corrige une position
   // approximative directement, sans passer par la file de modération.
-  const canContribute = state.mode === 'live' && hasRole('contributor');
+  const canContribute = state.mode === 'live' && hasRole('member');
   const canMove       = state.mode === 'live' && hasRole('admin');
   const actions = `
     <div class="entity-actions">

@@ -30,7 +30,7 @@ router.get('/:id', (req, res) => {
   res.json({ place });
 });
 
-router.post('/', requireAuth('contributor'), async (req, res, next) => {
+router.post('/', requireAuth('member'), async (req, res, next) => {
   try {
     if (req.body.consentGiven !== true) {
       return res.status(400).json({ error: 'consentement requis' });

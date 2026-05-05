@@ -2,12 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Administration — Mémoire des Cévennes</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/text-size.js"></script>
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/legal.css" />
+  <script src="js/wake-lock.js" defer></script>
 </head>
 <body class="admin-body">
   <header class="topbar admin-topbar">
@@ -79,6 +81,7 @@
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
+        <button type="button" class="tab-btn" data-tab="account">Mon compte</button>
         <button type="button" class="tab-btn" data-tab="cadastre">🎯 Cadastre (avancé)</button>
         <button type="button" class="tab-btn" data-tab="help">Aide</button>
       </div>
@@ -104,7 +107,7 @@
 
       <div id="members" class="queue" hidden>
         <details class="member-create">
-          <summary>➕ Créer un compte (membre, contributeur ou admin)</summary>
+          <summary>➕ Créer un compte (membre ou admin)</summary>
           <p class="hint" style="margin:0.6rem 0 0.4rem;">
             Pas de mot de passe à choisir : le serveur génère une clé d'usage
             unique (valable 7 jours) que tu transmets au membre de la main à
@@ -119,12 +122,11 @@
               <input type="email" name="email" required maxlength="160" />
             </label>
             <label>Téléphone <span class="hint" style="font-weight:normal;">(facultatif)</span>
-              <input type="tel" name="phone" maxlength="32" placeholder="06 12 34 56 78" />
+              <input type="tel" name="phone" maxlength="32" placeholder="06.12.34.56.78" />
             </label>
             <label>Rôle
               <select name="role">
-                <option value="member">Membre (lecteur)</option>
-                <option value="contributor" selected>Contributeur (peut ajouter du contenu)</option>
+                <option value="member" selected>Membre (peut consulter et contribuer)</option>
                 <option value="admin">Admin (toutes permissions)</option>
               </select>
             </label>
@@ -258,6 +260,37 @@
         </form>
       </div>
 
+      <div id="account" class="queue" hidden>
+        <h2>Mon compte admin</h2>
+        <p class="hint" id="account-identity" style="margin-bottom:1rem;"></p>
+
+        <div id="account-token-notice" hidden class="backup-feedback">
+          Tu es connecté·e avec le <strong>token partagé</strong>
+          (<code>ADMIN_TOKEN</code>), pas un compte personnel. Reconnecte-toi
+          via l'onglet <em>Compte admin</em> de la page de connexion pour
+          changer ton mot de passe.
+        </div>
+
+        <form id="form-account-password" class="legal-form" style="max-width:34rem;">
+          <h3 style="margin-top:0;">Changer mon mot de passe</h3>
+          <label>Ancien mot de passe
+            <input type="password" name="oldPassword" required autocomplete="current-password" />
+          </label>
+          <label>Nouveau mot de passe
+            <input type="password" name="newPassword" required autocomplete="new-password" minlength="8" />
+            <span class="hint">8 caractères minimum.</span>
+          </label>
+          <label>Confirmer le nouveau mot de passe
+            <input type="password" name="confirmPassword" required autocomplete="new-password" minlength="8" />
+          </label>
+          <div id="account-password-error" class="auth-error" hidden></div>
+          <div id="account-password-success" class="hint" hidden style="color:#2a6e40;"></div>
+          <div class="actions">
+            <button type="submit" class="btn-primary">Mettre à jour le mot de passe</button>
+          </div>
+        </form>
+      </div>
+
       <div id="cadastre" class="queue cadastre-tab" hidden>
         <h2>🎯 Calibrer le décalage cadastre</h2>
         <p>
@@ -373,7 +406,7 @@
         </p>
         <ul>
           <li>Approuver un compte <code>pending</code> pour qu'il puisse se connecter.</li>
-          <li>Promouvoir un membre en <em>contributeur</em> (droit de créer du contenu) ou en <em>admin</em>.</li>
+          <li>Promouvoir un membre en <em>admin</em> (toutes permissions).</li>
           <li>Suspendre / réactiver un compte.</li>
           <li>Créer un compte directement par invitation (utile pour les anciens qui n'utilisent pas internet : tu remplis nom + email + rôle, l'app génère une <strong>clé d'usage unique</strong> que tu lui transmets de la main à la main).</li>
         </ul>
@@ -530,16 +563,17 @@
           <tbody>
             <tr>
               <td><strong>Membre</strong></td>
-              <td>Se connecter, voir le contenu en visibilité <em>members</em>, signaler.</td>
-            </tr>
-            <tr>
-              <td><strong>Contributeur</strong></td>
-              <td>Tout ce qu'un membre peut faire, plus : ajouter lieux, personnes, récits, médias, complétions, propositions de modifications.</td>
+              <td>
+                Se connecter, voir le contenu en visibilité <em>members</em>,
+                signaler, et ajouter du contenu : lieux, personnes, récits,
+                médias, complétions, propositions de modifications. Toutes les
+                créations passent par la file de modération.
+              </td>
             </tr>
             <tr>
               <td><strong>Admin</strong></td>
               <td>
-                Tout ce qu'un contributeur peut faire, plus : valider les
+                Tout ce qu'un membre peut faire, plus : valider les
                 inscriptions et les contributions en attente, créer des comptes
                 directement, changer le rôle des membres, consulter le journal
                 d'activité, traiter les signalements, gérer les sauvegardes,
@@ -570,6 +604,8 @@
   </footer>
 
   <script src="js/markdown.js"></script>
+  <script src="js/phone-format.js"></script>
+  <script src="js/confirm-dialog.js"></script>
   <script src="js/admin/core.js"></script>
   <script src="js/admin/queue.js"></script>
   <script src="js/admin/activity.js"></script>
@@ -579,6 +615,7 @@
   <script src="js/admin/welcome.js"></script>
   <script src="js/admin/settings.js"></script>
   <script src="js/admin/aliases.js"></script>
+  <script src="js/admin/account.js"></script>
   <script src="js/admin/boot.js"></script>
   <script src="js/admin-cadastre.js"></script>
   <script src="js/dialog-swipe.js"></script>

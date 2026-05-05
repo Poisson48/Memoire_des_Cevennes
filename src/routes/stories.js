@@ -37,7 +37,7 @@ router.get('/:id', (req, res) => {
   res.json({ story });
 });
 
-router.post('/', requireAuth('contributor'), async (req, res, next) => {
+router.post('/', requireAuth('member'), async (req, res, next) => {
   try {
     if (req.body.consentGiven !== true) {
       return res.status(400).json({ error: 'consentement requis' });
@@ -69,7 +69,7 @@ router.post('/', requireAuth('contributor'), async (req, res, next) => {
 // Compléter une histoire existante : n'importe qui peut ajouter un
 // chapitre qui vient s'attacher au récit. La complétion tombe en
 // pending, l'admin valide.
-router.post('/:id/completions', requireAuth('contributor'), async (req, res, next) => {
+router.post('/:id/completions', requireAuth('member'), async (req, res, next) => {
   try {
     if (req.body.consentGiven !== true) {
       return res.status(400).json({ error: 'consentement requis' });
@@ -99,7 +99,7 @@ router.post('/:id/completions', requireAuth('contributor'), async (req, res, nex
 });
 
 // Upload d'un ou plusieurs médias rattachés à un récit existant.
-router.post('/:id/media', requireAuth('contributor'), (req, res, next) => {
+router.post('/:id/media', requireAuth('member'), (req, res, next) => {
   upload.array('media', 10)(req, res, async (err) => {
     if (err) return next(err);
     try {
