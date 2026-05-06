@@ -60,6 +60,7 @@ function renderItem(qi) {
 
 function renderCompletion(qi) {
   const comp = qi.item;
+  const refs = qi.refs || {};
   const who = comp.submittedBy || {};
   const whoLine = [
     who.name ? `<strong>${escapeHtml(who.name)}</strong>` : '<em>Anonyme</em>',
@@ -76,7 +77,7 @@ function renderCompletion(qi) {
         <span class="item-meta">${whoLine} · ${date}</span>
       </div>
       <div class="item-preview">
-        <div class="story-body">${renderBodyWithMentions(comp.body, comp.mentions || [])}</div>
+        <div class="story-body">${renderBodyWithMentions(comp.body, refs.mentions || comp.mentions || [])}</div>
       </div>
       ${renderActions()}
     </article>
@@ -86,6 +87,7 @@ function renderCompletion(qi) {
 function renderCreate(qi) {
   const item = qi.item;
   const type = qi.entityType;
+  const refs = qi.refs || {};
   const sub = item.submittedBy ? `par ${escapeHtml(item.submittedBy.pseudo || item.submittedBy.email || '?')} · ` : '';
   const date = item.submittedAt ? new Date(item.submittedAt).toLocaleString('fr-FR') : '';
 
@@ -104,15 +106,19 @@ function renderCreate(qi) {
         ${item.birth?.year ? `né·e ${item.birth.year}` : ''}
         ${item.death?.year ? ` · † ${item.death.year}` : ''}
       </div>
+      ${item.aliases?.length ? `<div class="item-meta">alias : ${item.aliases.map(a => escapeHtml(a.name)).join(' · ')}</div>` : ''}
     `;
   } else if (type === 'stories') {
+    const placeLabel = refs.placeName
+      ? `<a href="#/lieu/${escapeAttr(item.placeId)}" target="_blank" rel="noopener"><strong>${escapeHtml(refs.placeName)}</strong></a>`
+      : `<code>${escapeHtml(item.placeId)}</code> <em>(lieu introuvable)</em>`;
     preview = `
       ${item.title ? `<div><strong>${escapeHtml(item.title)}</strong></div>` : ''}
-      <div class="story-body">${renderBodyWithMentions(item.body || '', item.mentions || [])}</div>
+      <div class="story-body">${renderBodyWithMentions(item.body || '', refs.mentions || item.mentions || [])}</div>
       ${renderMediaFiles(item.mediaFiles || [])}
       <div class="item-meta">
         type : <strong>${escapeHtml(item.type || 'text')}</strong>
-        · ancré sur <code>${escapeHtml(item.placeId)}</code>
+        · ancré sur ${placeLabel}
         ${item.memoryDate ? ` · ${escapeHtml(item.memoryDate)}` : ''}
         ${item.mentions?.length ? ` · ${item.mentions.length} mention${item.mentions.length>1?'s':''}` : ''}
       </div>
@@ -249,7 +255,10 @@ function renderBodyWithMentions(body, mentions) {
     const label = body.slice(m.start, m.end);
     const href = m.type === 'place' ? `#/lieu/${m.entityId}` : `#/personne/${m.entityId}`;
     const icon = m.type === 'place' ? '📍' : '👤';
-    out += `<a class="mention-link" href="${escapeAttr(href)}" target="_blank" rel="noopener" title="${escapeHtml(m.type)} : ${escapeHtml(m.entityId)}">${icon} ${escapeHtml(label)}</a>`;
+    // Tooltip : nom résolu (servi par moderation.queue) sinon fallback sur l'id.
+    const resolved = m._name || m.entityId;
+    const title = `${m.type === 'place' ? 'Lieu' : 'Personne'} : ${resolved}`;
+    out += `<a class="mention-link" href="${escapeAttr(href)}" target="_blank" rel="noopener" title="${escapeAttr(title)}">${icon} ${escapeHtml(label)}</a>`;
     cursor = m.end;
   }
   out += escapeHtml(body.slice(cursor));

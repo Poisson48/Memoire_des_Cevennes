@@ -7,12 +7,44 @@ const edits = require('./edits');
 
 const ENTITIES = { places, people, stories };
 
+// Construit un index id → primaryName (et titre pour stories) pour résoudre
+// les références croisées affichées dans la file de modération : placeId
+// d'un récit, target d'une mention, etc. On ratisse en `status: 'all'` car
+// un récit pending peut être ancré sur un lieu pending.
+function _entityIndex() {
+  const idx = { places: {}, people: {}, stories: {} };
+  for (const p of places.list({ status: 'all' })) idx.places[p.id] = p.primaryName;
+  for (const p of people.list({ status: 'all' })) idx.people[p.id] = p.primaryName;
+  for (const s of stories.list({ status: 'all' })) idx.stories[s.id] = s.title || s.id;
+  return idx;
+}
+
+// Pour un récit (item ou completion), résout placeId et chaque mention.
+function _resolveStoryRefs(item, idx) {
+  const refs = {};
+  if (item.placeId && idx.places[item.placeId]) {
+    refs.placeName = idx.places[item.placeId];
+  }
+  if (Array.isArray(item.mentions) && item.mentions.length) {
+    refs.mentions = item.mentions.map(m => ({
+      ...m,
+      _name: m.type === 'place' ? idx.places[m.entityId]
+           : m.type === 'person' ? idx.people[m.entityId]
+           : idx.stories[m.entityId] || null,
+    }));
+  }
+  return refs;
+}
+
 function queue({ type } = {}) {
   const out = [];
+  const idx = _entityIndex();
   for (const [name, repo] of Object.entries(ENTITIES)) {
     if (type && type !== name) continue;
     for (const item of repo.list({ status: 'pending' })) {
-      out.push({ kind: 'create', entityType: name, item });
+      const entry = { kind: 'create', entityType: name, item };
+      if (name === 'stories') entry.refs = _resolveStoryRefs(item, idx);
+      out.push(entry);
     }
   }
   if (!type || type === 'edits') {
@@ -28,6 +60,7 @@ function queue({ type } = {}) {
         storyId: story.id,
         storyTitle: story.title || story.id,
         item: completion,
+        refs: _resolveStoryRefs(completion, idx),
       });
     }
   }

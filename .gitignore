@@ -25,3 +25,8 @@ data/site_config.json
 # … mais on garde les graines de référence (contenu du programme) :
 !data/seeds/
 tmp/
+
+# Scripts d'ingestion locaux (populent la base depuis des PDF/sources externes
+# qui vivent sur le serveur). Pas du code programme.
+scripts/import-cahiers-*.js
+scripts/upload-cahiers-*.js
