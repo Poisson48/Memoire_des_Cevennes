@@ -50,7 +50,12 @@ img[data-lightbox-media] {
    Raison : le pseudo ::backdrop ne couvre que la zone derrière la dialog,
    donc une dialog 100vw x 100vh laisse zéro pixel de backdrop visible.
    En peignant la dialog elle-même, on couvre tout l'écran de manière
-   prévisible y compris sur mobile (où 100vh peut bouger avec la chrome). */
+   prévisible y compris sur mobile (où 100vh peut bouger avec la chrome).
+
+   touch-action: none : on prend la main sur les gestes tactiles, pour
+   que le pinch-zoom ne déclenche PAS le zoom-viewport navigateur (qui
+   zoomerait la page entière). Le zoom est implémenté en JS, confiné à
+   l'image courante (cf. lightbox.js). */
 dialog.lightbox {
   border: none;
   background: rgba(0, 0, 0, 0.95);
@@ -63,6 +68,7 @@ dialog.lightbox {
   max-width: 100vw;
   max-height: 100vh;
   overflow: hidden;
+  touch-action: none;
 }
 
 dialog.lightbox::backdrop {
@@ -91,7 +97,25 @@ dialog.lightbox::backdrop {
   border-radius: 4px;
   display: block;
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+  /* La transformation (zoom/pan) est appliquée via inline style depuis
+     lightbox.js. transform-origin: center pour un zoom intuitif depuis
+     le centre. Will-change pour fluidifier sur mobile. */
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: zoom-in;
 }
+.lb-img.zoomed {
+  cursor: grab;
+}
+.lb-img.zoomed:active {
+  cursor: grabbing;
+}
+/* Pendant qu'on zoome ou qu'on panne avec le doigt, lightbox.js retire
+   .smooth pour la réactivité ; au repos / double-tap, on remet une
+   transition courte pour l'effet visuel. Pour rester simple, on laisse
+   la transition désactivée par défaut (le rendu est déjà fluide). */
 
 .lb-caption {
   color: #fff;
