@@ -239,26 +239,68 @@ async function handleAction(btn) {
   }
 }
 
-// Rend le corps d'un récit avec les mentions surlignées et cliquables.
-// Les offsets `start`/`end` correspondent à la chaîne en code units UTF-16.
+// Whitelist d'URL pour les liens externes [texte](url) écrits par les
+// contributeurs : http(s), mailto, ancres et chemins relatifs uniquement.
+function safeHrefExternal(url) {
+  const u = String(url).trim();
+  if (/^(https?:\/\/|mailto:|#|\/)/i.test(u)) return u;
+  if (!/:/.test(u)) return u;
+  return '#';
+}
+
+// Rend le corps d'un récit (ou description/bio) avec les mentions
+// surlignées + cliquables, et les liens externes [texte](url) parsés
+// en hyperliens. Les offsets `start`/`end` correspondent à la chaîne
+// en code units UTF-16.
 function renderBodyWithMentions(body, mentions) {
   if (!body) return '<em>(vide)</em>';
-  const sorted = [...mentions]
+  // 1. Pré-scan des liens externes [label](url) : on les ajoute comme
+  //    "mentions externes" au tableau pour qu'ils soient rendus dans la
+  //    même boucle que les mentions de Lieux/Personnes.
+  const externals = [];
+  const reExt = /\[([^\]\n]+)\]\(([^)\n\s]+)\)/g;
+  let mm;
+  while ((mm = reExt.exec(body)) !== null) {
+    externals.push({
+      start: mm.index,
+      end: mm.index + mm[0].length,
+      type: 'external',
+      _label: mm[1],
+      _url: mm[2],
+    });
+  }
+  // 2. Tri par position et résolution des chevauchements : un lien
+  //    externe explicite gagne sur une mention auto-détectée qui le
+  //    chevaucherait.
+  const all = [...(mentions || []), ...externals]
     .filter(m => m && typeof m.start === 'number' && typeof m.end === 'number')
-    .sort((a, b) => a.start - b.start);
+    .sort((a, b) => a.start - b.start || (a.type === 'external' ? -1 : 1));
+  const sorted = [];
+  for (const m of all) {
+    const last = sorted[sorted.length - 1];
+    if (last && m.start < last.end) {
+      // chevauchement : on garde le premier (donc external prioritaire grâce au tri ci-dessus)
+      continue;
+    }
+    sorted.push(m);
+  }
   if (!sorted.length) return escapeHtml(body).replace(/\n/g, '<br>');
   let out = '';
   let cursor = 0;
   for (const m of sorted) {
     if (m.start < cursor || m.end > body.length) continue;
     out += escapeHtml(body.slice(cursor, m.start));
-    const label = body.slice(m.start, m.end);
-    const href = m.type === 'place' ? `#/lieu/${m.entityId}` : `#/personne/${m.entityId}`;
-    const icon = m.type === 'place' ? '📍' : '👤';
-    // Tooltip : nom résolu (servi par moderation.queue) sinon fallback sur l'id.
-    const resolved = m._name || m.entityId;
-    const title = `${m.type === 'place' ? 'Lieu' : 'Personne'} : ${resolved}`;
-    out += `<a class="mention-link" href="${escapeAttr(href)}" target="_blank" rel="noopener" title="${escapeAttr(title)}">${icon} ${escapeHtml(label)}</a>`;
+    if (m.type === 'external') {
+      const safe = escapeAttr(safeHrefExternal(m._url));
+      out += `<a class="mention-link mention-external" href="${safe}" target="_blank" rel="noopener noreferrer" title="lien externe : ${escapeAttr(m._url)}">🔗 ${escapeHtml(m._label)}</a>`;
+    } else {
+      const label = body.slice(m.start, m.end);
+      const href = m.type === 'place' ? `#/lieu/${m.entityId}` : `#/personne/${m.entityId}`;
+      const icon = m.type === 'place' ? '📍' : '👤';
+      const resolved = m._name || m.entityId;
+      const title = `${m.type === 'place' ? 'Lieu' : 'Personne'} : ${resolved}`;
+      out += `<a class="mention-link" href="${escapeAttr(href)}" target="_blank" rel="noopener" title="${escapeAttr(title)}">${icon} ${escapeHtml(label)}</a>`;
+    }
     cursor = m.end;
   }
   out += escapeHtml(body.slice(cursor));

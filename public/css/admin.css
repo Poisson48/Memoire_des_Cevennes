@@ -105,6 +105,13 @@
   font-weight: 700;
 }
 .mention-link:hover { background: rgba(140, 90, 43, 0.20); }
+.mention-link.mention-external {
+  background: rgba(26, 90, 138, 0.10);
+  color: #1a5a8a;
+}
+.mention-link.mention-external:hover {
+  background: rgba(26, 90, 138, 0.20);
+}
 
 .qmedia-list {
   display: grid;

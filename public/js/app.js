@@ -776,11 +776,24 @@ function renderBodyWithMentions(body, mentions) {
 // Trois alternances dans un seul regex : bold, italic, nom. Chaque match
 // produit un fragment HTML adéquat ; les portions intermédiaires sont
 // simplement escapées.
+// Whitelist d'URL pour les liens externes [texte](url) écrits par les
+// contributeurs : http(s), mailto, ancres et chemins relatifs uniquement.
+// Bloque javascript:, data:, etc.
+function safeHrefExternal(url) {
+  const u = String(url).trim();
+  if (/^(https?:\/\/|mailto:|#|\/)/i.test(u)) return u;
+  if (!/:/.test(u)) return u;
+  return '#';
+}
+
 function renderEmphasisAndAutoLinks(rawText) {
   if (!rawText) return '';
-  // Capture **bold** (m[1]), *italic* (m[2]), nom auto-detect (m[3]).
+  // Capture [label](url) (m[1]/m[2]), **bold** (m[3]), *italic* (m[4]),
+  // nom auto-detect (m[5]). L'ordre compte : un lien explicite gagne sur
+  // l'auto-détection (utile quand le label est aussi un nom indexé).
   const reSrc =
-      '\\*\\*([^*\\n]+)\\*\\*'
+      '\\[([^\\]\\n]+)\\]\\(([^)\\n\\s]+)\\)'
+    + '|\\*\\*([^*\\n]+)\\*\\*'
     + '|(?:^|(?<=[^*]))\\*([^*\\n]+)\\*(?!\\*)'
     + (namesIndex.altPattern
         ? '|(?<![\\p{L}\\d])(' + namesIndex.altPattern + ')(?![\\p{L}\\d])'
@@ -792,21 +805,27 @@ function renderEmphasisAndAutoLinks(rawText) {
   while ((m = re.exec(rawText)) !== null) {
     out += escapeHtml(rawText.slice(last, m.index));
     if (m[1] !== undefined) {
+      // Lien externe explicite : [label](url). target=_blank pour ne pas
+      // perdre le contexte de lecture du récit.
+      const label = m[1];
+      const safe = escapeAttr(safeHrefExternal(m[2]));
+      out += `<a class="mention mention-external" href="${safe}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+    } else if (m[3] !== undefined) {
       // bold : le nom à l'intérieur peut aussi être un lien.
-      const inner = m[1];
+      const inner = m[3];
       const link = autoLinkForName(inner);
       out += link
         ? `<a ${link.attrs}><strong>${escapeHtml(inner)}</strong></a>`
         : `<strong>${escapeHtml(inner)}</strong>`;
-    } else if (m[2] !== undefined) {
-      const inner = m[2];
+    } else if (m[4] !== undefined) {
+      const inner = m[4];
       const link = autoLinkForName(inner);
       out += link
         ? `<a ${link.attrs}><em>${escapeHtml(inner)}</em></a>`
         : `<em>${escapeHtml(inner)}</em>`;
-    } else if (m[3] !== undefined) {
+    } else if (m[5] !== undefined) {
       // nom plain-text : auto-link direct.
-      const inner = m[3];
+      const inner = m[5];
       const link = autoLinkForName(inner);
       out += link ? `<a ${link.attrs}>${escapeHtml(inner)}</a>` : escapeHtml(inner);
     }
