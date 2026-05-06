@@ -30,3 +30,4 @@ tmp/
 # qui vivent sur le serveur). Pas du code programme.
 scripts/import-cahiers-*.js
 scripts/upload-cahiers-*.js
+scripts/reextract-cahiers-*.js
