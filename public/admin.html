@@ -83,6 +83,7 @@
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
         <button type="button" class="tab-btn" data-tab="account">Mon compte</button>
         <button type="button" class="tab-btn" data-tab="cadastre">🎯 Cadastre (avancé)</button>
+        <button type="button" class="tab-btn" data-tab="testcompress">🧪 Test compression</button>
         <button type="button" class="tab-btn" data-tab="help">Aide</button>
       </div>
 
@@ -328,6 +329,42 @@
           <button type="button" id="cadastre-reset" class="btn-ghost">Réinitialiser</button>
         </div>
         <pre id="cadastre-result" class="cadastre-result" hidden></pre>
+      </div>
+
+      <div id="testcompress" class="queue testcompress-tab" hidden>
+        <h2>🧪 Test de compression</h2>
+        <p>
+          Pose un fichier (image, audio, vidéo) et lance la même routine de
+          compression que celle qu'utilisent les contributeurs au moment de
+          téléverser un récit. Aucune donnée n'est envoyée au serveur, tout
+          se passe dans ce navigateur. Le fichier compressé peut être
+          téléchargé pour comparer.
+        </p>
+        <p class="hint">
+          Premier lancement vidéo/audio : ffmpeg.wasm pèse ~25 Mo, prévoir
+          quelques secondes de chargement avant de voir bouger la barre.
+        </p>
+        <div class="tc-controls">
+          <label class="tc-pick">
+            <input type="file" id="tc-file" accept="image/*,audio/*,video/*" />
+            <span>Choisir un fichier</span>
+          </label>
+          <label class="tc-path">Voie&nbsp;:
+            <select id="tc-path">
+              <option value="auto" selected>auto (natif puis wasm)</option>
+              <option value="native">forcer natif (MediaRecorder)</option>
+              <option value="wasm">forcer ffmpeg.wasm</option>
+            </select>
+          </label>
+          <button type="button" id="tc-run" class="btn-primary" disabled>Compresser</button>
+        </div>
+        <div id="tc-status" class="tc-status" hidden></div>
+        <progress id="tc-progress" class="tc-progress" value="0" max="1" hidden></progress>
+        <div id="tc-result" class="tc-result" hidden></div>
+        <details class="tc-logs" hidden id="tc-logs-wrap">
+          <summary>Logs ffmpeg détaillés</summary>
+          <pre id="tc-logs"></pre>
+        </details>
       </div>
 
       <div id="help" class="queue admin-help" hidden>
@@ -617,6 +654,8 @@
   <script src="js/admin/settings.js"></script>
   <script src="js/admin/aliases.js"></script>
   <script src="js/admin/account.js"></script>
+  <script src="js/compress.js"></script>
+  <script src="js/admin/testcompress.js"></script>
   <script src="js/admin/boot.js"></script>
   <script src="js/admin-cadastre.js"></script>
   <script src="js/dialog-swipe.js"></script>

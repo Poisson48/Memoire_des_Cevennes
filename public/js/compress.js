@@ -45,17 +45,28 @@
   async function loadFfmpeg() {
     if (ffmpegPromise) return ffmpegPromise;
     ffmpegPromise = (async () => {
-      // Charge d'abord les UMD scripts depuis CDN.
-      await loadScript('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
-      await loadScript('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js');
+      // ffmpeg.wasm servi depuis notre origine pour éviter les soucis
+      // CORS sur les Workers cross-origin (depuis ~Chrome 95) et
+      // l'instabilité des résolutions blob: dans @ffmpeg/ffmpeg 0.12.x.
+      // Les fichiers vivent dans public/vendor/ffmpeg/ :
+      //   ffmpeg.js + 814.ffmpeg.js  (@ffmpeg/ffmpeg@0.12.15)
+      //   util.js                    (@ffmpeg/util@0.12.1, UMD stable)
+      //   ffmpeg-core.js + .wasm     (@ffmpeg/core@0.12.10)
+      // ffmpeg.js (UMD build) découvre automatiquement son chunk
+      // 814.ffmpeg.js via webpack publicPath = currentScript.src. Donc
+      // le simple fait de charger ffmpeg.js depuis /vendor/ffmpeg/
+      // fait que le Worker chunk se charge aussi depuis cette URL,
+      // sans qu'on ait besoin de passer classWorkerURL (qui force
+      // type: 'module' et casse l'importScripts du chunk UMD).
+      const VENDOR = `${location.origin}/vendor/ffmpeg`;
+      await loadScript(`${VENDOR}/ffmpeg.js`);
+      await loadScript(`${VENDOR}/util.js`);
 
       const { FFmpeg } = window.FFmpegWASM;
-      const { toBlobURL } = window.FFmpegUtil;
       const ffmpeg = new FFmpeg();
-      const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
       await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        coreURL: `${VENDOR}/ffmpeg-core.js`,
+        wasmURL: `${VENDOR}/ffmpeg-core.wasm`,
       });
       return ffmpeg;
     })();
@@ -131,7 +142,7 @@
   }
 
   // ── Audio → Opus/WebM (ffmpeg.wasm) ──────────────────────────────
-  async function compressAudio(file, { onProgress, onStatus } = {}) {
+  async function compressAudio(file, { onProgress, onStatus, onLog } = {}) {
     onStatus && onStatus('audio : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
     const { fetchFile } = window.FFmpegUtil;
@@ -144,6 +155,13 @@
         onProgress(Math.min(1, Math.max(0, progress || 0)));
       };
       ffmpeg.on('progress', progHandler);
+    }
+    let audioLogListener = null;
+    if (onLog) {
+      audioLogListener = ({ type, message }) => {
+        try { onLog(type, message); } catch {}
+      };
+      ffmpeg.on('log', audioLogListener);
     }
 
     try {
@@ -165,19 +183,208 @@
         ext: 'webm',
       };
     } finally {
+      if (audioLogListener) ffmpeg.off('log', audioLogListener);
       if (progHandler) ffmpeg.off('progress', progHandler);
       try { await ffmpeg.deleteFile(inputName); } catch {}
       try { await ffmpeg.deleteFile(outputName); } catch {}
     }
   }
 
+  // ── Vidéo : voie native (MediaRecorder) ─────────────────────────
+  // Pourquoi cette voie en premier : ffmpeg.wasm utilise un cœur, sans
+  // SIMD, sans accélération matérielle (1 % du potentiel d'un téléphone).
+  // MediaRecorder, lui, branche le pipeline navigateur → encodeur du SoC
+  // (HEVC/H.264 sur Pixel/iPhone récents). C'est *real-time bounded*
+  // (encoder une vidéo de 30 s prend au moins 30 s, le temps de la lire),
+  // mais ça consomme peu de batterie et ça fonctionne sur les téléphones
+  // de notre public.
+  //
+  // Pipeline : <video> source → drawImage canvas redimensionné →
+  // canvas.captureStream(fps) + audio tracks de video.captureStream() →
+  // MediaRecorder → Blob.
+  //
+  // Choix du conteneur / codec :
+  //   1. video/mp4;codecs=hvc1     (HEVC, Safari iOS récent)
+  //   2. video/webm;codecs=vp9     (Chrome/Firefox, ratio ~30 % > h264)
+  //   3. video/mp4;codecs=avc1...  (H.264, fallback universel)
+  //   4. video/webm;codecs=vp8     (vieux Firefox)
+  //
+  // Limites connues :
+  // - certains navigateurs (Safari < 14, vieux Firefox) ne supportent
+  //   pas HTMLMediaElement.captureStream() → on lève et on tombe sur
+  //   ffmpeg.wasm.
+  // - sources sans bande audio : on ne combine pas de piste audio.
+  // - sources sans rotation appliquée : <video> applique la rotation
+  //   automatiquement, donc videoWidth/videoHeight reflètent l'affichage.
+  function pickRecorderMime() {
+    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return null;
+    const candidates = [
+      'video/mp4;codecs=hvc1,mp4a.40.2',
+      'video/mp4;codecs=hvc1',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp9',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4;codecs=avc1.42E01E',
+      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=vp8',
+    ];
+    for (const t of candidates) {
+      try { if (MediaRecorder.isTypeSupported(t)) return t; } catch {}
+    }
+    return null;
+  }
+
+  async function compressVideoNative(file, { onProgress, onStatus, onLog } = {}) {
+    const mime = pickRecorderMime();
+    if (!mime) throw new Error('MediaRecorder indisponible ou aucun codec supporté');
+
+    onLog && onLog('info', `[native] mime retenu : ${mime}`);
+    onStatus && onStatus('vidéo (natif) : analyse de la source…');
+
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.src = url;
+    video.muted = false;       // garde l'audio dans captureStream
+    video.volume = 0;          // mais inaudible pour l'utilisateur
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.crossOrigin = 'anonymous';
+
+    try {
+      await new Promise((resolve, reject) => {
+        const onErr = () => reject(new Error('lecture vidéo impossible (format non supporté par le navigateur)'));
+        video.addEventListener('loadedmetadata', resolve, { once: true });
+        video.addEventListener('error', onErr, { once: true });
+      });
+      // Force la lecture jusqu'à dispo de la première frame avant de
+      // configurer le canvas (videoWidth peut rester à 0 sans ça sur
+      // certains conteneurs).
+      await new Promise((resolve, reject) => {
+        if (video.readyState >= 2) return resolve();
+        video.addEventListener('loadeddata', resolve, { once: true });
+        video.addEventListener('error', () => reject(new Error('lecture vidéo impossible')), { once: true });
+      });
+
+      const srcW = video.videoWidth;
+      const srcH = video.videoHeight;
+      if (!srcW || !srcH) throw new Error('dimensions vidéo introuvables');
+      const dur = isFinite(video.duration) ? video.duration : 0;
+
+      const ratio = Math.min(1, VIDEO_MAX_HEIGHT / srcH);
+      // Multiple de 2 pour rester compatible avec les encodeurs du SoC.
+      const dstW = Math.max(2, Math.round(srcW * ratio / 2) * 2);
+      const dstH = Math.max(2, Math.round(srcH * ratio / 2) * 2);
+      onLog && onLog('info', `[native] source ${srcW}×${srcH} (${dur.toFixed(2)} s) → sortie ${dstW}×${dstH}`);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = dstW;
+      canvas.height = dstH;
+      const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+      const FPS = 30;
+      if (typeof canvas.captureStream !== 'function') {
+        throw new Error('canvas.captureStream indisponible');
+      }
+      const videoStream = canvas.captureStream(FPS);
+
+      let audioTracks = [];
+      if (typeof video.captureStream === 'function') {
+        try {
+          const vStream = video.captureStream();
+          audioTracks = vStream.getAudioTracks();
+        } catch (e) {
+          onLog && onLog('warn', `[native] video.captureStream a échoué : ${e.message} (sortie sans audio)`);
+        }
+      } else {
+        onLog && onLog('warn', '[native] HTMLMediaElement.captureStream non supporté (sortie sans audio)');
+      }
+      const stream = new MediaStream([
+        ...videoStream.getVideoTracks(),
+        ...audioTracks,
+      ]);
+
+      const chunks = [];
+      const recorder = new MediaRecorder(stream, {
+        mimeType: mime,
+        videoBitsPerSecond: 1500_000,
+        audioBitsPerSecond: 96_000,
+      });
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+
+      const stopped = new Promise((resolve, reject) => {
+        recorder.onstop = resolve;
+        recorder.onerror = (e) => reject(e.error || new Error('erreur MediaRecorder'));
+      });
+
+      onStatus && onStatus(`vidéo (natif) : encodage ${mime.split(';')[0]}…`);
+      recorder.start(500);
+
+      // Boucle de dessin : préfère requestVideoFrameCallback pour ne
+      // dessiner qu'à la cadence des frames effectivement décodées
+      // (sinon RAF dessine à 60 Hz et MediaRecorder duplique des frames).
+      let drawing = true;
+      const drawFrame = () => {
+        if (!drawing) return;
+        try { ctx.drawImage(video, 0, 0, dstW, dstH); } catch {}
+        if (onProgress && dur > 0) {
+          onProgress(Math.min(1, video.currentTime / dur));
+        }
+      };
+      const useRfvc = typeof video.requestVideoFrameCallback === 'function';
+      if (useRfvc) {
+        const rfvc = (now, meta) => {
+          drawFrame();
+          if (drawing) video.requestVideoFrameCallback(rfvc);
+        };
+        video.requestVideoFrameCallback(rfvc);
+      } else {
+        const tick = () => {
+          drawFrame();
+          if (drawing) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+
+      const ended = new Promise((resolve, reject) => {
+        video.addEventListener('ended', resolve, { once: true });
+        video.addEventListener('error', () => reject(new Error('lecture interrompue')), { once: true });
+      });
+
+      await video.play();
+      await ended;
+      drawing = false;
+      // Une dernière frame pour ne pas perdre la dernière image.
+      try { ctx.drawImage(video, 0, 0, dstW, dstH); } catch {}
+
+      if (recorder.state !== 'inactive') recorder.stop();
+      await stopped;
+
+      const containerMime = mime.split(';')[0];
+      const ext = containerMime === 'video/mp4' ? 'mp4' : 'webm';
+      const blob = new Blob(chunks, { type: containerMime });
+      onLog && onLog('info', `[native] terminé : ${(blob.size/1024/1024).toFixed(2)} Mo`);
+      return {
+        blob,
+        mime: containerMime,
+        ext,
+        codec: mime,
+        path: 'native',
+      };
+    } finally {
+      try { video.pause(); } catch {}
+      try { video.removeAttribute('src'); video.load(); } catch {}
+      URL.revokeObjectURL(url);
+    }
+  }
+
   // ── Vidéo : HEVC > VP9 > H.264, container adapté au codec ────────
-  // Objectif : minimiser la taille serveur. HEVC et VP9 compressent
-  // ~30-50 % mieux que H.264 à qualité égale.
+  // Voie ffmpeg.wasm — fallback. Beaucoup plus lente (1 cœur, no-asm,
+  // pas d'accélération matérielle) mais marche partout. On y passe
+  // uniquement si la voie native (compressVideoNative) a échoué.
   //   libx265    → MP4, audio AAC. Tag hvc1 pour la lecture iOS.
   //   libvpx-vp9 → WebM, audio Opus. CRF de référence + bitrate libre.
   //   libx264    → MP4, audio AAC. Cap maxrate pour éviter le no-op.
-  async function compressVideo(file, { onProgress, onStatus } = {}) {
+  async function compressVideoWasm(file, { onProgress, onStatus, onLog } = {}) {
     onStatus && onStatus('vidéo : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
     const { fetchFile } = window.FFmpegUtil;
@@ -197,18 +404,40 @@
       ffmpeg.on('progress', progHandler);
     }
 
+    // Capture les logs ffmpeg : si l'exec échoue silencieusement
+    // (codec inconnu, erreur de lecture du conteneur…), on remonte la
+    // dernière ligne de log dans l'erreur retournée.
+    let lastErrorLine = '';
+    const logListener = ({ type, message }) => {
+      if (type === 'stderr' && /error|invalid|unsupported|fatal/i.test(message)) {
+        lastErrorLine = message;
+      }
+      if (onLog) {
+        try { onLog(type, message); } catch {}
+      }
+    };
+    ffmpeg.on('log', logListener);
+
     try {
       onStatus && onStatus('vidéo : import…');
       await ffmpeg.writeFile(inputName, await fetchFile(file));
       onStatus && onStatus(`vidéo : encodage ${codec}…`);
 
       // Construction des arguments par codec.
+      //
+      // Filtre vidéo :
+      //   1. cap résolution à VIDEO_MAX_HEIGHT en gardant le ratio
+      //      (min() protège contre l'upscale d'une source déjà plus petite).
+      //   2. round-to-even : libx264/265 refusent les dimensions impaires
+      //      avec yuv420p (« Error while opening encoder […] maybe incorrect
+      //      parameters such as width or height »). On force chaque côté
+      //      à un multiple de 2.
+      //   3. format=yuv420p : certaines sources téléphone (Pixel TopShot,
+      //      HDR…) sont en 10 bits ou en yuvj420p ; les codecs grand public
+      //      refusent ces pix_fmt sans flag de profil. On normalise.
       const args = [
         '-i', inputName,
-        // Cap résolution : on ne dépasse jamais VIDEO_MAX_HEIGHT, on
-        // garde le ratio. Si la source est déjà plus petite, on ne la
-        // pousse pas vers le haut (le min protège contre l'upscale).
-        '-vf', `scale='min(iw,iw*${VIDEO_MAX_HEIGHT}/ih)':'min(ih,${VIDEO_MAX_HEIGHT})':flags=lanczos`,
+        '-vf', `scale='min(iw,iw*${VIDEO_MAX_HEIGHT}/ih)':'min(ih,${VIDEO_MAX_HEIGHT})':flags=lanczos,scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p`,
         '-c:v', codec,
       ];
 
@@ -251,18 +480,42 @@
       if (!isVp9) args.push('-movflags', '+faststart');
       args.push(outputName);
 
-      await ffmpeg.exec(args);
+      const exitCode = await ffmpeg.exec(args);
+      if (exitCode !== 0) {
+        throw new Error(`ffmpeg exit ${exitCode}${lastErrorLine ? ' : ' + lastErrorLine : ''}`);
+      }
       const data = await ffmpeg.readFile(outputName);
+      if (!data || !data.buffer || data.buffer.byteLength === 0) {
+        throw new Error('ffmpeg a produit un fichier vide');
+      }
       return {
         blob: new Blob([data.buffer], { type: outMime }),
         mime: outMime,
         ext: outExt,
         codec,
+        path: 'wasm',
       };
     } finally {
+      ffmpeg.off('log', logListener);
       if (progHandler) ffmpeg.off('progress', progHandler);
       try { await ffmpeg.deleteFile(inputName); } catch {}
       try { await ffmpeg.deleteFile(outputName); } catch {}
+    }
+  }
+
+  // Dispatcher vidéo : tente la voie native (MediaRecorder → encodeur du
+  // SoC) en premier, retombe sur ffmpeg.wasm si elle n'est pas dispo ou
+  // qu'elle échoue. L'option `forceVideoPath: 'native' | 'wasm'` court-
+  // circuite ce choix (utile pour A/B tester depuis l'admin).
+  async function compressVideo(file, opts = {}) {
+    const force = opts.forceVideoPath;
+    if (force === 'wasm') return compressVideoWasm(file, opts);
+    if (force === 'native') return compressVideoNative(file, opts);
+    try {
+      return await compressVideoNative(file, opts);
+    } catch (err) {
+      opts.onLog && opts.onLog('warn', `[native] échec, fallback ffmpeg.wasm : ${err.message}`);
+      return compressVideoWasm(file, opts);
     }
   }
 
@@ -317,6 +570,7 @@
       original,
       compressed: result.blob.size,
       codec: result.codec,
+      path: result.path,
     };
   }
 

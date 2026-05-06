@@ -18,6 +18,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (settingsSection) settingsSection.hidden = currentTab !== 'settings';
     if (accountSection)  accountSection.hidden  = currentTab !== 'account';
     if (cadastreSection) cadastreSection.hidden = currentTab !== 'cadastre';
+    if (testCompressSection) testCompressSection.hidden = currentTab !== 'testcompress';
     if (helpSection)    helpSection.hidden    = currentTab !== 'help';
     if (currentTab === 'queue')    renderQueue(lastQueue);
     if (currentTab === 'aliases')  refreshAliases();

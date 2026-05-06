@@ -39,6 +39,7 @@ const welcomeSection  = document.getElementById('welcome');
 const settingsSection = document.getElementById('settings');
 const cadastreSection = document.getElementById('cadastre');
 const accountSection  = document.getElementById('account');
+const testCompressSection = document.getElementById('testcompress');
 const helpSection     = document.getElementById('help');
 
 btnLogout.addEventListener('click', async () => {
