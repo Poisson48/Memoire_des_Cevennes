@@ -73,8 +73,14 @@
     });
   }
 
-  // Détecte si libx265 est dispo dans le build courant : sinon on
-  // basculera sur libx264.
+  // Choix d'encodeur vidéo, du plus efficace (storage) au moins :
+  //   libx265   (HEVC)   : ~50 % plus petit que H.264, mais souvent
+  //                        absent du build wasm par défaut (license).
+  //   libvpx-vp9 (VP9)   : ~30 % plus petit que H.264, généralement
+  //                        présent dans @ffmpeg/core. Container WebM,
+  //                        audio Opus. Lecture OK Chrome/Firefox/Edge,
+  //                        Safari iOS 14+ et macOS Big Sur+.
+  //   libx264   (H.264)  : compat universelle, fallback ultime.
   async function detectVideoCodec(ffmpeg) {
     if (preferredVideoCodec) return preferredVideoCodec;
     let out = '';
@@ -84,7 +90,9 @@
       await ffmpeg.exec(['-hide_banner', '-encoders']);
     } catch {}
     ffmpeg.off('log', listener);
-    preferredVideoCodec = out.includes('libx265') ? 'libx265' : 'libx264';
+    if (out.includes('libx265')) preferredVideoCodec = 'libx265';
+    else if (out.includes('libvpx-vp9')) preferredVideoCodec = 'libvpx-vp9';
+    else preferredVideoCodec = 'libx264';
     return preferredVideoCodec;
   }
 
@@ -163,14 +171,23 @@
     }
   }
 
-  // ── Vidéo → H.265 ou H.264 / MP4 (ffmpeg.wasm) ───────────────────
+  // ── Vidéo : HEVC > VP9 > H.264, container adapté au codec ────────
+  // Objectif : minimiser la taille serveur. HEVC et VP9 compressent
+  // ~30-50 % mieux que H.264 à qualité égale.
+  //   libx265    → MP4, audio AAC. Tag hvc1 pour la lecture iOS.
+  //   libvpx-vp9 → WebM, audio Opus. CRF de référence + bitrate libre.
+  //   libx264    → MP4, audio AAC. Cap maxrate pour éviter le no-op.
   async function compressVideo(file, { onProgress, onStatus } = {}) {
     onStatus && onStatus('vidéo : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
     const { fetchFile } = window.FFmpegUtil;
     const codec = await detectVideoCodec(ffmpeg);
-    const inputName = 'in' + guessExt(file, 'mp4');
-    const outputName = 'out.mp4';
+    const isVp9  = codec === 'libvpx-vp9';
+    const isH265 = codec === 'libx265';
+    const inputName  = 'in' + guessExt(file, 'mp4');
+    const outputName = isVp9 ? 'out.webm' : 'out.mp4';
+    const outMime    = isVp9 ? 'video/webm' : 'video/mp4';
+    const outExt     = isVp9 ? 'webm' : 'mp4';
 
     let progHandler = null;
     if (onProgress) {
@@ -183,31 +200,63 @@
     try {
       onStatus && onStatus('vidéo : import…');
       await ffmpeg.writeFile(inputName, await fetchFile(file));
-      onStatus && onStatus(`vidéo : encodage ${codec} (CRF ${VIDEO_CRF}, preset ${VIDEO_PRESET})…`);
-      await ffmpeg.exec([
+      onStatus && onStatus(`vidéo : encodage ${codec}…`);
+
+      // Construction des arguments par codec.
+      const args = [
         '-i', inputName,
         // Cap résolution : on ne dépasse jamais VIDEO_MAX_HEIGHT, on
         // garde le ratio. Si la source est déjà plus petite, on ne la
         // pousse pas vers le haut (le min protège contre l'upscale).
         '-vf', `scale='min(iw,iw*${VIDEO_MAX_HEIGHT}/ih)':'min(ih,${VIDEO_MAX_HEIGHT})':flags=lanczos`,
         '-c:v', codec,
-        '-crf', VIDEO_CRF,
-        '-preset', VIDEO_PRESET,
-        // Cap de bitrate : empêche que le compressé soit plus gros que
-        // l'original quand la source est déjà bien encodée. Le bufsize
-        // double maxrate pour autoriser des pics courts.
-        '-maxrate', VIDEO_MAX_BITRATE,
-        '-bufsize', VIDEO_BUFSIZE,
-        '-c:a', 'aac',
-        '-b:a', '96k',
-        '-movflags', '+faststart',
-        outputName,
-      ]);
+      ];
+
+      if (isVp9) {
+        // VP9 en mode "constant quality" + cap bitrate. cpu-used 4
+        // (max=5 pour libvpx-vp9) tient en wasm sans devenir interminable.
+        args.push(
+          '-crf', '32',
+          '-b:v', VIDEO_MAX_BITRATE,
+          '-deadline', 'good',
+          '-cpu-used', '4',
+          '-c:a', 'libopus',
+          '-b:a', '96k',
+        );
+      } else if (isH265) {
+        // HEVC : CRF un cran plus bas (qualité comparable à x264 + 4),
+        // tag hvc1 indispensable pour la lecture iOS / QuickTime.
+        args.push(
+          '-crf', '26',
+          '-preset', VIDEO_PRESET,
+          '-tag:v', 'hvc1',
+          '-maxrate', VIDEO_MAX_BITRATE,
+          '-bufsize', VIDEO_BUFSIZE,
+          '-c:a', 'aac',
+          '-b:a', '96k',
+        );
+      } else {
+        // H.264 (libx264) : fallback universel.
+        args.push(
+          '-crf', VIDEO_CRF,
+          '-preset', VIDEO_PRESET,
+          '-maxrate', VIDEO_MAX_BITRATE,
+          '-bufsize', VIDEO_BUFSIZE,
+          '-c:a', 'aac',
+          '-b:a', '96k',
+        );
+      }
+
+      // faststart pour MP4 uniquement (WebM ne le connaît pas).
+      if (!isVp9) args.push('-movflags', '+faststart');
+      args.push(outputName);
+
+      await ffmpeg.exec(args);
       const data = await ffmpeg.readFile(outputName);
       return {
-        blob: new Blob([data.buffer], { type: 'video/mp4' }),
-        mime: 'video/mp4',
-        ext: 'mp4',
+        blob: new Blob([data.buffer], { type: outMime }),
+        mime: outMime,
+        ext: outExt,
         codec,
       };
     } finally {
