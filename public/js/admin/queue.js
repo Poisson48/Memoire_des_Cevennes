@@ -88,7 +88,7 @@ function renderCreate(qi) {
   const item = qi.item;
   const type = qi.entityType;
   const refs = qi.refs || {};
-  const sub = item.submittedBy ? `par ${escapeHtml(item.submittedBy.pseudo || item.submittedBy.email || '?')} · ` : '';
+  const sub = item.submittedBy ? `par ${escapeHtml(item.submittedBy.name || item.submittedBy.pseudo || item.submittedBy.email || '?')} · ` : '';
   const date = item.submittedAt ? new Date(item.submittedAt).toLocaleString('fr-FR') : '';
 
   let preview = '';
@@ -143,7 +143,7 @@ function renderEdit(qi) {
   const edit = qi.item;
   const target = qi.diff?.target;
   const rows = qi.diff?.rows || [];
-  const sub = edit.submittedBy ? `par ${escapeHtml(edit.submittedBy.pseudo || edit.submittedBy.email || '?')} · ` : '';
+  const sub = edit.submittedBy ? `par ${escapeHtml(edit.submittedBy.name || edit.submittedBy.pseudo || edit.submittedBy.email || '?')} · ` : '';
   const date = edit.submittedAt ? new Date(edit.submittedAt).toLocaleString('fr-FR') : '';
   const targetName = target
     ? (target.primaryName || target.title || target.id)
