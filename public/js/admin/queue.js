@@ -308,23 +308,38 @@ function renderBodyWithMentions(body, mentions) {
 }
 
 // Rend les médias attachés à un récit pour relecture en file de modération.
-// Inline preview pour images/audio/vidéo, lien pour le reste.
+// Inline preview pour images/audio/vidéo, lien pour le reste. Chaque
+// média est marqué data-lightbox-media : un clic sur l'image (ou le
+// bouton ↗ pour vidéo/audio) ouvre la lightbox partagée et cycle
+// entre tous les médias du même récit.
 function renderMediaFiles(files) {
   if (!Array.isArray(files) || !files.length) return '';
-  const items = files.map(f => {
+  const items = files.map((f, i) => {
     if (!f || !f.url) return '';
     const url = escapeAttr(f.url);
     const cap = f.caption ? `<figcaption>${escapeHtml(f.caption)}</figcaption>` : '';
+    const capAttr = f.caption ? `data-caption="${escapeAttr(f.caption)}"` : '';
+    const mediaId = `qm-${i}-${Math.random().toString(36).slice(2, 8)}`;
     if (f.mime?.startsWith('image/')) {
-      return `<figure class="qmedia"><img src="${url}" alt="${escapeAttr(f.caption || 'média')}" loading="lazy">${cap}</figure>`;
+      return `<figure class="qmedia"><img id="${mediaId}" data-lightbox-media src="${url}" alt="${escapeAttr(f.caption || 'média')}" loading="lazy" ${capAttr}>${cap}</figure>`;
     }
     if (f.mime?.startsWith('audio/')) {
-      return `<figure class="qmedia"><audio controls preload="metadata" src="${url}"></audio>${cap}</figure>`;
+      return `<figure class="qmedia">
+        <div class="media-clip">
+          <audio id="${mediaId}" data-lightbox-media controls preload="metadata" src="${url}" ${capAttr}></audio>
+          <button type="button" class="lb-expand" data-lightbox-target="${mediaId}" aria-label="Agrandir">↗</button>
+        </div>${cap}</figure>`;
     }
     if (f.mime?.startsWith('video/')) {
-      return `<figure class="qmedia"><video controls preload="metadata" src="${url}" style="max-width:100%;max-height:280px"></video>${cap}</figure>`;
+      return `<figure class="qmedia">
+        <div class="media-clip">
+          <video id="${mediaId}" data-lightbox-media controls preload="metadata" src="${url}" style="max-width:100%;max-height:280px" ${capAttr}></video>
+          <button type="button" class="lb-expand" data-lightbox-target="${mediaId}" aria-label="Agrandir">↗</button>
+        </div>${cap}</figure>`;
     }
     return `<div class="qmedia"><a href="${url}" target="_blank" rel="noopener">📎 ${escapeHtml(f.url.split('/').pop())}</a>${cap}</div>`;
   }).join('');
-  return `<div class="qmedia-list">${items}</div>`;
+  // Conteneur marqué data-lightbox-group : la lightbox cycle entre les
+  // médias dans cette zone (un seul récit à la fois).
+  return `<div class="qmedia-list" data-lightbox-group>${items}</div>`;
 }

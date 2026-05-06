@@ -678,12 +678,31 @@ function renderStoryCard(s, { full = false } = {}) {
     s.createdAt ? `ajouté ${new Date(s.createdAt).toLocaleDateString('fr-FR')}` : null,
   ].filter(Boolean).join(' · ');
 
-  const media = (s.mediaFiles || []).map(f => {
+  // Chaque média est marqué data-lightbox-media pour que la lightbox
+  // (js/lightbox.js) puisse l'agrandir / cycler entre eux. Pour l'audio
+  // et la vidéo, on ajoute un bouton ↗ d'expansion : le clic sur la
+  // surface de lecture est réservé aux contrôles natifs (play/pause).
+  const media = (s.mediaFiles || []).map((f, i) => {
     if (!f.url) return '';
-    if (f.mime && f.mime.startsWith('image/')) return `<img src="${f.url}" loading="lazy" alt="" />`;
-    if (f.mime && f.mime.startsWith('audio/')) return `<audio controls preload="metadata" src="${f.url}"></audio>`;
-    if (f.mime && f.mime.startsWith('video/')) return `<video controls preload="metadata" src="${f.url}" style="max-width:100%"></video>`;
-    return `<p><a href="${f.url}" target="_blank" rel="noopener">Ouvrir le document</a></p>`;
+    const cap = f.caption ? `data-caption="${escapeAttr(f.caption)}"` : '';
+    const mediaId = `m-${escapeAttr(s.id)}-${i}`;
+    const altCap = escapeAttr(f.caption || '');
+    if (f.mime && f.mime.startsWith('image/')) {
+      return `<img id="${mediaId}" data-lightbox-media src="${escapeAttr(f.url)}" loading="lazy" alt="${altCap}" ${cap} />`;
+    }
+    if (f.mime && f.mime.startsWith('audio/')) {
+      return `<div class="media-clip">
+          <audio id="${mediaId}" data-lightbox-media controls preload="metadata" src="${escapeAttr(f.url)}" ${cap}></audio>
+          <button type="button" class="lb-expand" data-lightbox-target="${mediaId}" aria-label="Agrandir">↗</button>
+        </div>`;
+    }
+    if (f.mime && f.mime.startsWith('video/')) {
+      return `<div class="media-clip">
+          <video id="${mediaId}" data-lightbox-media controls preload="metadata" src="${escapeAttr(f.url)}" style="max-width:100%" ${cap}></video>
+          <button type="button" class="lb-expand" data-lightbox-target="${mediaId}" aria-label="Agrandir">↗</button>
+        </div>`;
+    }
+    return `<p><a href="${escapeAttr(f.url)}" target="_blank" rel="noopener">Ouvrir le document</a></p>`;
   }).join('');
 
   // Complétions approuvées : chaque ajout attribué à son auteur·rice.
@@ -705,7 +724,7 @@ function renderStoryCard(s, { full = false } = {}) {
   `;
 
   return `
-    <article class="story" data-story-id="${escapeAttr(s.id)}">
+    <article class="story" data-story-id="${escapeAttr(s.id)}" data-lightbox-group>
       <h3>
         <span class="type-badge">${typeLabel}</span>
         <a href="#/recit/${encodeURIComponent(s.id)}" class="story-title">${s.title ? renderBodyWithMentions(s.title, s.titleMentions) : '(sans titre)'}</a>
