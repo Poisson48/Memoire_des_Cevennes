@@ -25,8 +25,17 @@
   const IMAGE_QUALITY = 0.82;
   const IMAGE_MAX_DIM = 2560;            // côté le plus long, en px
   const AUDIO_BITRATE = '48k';           // voix humaine en opus
-  const VIDEO_CRF = '28';                // qualité visuelle vs taille
+  // Vidéo : le preset 'ultrafast' produit des fichiers ~5-10× plus gros
+  // que 'fast' à CRF égal (libx264). On préfère 'veryfast', plus lent en
+  // wasm mais beaucoup plus économique. En complément, un maxrate borne
+  // la sortie pour les sources déjà bien compressées qui résistent au
+  // CRF (sinon le fichier compressé peut faire la même taille que
+  // l'original ou plus).
+  const VIDEO_CRF = '28';                // qualité visuelle visée
+  const VIDEO_PRESET = 'veryfast';       // libx264/265 ; meilleur que ultrafast à taille égale
   const VIDEO_MAX_HEIGHT = 720;          // on redescend à 720p max
+  const VIDEO_MAX_BITRATE = '1500k';     // cap pour 720p typique
+  const VIDEO_BUFSIZE     = '3000k';     // buffer 2× maxrate
   const SKIP_THRESHOLD_BYTES = 200 * 1024; // < 200 Ko : pas la peine
 
   // ── ffmpeg.wasm : lazy load ──────────────────────────────────────
@@ -174,13 +183,21 @@
     try {
       onStatus && onStatus('vidéo : import…');
       await ffmpeg.writeFile(inputName, await fetchFile(file));
-      onStatus && onStatus(`vidéo : encodage ${codec} (CRF ${VIDEO_CRF})…`);
+      onStatus && onStatus(`vidéo : encodage ${codec} (CRF ${VIDEO_CRF}, preset ${VIDEO_PRESET})…`);
       await ffmpeg.exec([
         '-i', inputName,
+        // Cap résolution : on ne dépasse jamais VIDEO_MAX_HEIGHT, on
+        // garde le ratio. Si la source est déjà plus petite, on ne la
+        // pousse pas vers le haut (le min protège contre l'upscale).
         '-vf', `scale='min(iw,iw*${VIDEO_MAX_HEIGHT}/ih)':'min(ih,${VIDEO_MAX_HEIGHT})':flags=lanczos`,
         '-c:v', codec,
         '-crf', VIDEO_CRF,
-        '-preset', 'ultrafast',
+        '-preset', VIDEO_PRESET,
+        // Cap de bitrate : empêche que le compressé soit plus gros que
+        // l'original quand la source est déjà bien encodée. Le bufsize
+        // double maxrate pour autoriser des pics courts.
+        '-maxrate', VIDEO_MAX_BITRATE,
+        '-bufsize', VIDEO_BUFSIZE,
         '-c:a', 'aac',
         '-b:a', '96k',
         '-movflags', '+faststart',
@@ -236,7 +253,10 @@
 
     // Si la compression a rendu le fichier PLUS GROS (cas rare mais
     // possible pour de petits fichiers déjà compacts), on garde l'original.
+    // On loggue pour debug : si ça arrive sur des vidéos, c'est qu'il
+    // faut soit augmenter le CRF soit baisser maxrate.
     if (result.blob.size >= original) {
+      console.info(`Compress: sortie ${result.blob.size} ≥ source ${original} (${type}), on garde l'original.`);
       return { blob: file, filename: file.name, mime: type, original, compressed: original, skipped: true };
     }
 
