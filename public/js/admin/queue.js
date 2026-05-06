@@ -95,13 +95,13 @@ function renderCreate(qi) {
   if (type === 'places') {
     preview = `
       <div><strong>${escapeHtml(item.primaryName)}</strong> · ${item.lat?.toFixed?.(4)}, ${item.lng?.toFixed?.(4)}</div>
-      ${item.description ? `<div>${escapeHtml(item.description)}</div>` : ''}
+      ${item.description ? `<div>${renderBodyWithMentions(item.description, refs.descriptionMentions || [])}</div>` : ''}
       ${item.aliases?.length ? `<div class="item-meta">alias : ${item.aliases.map(a => escapeHtml(a.name)).join(' · ')}</div>` : ''}
     `;
   } else if (type === 'people') {
     preview = `
       <div><strong>${escapeHtml(item.primaryName)}</strong>${item.maidenName ? ` (née ${escapeHtml(item.maidenName)})` : ''}</div>
-      ${item.bio ? `<div>${escapeHtml(item.bio)}</div>` : ''}
+      ${item.bio ? `<div>${renderBodyWithMentions(item.bio, refs.bioMentions || [])}</div>` : ''}
       <div class="item-meta">
         ${item.birth?.year ? `né·e ${item.birth.year}` : ''}
         ${item.death?.year ? ` · † ${item.death.year}` : ''}

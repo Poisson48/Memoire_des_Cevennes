@@ -19,31 +19,103 @@ function _entityIndex() {
   return idx;
 }
 
-// Pour un récit (item ou completion), résout placeId et chaque mention.
-function _resolveStoryRefs(item, idx) {
+// Index plat de tous les noms et alias connus (Lieux + Personnes), pour
+// auto-détecter les mentions dans les textes libres affichés en file de
+// modération. On filtre les noms < 3 caractères pour éviter les faux
+// positifs sur des particules ('de', 'la', etc.). Inclut pending pour
+// que la file détecte les mentions vers des entités elles-mêmes en attente.
+function _buildNameIndex() {
+  const out = [];
+  function push(entity, type) {
+    if (entity.primaryName) {
+      out.push({ key: entity.primaryName.toLowerCase().trim(), type, id: entity.id, name: entity.primaryName });
+    }
+    for (const a of entity.aliases || []) {
+      const n = typeof a === 'string' ? a : (a && a.name);
+      if (n) out.push({ key: String(n).toLowerCase().trim(), type, id: entity.id, name: entity.primaryName });
+    }
+  }
+  for (const p of places.list({ status: 'all' })) push(p, 'place');
+  for (const p of people.list({ status: 'all' })) push(p, 'person');
+  return out.filter(e => e.key.length >= 3);
+}
+
+// Scan un texte contre l'index de noms et renvoie un tableau de mentions
+// {start, end, type, entityId, _name}. Tri longest-first pour éviter
+// qu'un alias court masque un nom long. Frontières sur \p{L}\d.
+// Optionnel : skipId exclut une entité (utile pour la description d'un
+// Lieu : on ne s'auto-mentionne pas).
+function _scanText(text, names, skipId) {
+  if (!text || !names.length) return [];
+  const sorted = [...names].sort((a, b) => b.key.length - a.key.length);
+  const escaped = sorted.map(n => n.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp(`(?<![\\p{L}\\d])(${escaped.join('|')})(?![\\p{L}\\d])`, 'giu');
+  const mentions = [];
+  let m;
+  // Garde un set des positions déjà couvertes pour éviter les doublons
+  // quand un même nom apparaît plusieurs fois (longest-first le gère naturellement).
+  while ((m = re.exec(text)) !== null) {
+    const found = m[1].toLowerCase();
+    const entry = sorted.find(n => n.key === found);
+    if (!entry) continue;
+    if (skipId && entry.id === skipId) continue;
+    mentions.push({
+      start: m.index,
+      end: m.index + m[1].length,
+      type: entry.type,
+      entityId: entry.id,
+      _name: entry.name,
+      _auto: true,
+    });
+  }
+  return mentions;
+}
+
+// Fusionne mentions manuelles (taggées par le contributeur) et auto-détectées,
+// en évitant les chevauchements (les manuelles gagnent).
+function _mergeMentions(manual, auto) {
+  const out = [...(manual || [])];
+  const overlaps = (a, b) => !(a.end <= b.start || b.end <= a.start);
+  for (const am of auto) {
+    if (out.some(mm => overlaps(am, mm))) continue;
+    out.push(am);
+  }
+  return out.sort((a, b) => a.start - b.start);
+}
+
+// Pour un récit (item ou completion), résout placeId et chaque mention,
+// puis ajoute des mentions auto-détectées dans le corps.
+function _resolveStoryRefs(item, idx, names) {
   const refs = {};
   if (item.placeId && idx.places[item.placeId]) {
     refs.placeName = idx.places[item.placeId];
   }
-  if (Array.isArray(item.mentions) && item.mentions.length) {
-    refs.mentions = item.mentions.map(m => ({
-      ...m,
-      _name: m.type === 'place' ? idx.places[m.entityId]
-           : m.type === 'person' ? idx.people[m.entityId]
-           : idx.stories[m.entityId] || null,
-    }));
-  }
+  const manualMentions = (item.mentions || []).map(m => ({
+    ...m,
+    _name: m.type === 'place' ? idx.places[m.entityId]
+         : m.type === 'person' ? idx.people[m.entityId]
+         : idx.stories[m.entityId] || null,
+  }));
+  const autoMentions = names ? _scanText(item.body, names) : [];
+  refs.mentions = _mergeMentions(manualMentions, autoMentions);
   return refs;
 }
 
 function queue({ type } = {}) {
   const out = [];
   const idx = _entityIndex();
+  const names = _buildNameIndex();
   for (const [name, repo] of Object.entries(ENTITIES)) {
     if (type && type !== name) continue;
     for (const item of repo.list({ status: 'pending' })) {
       const entry = { kind: 'create', entityType: name, item };
-      if (name === 'stories') entry.refs = _resolveStoryRefs(item, idx);
+      if (name === 'stories') {
+        entry.refs = _resolveStoryRefs(item, idx, names);
+      } else if (name === 'places') {
+        entry.refs = { descriptionMentions: _scanText(item.description, names, item.id) };
+      } else if (name === 'people') {
+        entry.refs = { bioMentions: _scanText(item.bio, names, item.id) };
+      }
       out.push(entry);
     }
   }
@@ -60,7 +132,7 @@ function queue({ type } = {}) {
         storyId: story.id,
         storyTitle: story.title || story.id,
         item: completion,
-        refs: _resolveStoryRefs(completion, idx),
+        refs: _resolveStoryRefs(completion, idx, names),
       });
     }
   }
