@@ -255,6 +255,10 @@
     <form id="form-story" enctype="multipart/form-data">
       <h2>Ajouter un contenu</h2>
       <p id="story-place-name" class="coords"></p>
+      <div id="story-draft-banner" class="draft-banner" hidden>
+        <span>📄 Brouillon restauré <small id="story-draft-meta"></small></span>
+        <button type="button" id="story-draft-clear" class="btn-link">✕ Effacer le brouillon</button>
+      </div>
       <fieldset class="type-cards" id="story-type-cards">
         <legend>Quel type de contenu ?</legend>
         <label class="type-card">

@@ -76,6 +76,30 @@ dialog .coords {
 .btn-link:hover { color: var(--accent); }
 .btn-link:disabled { cursor: wait; opacity: 0.6; }
 
+/* ── Bandeau de brouillon restauré ──────────────────────────── */
+.draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.7rem;
+  padding: 0.45rem 0.7rem;
+  background: rgba(140, 90, 43, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 0.88rem;
+  color: var(--accent-dark);
+}
+.draft-banner small {
+  color: var(--muted);
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+.draft-banner .btn-link {
+  font-size: 0.85rem;
+}
+
 /* ── Liste de fichiers à uploader avec légende ──────────────── */
 .media-captions {
   display: flex;

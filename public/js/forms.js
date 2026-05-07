@@ -45,6 +45,120 @@ dlgComplete.querySelectorAll('[data-close]').forEach(b =>
 storyTypeCards.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
 
+// ── Brouillon localStorage du formulaire de récit ─────────────────────
+// Stocke le contenu en cours toutes les ~400 ms. Restauré à la prochaine
+// ouverture du dialog pour le même placeId, purgé après envoi réussi
+// ou effacement explicite. Pas de personId stocké : on laisse l'auto-
+// complétion relier au moment de l'envoi (évite les liens vers fiches
+// supprimées entre deux sessions).
+const DRAFT_PREFIX = 'mdc:story-draft:';
+const DRAFT_FIELDS = ['type', 'title', 'memoryDate', 'body', 'name', 'writtenFrom', 'relationship', 'visibility'];
+const draftBanner = document.getElementById('story-draft-banner');
+const draftMeta   = document.getElementById('story-draft-meta');
+const draftClear  = document.getElementById('story-draft-clear');
+let draftSaveTimer = null;
+
+function draftKey(placeId) { return DRAFT_PREFIX + placeId; }
+
+function readDraft(placeId) {
+  try {
+    const raw = localStorage.getItem(draftKey(placeId));
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function writeDraft(placeId, data) {
+  try { localStorage.setItem(draftKey(placeId), JSON.stringify(data)); }
+  catch { /* quota / private mode : silencieux */ }
+}
+
+function clearDraft(placeId) {
+  try { localStorage.removeItem(draftKey(placeId)); } catch { /* idem */ }
+  if (draftBanner) draftBanner.hidden = true;
+}
+
+function captureDraft(placeId) {
+  if (!placeId) return;
+  const fd = new FormData(formStory);
+  const data = {};
+  for (const k of DRAFT_FIELDS) {
+    const v = fd.get(k);
+    if (v != null && String(v).trim()) data[k] = String(v);
+  }
+  // Si on a juste type=text (la valeur par défaut) et rien d'autre, on
+  // considère que l'utilisateur n'a rien tapé : pas de brouillon à garder.
+  const meaningful = Object.keys(data).filter(k => k !== 'type' && k !== 'visibility');
+  if (meaningful.length === 0) {
+    clearDraft(placeId);
+    return;
+  }
+  writeDraft(placeId, { ...data, savedAt: Date.now() });
+}
+
+function scheduleDraftSave() {
+  const placeId = formStory.dataset.placeId;
+  if (!placeId) return;
+  if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => captureDraft(placeId), 400);
+}
+
+function applyDraft(data) {
+  if (!data) return false;
+  let any = false;
+  if (data.type) {
+    const r = formStory.querySelector(`input[name=type][value="${data.type}"]`);
+    if (r) { r.checked = true; }
+  }
+  for (const k of ['title', 'memoryDate', 'body', 'name', 'writtenFrom', 'relationship']) {
+    if (data[k] == null) continue;
+    const el = formStory.querySelector(`[name="${k}"]`);
+    if (el) {
+      el.value = data[k];
+      if (data[k]) any = true;
+    }
+  }
+  if (data.visibility) {
+    const r = formStory.querySelector(`input[name=visibility][value="${data.visibility}"]`);
+    if (r) r.checked = true;
+  }
+  return any;
+}
+
+function formatDraftAge(savedAt) {
+  if (!savedAt) return '';
+  const diff = Math.max(0, Date.now() - Number(savedAt));
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return '(à l\'instant)';
+  if (mins < 60) return `(il y a ${mins} min)`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `(il y a ${hours} h)`;
+  const days = Math.round(hours / 24);
+  return `(il y a ${days} j)`;
+}
+
+function showDraftBanner(savedAt) {
+  if (!draftBanner) return;
+  if (draftMeta) draftMeta.textContent = formatDraftAge(savedAt);
+  draftBanner.hidden = false;
+}
+
+if (draftClear) {
+  draftClear.addEventListener('click', () => {
+    const placeId = formStory.dataset.placeId;
+    formStory.reset();
+    updateStoryMediaVisibility();
+    const capsDiv = document.getElementById('story-media-captions');
+    if (capsDiv) capsDiv.innerHTML = '';
+    if (placeId) clearDraft(placeId);
+  });
+}
+
+// Ecoute toute saisie/changement dans le formulaire pour déclencher la
+// sauvegarde. On évite de reposer ce listener à chaque ouverture grâce
+// à un attachement unique au form.
+formStory.addEventListener('input',  scheduleDraftSave);
+formStory.addEventListener('change', scheduleDraftSave);
+
 // Rendu dynamique des prévisualisations + champ « Légende » par fichier
 // sélectionné. Mis à jour à chaque changement de l'input fichier.
 storyMediaInput.addEventListener('change', renderMediaCaptions);
@@ -196,10 +310,18 @@ function openStoryDialog(placeId) {
   const capsDiv = document.getElementById('story-media-captions');
   if (capsDiv) capsDiv.innerHTML = '';
   resetRecorderIfAvailable();
-  updateStoryMediaVisibility();
   formStory.dataset.placeId = placeId;
   const place = state.places.get(placeId);
   document.getElementById('story-place-name').textContent = `Pour : ${place ? place.primaryName : placeId}`;
+  // Restauration du brouillon avant d'afficher : applyDraft positionne
+  // les radios (type, visibilité), updateStoryMediaVisibility lit
+  // ensuite la bonne valeur de type pour montrer/cacher recorder & file.
+  if (draftBanner) draftBanner.hidden = true;
+  const draft = readDraft(placeId);
+  if (draft && applyDraft(draft)) {
+    showDraftBanner(draft.savedAt);
+  }
+  updateStoryMediaVisibility();
   dlgStory.showModal();
 }
 
@@ -440,6 +562,9 @@ formStory.addEventListener('submit', async (e) => {
       }
     }
 
+    // Envoi réussi : on purge le brouillon de ce lieu pour ne pas le
+    // re-proposer à la prochaine ouverture.
+    clearDraft(placeId);
     dlgStory.close('submit');
     resetRecorder();
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
