@@ -233,6 +233,7 @@ function makeStory(input, existingIds) {
     body,
     ...(input.memoryDate ? { memoryDate: str(input.memoryDate, 80) } : {}),
     ...(input.contributorId ? { contributorId: str(input.contributorId, 80) } : {}),
+    ...(input.collectedBy ? { collectedBy: str(input.collectedBy, 80) } : {}),
     mentions: normMentions(input.mentions, body.length),
     titleMentions: normMentions(input.titleMentions, title.length),
     mediaFiles: (Array.isArray(input.mediaFiles) ? input.mediaFiles : [])

@@ -296,7 +296,11 @@ function extractSubmittedBy(fd) {
 // exploité par le serveur que si submittedBy.personId est vide : sinon
 // le nom est déjà lié à une fiche existante.
 function extractNewPerson(fd) {
-  const out = {};
+  // confirmCreate: true par défaut. Si le nom typé ne matche aucune fiche,
+  // le serveur en crée une (minimale si aucun champ optionnel n'est rempli,
+  // enrichie sinon). Si le nom matche une fiche existante, le serveur lie
+  // au personId trouvé et ignore newPerson : aucun doublon créé.
+  const out = { confirmCreate: true };
   const year = fd.get('newPerson.birthYear');
   if (year && /^\d{3,4}$/.test(String(year))) out.birth = { year: Number(year) };
   const parents = [];
@@ -307,7 +311,7 @@ function extractNewPerson(fd) {
   if (parents.length) out.parents = parents;
   const bio = fd.get('newPerson.bio');
   if (bio && String(bio).trim()) out.bio = String(bio).trim();
-  return Object.keys(out).length ? out : undefined;
+  return out;
 }
 
 // ── Capture caméra / micro selon le type ───────────────────────────────

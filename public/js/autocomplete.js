@@ -154,10 +154,11 @@
     const details = document.createElement('details');
     details.className = 'new-person';
     details.innerHTML = `
-      <summary>🌱 Nouvelle fiche : seulement si mon nom n'existe pas encore dans la base</summary>
+      <summary>🌱 Détails sur cette personne (facultatif)</summary>
       <p class="new-person-hint">
-        Tous les champs sont optionnels. Ils seront ignorés si tu as
-        choisi ton nom dans la liste suggérée plus haut.
+        Si la personne n'a pas encore de fiche, ces infos enrichissent celle
+        qui sera créée à l'envoi. Si tu as choisi un nom dans la liste
+        suggérée plus haut, ces champs sont ignorés.
       </p>
       <label>Année de naissance
         <input type="text" name="newPerson.birthYear" inputmode="numeric" pattern="[0-9]{0,4}" maxlength="4" placeholder="1954" />

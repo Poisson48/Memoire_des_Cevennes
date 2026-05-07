@@ -50,10 +50,21 @@ router.post('/', requireAuth('member'), async (req, res, next) => {
       submittedBy: req.body.submittedBy,
       newPerson: req.body.newPerson,
     });
-    // contributorId pointe vers la Personne du contributeur (si lié).
-    if (payload.submittedBy?.personId && !payload.contributorId) {
-      payload.contributorId = payload.submittedBy.personId;
+    // Le conteur DOIT être identifié : soit par autocomplétion (personId
+    // existant), soit par création auto via newPerson.confirmCreate. Si on
+    // arrive ici sans personId, c'est que le formulaire n'a pas envoyé de
+    // nom ou que la création a échoué : on refuse plutôt que stocker un
+    // nom orphelin.
+    if (!payload.submittedBy || !payload.submittedBy.personId) {
+      return res.status(400).json({
+        error: 'Le conteur doit être identifié (nom requis pour publier).',
+      });
     }
+    payload.contributorId = payload.submittedBy.personId;
+    // collectedBy : qui a recueilli ce récit (membre connecté). Distinct
+    // du conteur : un membre peut publier la mémoire d'un petit vieux du
+    // village qui n'a pas de compte.
+    payload.collectedBy = req.member.id;
     const story = await stories.create(payload);
     logActivity({
       memberId: req.member.id,

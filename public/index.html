@@ -313,17 +313,22 @@
         </label>
       </fieldset>
       <fieldset class="contributor-id">
-        <legend>Qui es-tu ? <small>(situe ta contribution)</small></legend>
-        <label>Nom ou prénom <em>(obligatoire)</em>
+        <legend>Qui raconte cette histoire ? <small>(le narrateur ou la narratrice, pas forcément toi)</small></legend>
+        <p class="contributor-hint">
+          Si la personne a déjà une fiche, son nom apparaîtra dans les
+          suggestions : choisis-la pour relier proprement. Sinon, sa fiche
+          sera créée automatiquement à l'envoi.
+        </p>
+        <label>Nom ou prénom du conteur <em>(obligatoire)</em>
           <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" data-mentions="on" />
         </label>
-        <label>D'où tu écris <em>(facultatif)</em>
+        <label>D'où il / elle vient <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120" />
         </label>
-        <label>Ton lien avec cette histoire <em>(facultatif)</em>
+        <label>Son lien avec cette histoire <em>(facultatif)</em>
           <input type="text" name="relationship" maxlength="200" />
         </label>
-        <label>Email <em>(facultatif, reste privé)</em>
+        <label>Email du conteur <em>(facultatif, reste privé)</em>
           <input type="email" name="email" maxlength="160" />
         </label>
       </fieldset>
