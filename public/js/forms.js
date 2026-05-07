@@ -317,11 +317,14 @@ function updateStoryMediaVisibility() {
   storyMediaLabel.hidden = textOnly;
   storyRecorder.hidden = textOnly || t !== 'audio';
 
-  // Oriente l'accept du file input selon le type et, sur mobile, ouvre
-  // directement l'appareil photo / caméra pour les photos et vidéos.
+  // Oriente l'accept du file input selon le type. Pas de `capture` pour la
+  // vidéo : on veut laisser choisir un fichier existant (qu'on compresse
+  // ensuite côté client) plutôt que forcer la caméra. Pour la photo, on
+  // garde `environment` parce que prendre la photo sur place est le geste
+  // attendu.
   const config = {
     photo:   { accept: 'image/*', capture: 'environment' },
-    video:   { accept: 'video/*', capture: 'environment' },
+    video:   { accept: 'video/*', capture: null },
     audio:   { accept: 'audio/*', capture: null },
     drawing: { accept: 'image/*', capture: null },
     note:    { accept: '', capture: null },
