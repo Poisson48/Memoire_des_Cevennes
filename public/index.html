@@ -255,16 +255,33 @@
     <form id="form-story" enctype="multipart/form-data">
       <h2>Ajouter un contenu</h2>
       <p id="story-place-name" class="coords"></p>
-      <label>Type
-        <select name="type" id="story-type" required>
-          <option value="text">Histoire / témoignage écrit</option>
-          <option value="photo">Photo</option>
-          <option value="audio">Enregistrement audio</option>
-          <option value="video">Vidéo</option>
-          <option value="drawing">Dessin</option>
-          <option value="note">Note</option>
-        </select>
-      </label>
+      <fieldset class="type-cards" id="story-type-cards">
+        <legend>Quel type de contenu ?</legend>
+        <label class="type-card">
+          <input type="radio" name="type" value="text" required checked />
+          <span class="type-icon" aria-hidden="true">📝</span>
+          <span class="type-label">Texte</span>
+          <span class="type-desc">Récit, témoignage, note</span>
+        </label>
+        <label class="type-card">
+          <input type="radio" name="type" value="photo" />
+          <span class="type-icon" aria-hidden="true">📷</span>
+          <span class="type-label">Image</span>
+          <span class="type-desc">Photo, dessin, scan</span>
+        </label>
+        <label class="type-card">
+          <input type="radio" name="type" value="audio" />
+          <span class="type-icon" aria-hidden="true">🎙️</span>
+          <span class="type-label">Audio</span>
+          <span class="type-desc">Témoignage oral, chant</span>
+        </label>
+        <label class="type-card">
+          <input type="radio" name="type" value="video" />
+          <span class="type-icon" aria-hidden="true">📹</span>
+          <span class="type-label">Vidéo</span>
+          <span class="type-desc">Court film, interview</span>
+        </label>
+      </fieldset>
       <label>Titre
         <input type="text" name="title" maxlength="160" data-mentions="on" />
         <span class="hint">Tape <code>@nom</code> pour mentionner quelqu'un dans le titre aussi.</span>

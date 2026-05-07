@@ -19,7 +19,12 @@ const dlgPlace = document.getElementById('dlg-place');
 const formPlace = document.getElementById('form-place');
 const dlgStory = document.getElementById('dlg-story');
 const formStory = document.getElementById('form-story');
-const storyType = document.getElementById('story-type');
+const storyTypeCards = document.getElementById('story-type-cards');
+function getStoryType() {
+  // Lit la valeur du radio coché. Si rien n'est coché (cas théorique),
+  // on retombe sur 'text' qui est le défaut HTML.
+  return formStory.elements.type ? (formStory.elements.type.value || 'text') : 'text';
+}
 const storyMediaLabel = document.getElementById('story-media-label');
 const storyRecorder = document.getElementById('story-recorder');
 const storyMediaInput = document.getElementById('story-media-input');
@@ -37,7 +42,7 @@ dlgEdit.querySelectorAll('[data-close]').forEach(b =>
 dlgComplete.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => dlgComplete.close('cancel'))
 );
-storyType.addEventListener('change', updateStoryMediaVisibility);
+storyTypeCards.addEventListener('change', updateStoryMediaVisibility);
 updateStoryMediaVisibility();
 
 // Rendu dynamique des prévisualisations + champ « Légende » par fichier
@@ -316,7 +321,7 @@ function extractNewPerson(fd) {
 
 // ── Capture caméra / micro selon le type ───────────────────────────────
 function updateStoryMediaVisibility() {
-  const t = storyType.value;
+  const t = getStoryType();
   const textOnly = (t === 'text' || t === 'note');
   storyMediaLabel.hidden = textOnly;
   storyRecorder.hidden = textOnly || t !== 'audio';

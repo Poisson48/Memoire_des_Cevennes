@@ -197,6 +197,87 @@ body:has(dialog[open]) .panel[aria-hidden="false"] {
   min-height: 34px;
 }
 
+/* ── Fieldset "type-cards" (choix du type de contenu en cartes) ── */
+fieldset.type-cards {
+  margin: 0.9rem 0 0.3rem;
+  padding: 0.7rem 0.9rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.015);
+}
+fieldset.type-cards legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+}
+fieldset.type-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.55rem;
+}
+fieldset.type-cards legend {
+  grid-column: 1 / -1;
+}
+@media (min-width: 480px) {
+  fieldset.type-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.7rem 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.05s ease;
+  min-height: 88px;
+  margin: 0;
+}
+.type-card:hover {
+  border-color: var(--accent);
+  background: rgba(140, 90, 43, 0.04);
+}
+.type-card:active {
+  transform: scale(0.98);
+}
+.type-card input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.type-card:has(input[type="radio"]:checked) {
+  border-color: var(--accent-dark);
+  background: rgba(140, 90, 43, 0.10);
+  box-shadow: inset 0 0 0 1px var(--accent-dark);
+}
+.type-card:has(input[type="radio"]:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.type-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.type-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--fg);
+}
+.type-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
 /* ── Fieldset "contributor-id" ──────────────────────────────── */
 fieldset.contributor-id {
   margin: 0.9rem 0 0.3rem;
