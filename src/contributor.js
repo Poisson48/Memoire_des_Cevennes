@@ -18,6 +18,24 @@ const { resolve } = require('./resolve');
 
 const STRONG_MATCH_SCORE = 100;  // nom exact uniquement
 
+// Avant de créer une fiche, on exige un nom complet : au moins deux
+// tokens de 2 caractères ou plus. Évite les fiches « Léo » qui se
+// retrouveront ensuite mêlées à « Léo Martin », « Léo Dupont »… Ne
+// s'applique pas aux fiches existantes piquées par autocomplétion :
+// celles-là gardent leur nom tel quel, alias mononyme inclus.
+function isCompleteName(name) {
+  const tokens = String(name || '').trim().split(/\s+/).filter(t => t.length >= 2);
+  return tokens.length >= 2;
+}
+
+class IncompleteNameError extends Error {
+  constructor(name) {
+    super(`Nom complet requis (prénom et nom) : « ${name} » est trop court pour créer une fiche.`);
+    this.code = 'INCOMPLETE_NAME';
+    this.status = 400;
+  }
+}
+
 async function resolveContributor({ submittedBy, newPerson }) {
   if (!submittedBy || !submittedBy.name) return submittedBy || null;
 
@@ -41,6 +59,9 @@ async function resolveContributor({ submittedBy, newPerson }) {
   // Création à la volée UNIQUEMENT si l'utilisateur l'a explicitement
   // demandée via le formulaire « Nouvelle fiche ».
   if (newPerson && newPerson.confirmCreate === true) {
+    if (!isCompleteName(submittedBy.name)) {
+      throw new IncompleteNameError(submittedBy.name);
+    }
     const input = {
       primaryName: submittedBy.name,
       submittedBy,
@@ -56,4 +77,4 @@ async function resolveContributor({ submittedBy, newPerson }) {
   return submittedBy;
 }
 
-module.exports = { resolveContributor };
+module.exports = { resolveContributor, IncompleteNameError, isCompleteName };

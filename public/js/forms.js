@@ -351,6 +351,22 @@ formStory.addEventListener('submit', async (e) => {
   const placeId = formStory.dataset.placeId;
   if (!placeId) return;
   if (blockedByStaticMode('l\'ajout d\'un contenu')) return;
+  const fd = new FormData(formStory);
+  const submittedBy = extractSubmittedBy(fd);
+
+  // Validation locale : si le conteur n'a pas été piqué dans
+  // l'autocomplétion (pas de personId), on exige un nom complet pour
+  // éviter de créer des fiches mononymes (« Léo », « Marc ») qui se
+  // mêleront ensuite à toutes les futures fiches du même prénom. Mêmes
+  // règles que côté serveur dans contributor.js → isCompleteName.
+  if (submittedBy && submittedBy.name && !submittedBy.personId) {
+    const tokens = submittedBy.name.trim().split(/\s+/).filter(t => t.length >= 2);
+    if (tokens.length < 2) {
+      alert(`Tape le nom complet du conteur (prénom et nom) ou choisis-le dans la liste suggérée.\n\n« ${submittedBy.name} » est trop court : ça créerait une fiche qui se mêlera à toutes les futures fiches portant ce prénom.`);
+      return;
+    }
+  }
+
   const submitBtn = formStory.querySelector('button[type=submit]');
   storySubmitting = true;
   if (submitBtn) {
@@ -358,7 +374,6 @@ formStory.addEventListener('submit', async (e) => {
     submitBtn.dataset.origLabel = submitBtn.textContent;
     submitBtn.textContent = 'Envoi en cours…';
   }
-  const fd = new FormData(formStory);
   const bodyTextarea = formStory.querySelector('textarea[name=body]');
   const titleInput   = formStory.querySelector('input[name=title]');
   const payload = {
@@ -370,7 +385,7 @@ formStory.addEventListener('submit', async (e) => {
     titleMentions: readMentions(titleInput,   fd.get('title') || ''),
     visibility: fd.get('visibility') || 'members',
     consentGiven: true,           // implicite : la charte a été acceptée à l'inscription
-    submittedBy: extractSubmittedBy(fd),
+    submittedBy,
     newPerson: extractNewPerson(fd),
   };
   try {

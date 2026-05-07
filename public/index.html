@@ -317,10 +317,12 @@
         <p class="contributor-hint">
           Si la personne a déjà une fiche, son nom apparaîtra dans les
           suggestions : choisis-la pour relier proprement. Sinon, sa fiche
-          sera créée automatiquement à l'envoi.
+          sera créée automatiquement à l'envoi <strong>à condition de saisir
+          le nom complet</strong> (prénom et nom) : un prénom seul créerait
+          des fiches qui se mêlent à toutes les futures du même prénom.
         </p>
-        <label>Nom ou prénom du conteur <em>(obligatoire)</em>
-          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" data-mentions="on" />
+        <label>Nom complet du conteur <em>(obligatoire : prénom et nom)</em>
+          <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" data-mentions="on" placeholder="ex. Marie Dupont" />
         </label>
         <label>D'où il / elle vient <em>(facultatif)</em>
           <input type="text" name="writtenFrom" maxlength="120" />
