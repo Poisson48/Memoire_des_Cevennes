@@ -381,6 +381,7 @@ formStory.addEventListener('submit', async (e) => {
     type: fd.get('type'),
     title: fd.get('title'),
     body: fd.get('body'),
+    memoryDate: fd.get('memoryDate'),
     mentions:      readMentions(bodyTextarea, fd.get('body')  || ''),
     titleMentions: readMentions(titleInput,   fd.get('title') || ''),
     visibility: fd.get('visibility') || 'members',
