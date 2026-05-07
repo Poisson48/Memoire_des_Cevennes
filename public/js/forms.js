@@ -335,11 +335,25 @@ function updateStoryMediaVisibility() {
   else storyMediaInput.removeAttribute('capture');
 }
 
+// Garde anti-double-submit : la compression vidéo peut prendre plusieurs
+// minutes, et chaque clic sur Envoyer relance tout le pipeline (POST
+// /api/stories + compression + upload média). Sans ce verrou, un
+// utilisateur impatient se retrouve avec autant de tickets que de clics.
+let storySubmitting = false;
+
 formStory.addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (storySubmitting) return;
   const placeId = formStory.dataset.placeId;
   if (!placeId) return;
   if (blockedByStaticMode('l\'ajout d\'un contenu')) return;
+  const submitBtn = formStory.querySelector('button[type=submit]');
+  storySubmitting = true;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.dataset.origLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Envoi en cours…';
+  }
   const fd = new FormData(formStory);
   const bodyTextarea = formStory.querySelector('textarea[name=body]');
   const titleInput   = formStory.querySelector('input[name=title]');
@@ -406,6 +420,16 @@ formStory.addEventListener('submit', async (e) => {
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
   } catch (err) {
     alert('Erreur : ' + err.message);
+  } finally {
+    storySubmitting = false;
+    hideCompressUI();
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      if (submitBtn.dataset.origLabel) {
+        submitBtn.textContent = submitBtn.dataset.origLabel;
+        delete submitBtn.dataset.origLabel;
+      }
+    }
   }
 });
 
