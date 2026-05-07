@@ -322,25 +322,10 @@
         <div class="compress-label"><span id="compress-text">Compression…</span></div>
         <div class="compress-bar"><div id="compress-bar-fill"></div></div>
       </div>
-      <fieldset class="visibility-choice">
-        <legend>Qui peut lire ce contenu ?</legend>
-        <label class="visibility-option">
-          <input type="radio" name="visibility" value="members" checked />
-          <span><strong>Membres</strong> : réservé aux personnes connectées <em>(défaut)</em>. Pour les histoires familiales, les souvenirs intimes, les fiches de personnes vivantes.</span>
-        </label>
-        <label class="visibility-option">
-          <input type="radio" name="visibility" value="public" />
-          <span><strong>Public</strong> : visible par tout le monde, même sans compte. Pour le patrimoine collectif (récits historiques, photos d'archives, événements anciens).</span>
-        </label>
-      </fieldset>
       <fieldset class="contributor-id">
         <legend>Qui raconte cette histoire ? <small>(le narrateur ou la narratrice, pas forcément toi)</small></legend>
         <p class="contributor-hint">
-          Si la personne a déjà une fiche, son nom apparaîtra dans les
-          suggestions : choisis-la pour relier proprement. Sinon, sa fiche
-          sera créée automatiquement à l'envoi <strong>à condition de saisir
-          le nom complet</strong> (prénom et nom) : un prénom seul créerait
-          des fiches qui se mêlent à toutes les futures du même prénom.
+          Tape un prénom et un nom : on suggère les fiches existantes, sinon on crée.
         </p>
         <label>Nom complet du conteur <em>(obligatoire : prénom et nom)</em>
           <input type="text" name="name" required maxlength="120" autocomplete="off" data-autocomplete="person" data-mentions="on" placeholder="ex. Marie Dupont" />
@@ -350,6 +335,17 @@
         </label>
         <label>Son lien avec cette histoire <em>(facultatif)</em>
           <input type="text" name="relationship" maxlength="200" />
+        </label>
+      </fieldset>
+      <fieldset class="visibility-choice">
+        <legend>Qui peut lire ce contenu ?</legend>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="members" checked />
+          <span><strong>Membres</strong> : réservé aux personnes connectées <em>(défaut)</em>. Pour les histoires familiales, les souvenirs intimes, les fiches de personnes vivantes.</span>
+        </label>
+        <label class="visibility-option">
+          <input type="radio" name="visibility" value="public" />
+          <span><strong>Public</strong> : visible par tout le monde, même sans compte. Pour le patrimoine collectif (récits historiques, photos d'archives, événements anciens).</span>
         </label>
       </fieldset>
       <p class="dialog-note">
