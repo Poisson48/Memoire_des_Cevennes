@@ -333,14 +333,42 @@ function resetRecorderIfAvailable() {
 }
 
 // ── UI de compression ────────────────────────────────────────────────
-const compressStatus = document.getElementById('compress-status');
-const compressText   = document.getElementById('compress-text');
-const compressBar    = document.getElementById('compress-bar-fill');
+const compressStatus  = document.getElementById('compress-status');
+const compressText    = document.getElementById('compress-text');
+const compressBar     = document.getElementById('compress-bar-fill');
+const compressElapsed = document.getElementById('compress-elapsed');
+const compressMeta    = document.getElementById('compress-meta');
+const compressCancel  = document.getElementById('compress-cancel');
 
-function showCompressUI(label) {
+let compressStart = 0;
+let compressTimer = null;
+let activeCompressAbort = null;
+
+function fmtDuration(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const mm = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+}
+function fmtSize(bytes) {
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} Mo`;
+}
+
+function showCompressUI(label, fileSize) {
   compressText.textContent = label;
   compressBar.style.width = '0%';
+  if (compressMeta) {
+    compressMeta.textContent = fileSize ? `Source : ${fmtSize(fileSize)}` : '';
+  }
   compressStatus.hidden = false;
+  compressStart = Date.now();
+  if (compressElapsed) compressElapsed.textContent = '00:00';
+  if (compressTimer) clearInterval(compressTimer);
+  compressTimer = setInterval(() => {
+    if (compressElapsed) compressElapsed.textContent = fmtDuration(Date.now() - compressStart);
+  }, 500);
 }
 function updateCompressUI(percent, status) {
   if (typeof percent === 'number') {
@@ -351,17 +379,26 @@ function updateCompressUI(percent, status) {
 function hideCompressUI() {
   compressStatus.hidden = true;
   compressBar.style.width = '0%';
+  if (compressTimer) { clearInterval(compressTimer); compressTimer = null; }
+  if (compressMeta) compressMeta.textContent = '';
 }
 
-async function runCompression(file, label) {
+if (compressCancel) {
+  compressCancel.addEventListener('click', () => {
+    if (activeCompressAbort) activeCompressAbort.abort();
+  });
+}
+
+async function runCompression(file, label, signal) {
   if (!window.Compress) {
     return { blob: file, filename: file.name };
   }
-  showCompressUI(label);
+  showCompressUI(label, file.size);
   try {
     const result = await window.Compress.compressIfNeeded(file, {
       onProgress: (p) => updateCompressUI(p),
       onStatus: (s) => updateCompressUI(null, `${label} : ${s}`),
+      signal,
     });
     // Petit récap visuel avant de passer au suivant
     if (!result.skipped) {
@@ -373,6 +410,9 @@ async function runCompression(file, label) {
     }
     return result;
   } catch (err) {
+    // L'utilisateur a cliqué Annuler : on remonte l'AbortError au submit
+    // pour qu'il abandonne tout le pipeline (sans fallback sur l'original).
+    if (err.name === 'AbortError') throw err;
     console.warn('compression error:', err);
     updateCompressUI(null, `${label} : compression ignorée (${err.message}), envoi du fichier original`);
     await sleep(600);
@@ -496,6 +536,9 @@ formStory.addEventListener('submit', async (e) => {
 
   const submitBtn = formStory.querySelector('button[type=submit]');
   storySubmitting = true;
+  // Controller exposé au bouton « Annuler » de la barre de compression.
+  // Réinitialisé à chaque submit pour ne pas hériter d'un abort précédent.
+  activeCompressAbort = new AbortController();
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.dataset.origLabel = submitBtn.textContent;
@@ -538,7 +581,7 @@ formStory.addEventListener('submit', async (e) => {
       const label = filesToProcess.length > 1
         ? `Fichier ${idx + 1}/${filesToProcess.length} : ${file.name}`
         : `${file.name}`;
-      const result = await runCompression(file, label);
+      const result = await runCompression(file, label, activeCompressAbort.signal);
       mediaForm.append('media', result.blob, result.filename || file.name);
       const cap = document.querySelector(`#dlg-story input[name="caption_${idx}"]`)?.value || '';
       mediaForm.append('captions', cap);
@@ -569,9 +612,16 @@ formStory.addEventListener('submit', async (e) => {
     resetRecorder();
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');
   } catch (err) {
-    alert('Erreur : ' + err.message);
+    // Annulation par le bouton « ✕ Annuler » de la barre : on ne pollue
+    // pas l'utilisateur avec une alerte d'erreur. Le récit créé côté
+    // serveur (pré-compression) reste à l'état pending sans média : il
+    // sera nettoyé par modération (refus). Le brouillon est conservé.
+    if (err.name !== 'AbortError') {
+      alert('Erreur : ' + err.message);
+    }
   } finally {
     storySubmitting = false;
+    activeCompressAbort = null;
     hideCompressUI();
     if (submitBtn) {
       submitBtn.disabled = false;

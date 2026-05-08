@@ -323,8 +323,13 @@
       </label>
       <div id="story-media-captions" class="media-captions"></div>
       <div id="compress-status" class="compress-status" hidden>
-        <div class="compress-label"><span id="compress-text">Compression…</span></div>
+        <div class="compress-head">
+          <span id="compress-text" class="compress-label">Compression…</span>
+          <span id="compress-elapsed" class="compress-elapsed" aria-live="polite"></span>
+          <button type="button" id="compress-cancel" class="btn-link compress-cancel">✕ Annuler</button>
+        </div>
         <div class="compress-bar"><div id="compress-bar-fill"></div></div>
+        <div class="compress-meta" id="compress-meta"></div>
       </div>
       <fieldset class="contributor-id">
         <legend>Qui raconte cette histoire ? <small>(le narrateur ou la narratrice, pas forcément toi)</small></legend>

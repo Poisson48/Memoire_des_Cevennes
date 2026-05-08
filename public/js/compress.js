@@ -107,8 +107,38 @@
     return preferredVideoCodec;
   }
 
+  // ── Annulation ───────────────────────────────────────────────────
+  // Toutes les voies acceptent un AbortSignal dans opts.signal. Quand
+  // il s'enclenche, le pipeline en cours doit s'interrompre et lever
+  // une AbortError. Le caller (forms.js) traite ça comme « l'utilisateur
+  // a renoncé », pas comme une erreur à afficher.
+  function makeAbortError() {
+    const e = new Error('Compression annulée');
+    e.name = 'AbortError';
+    return e;
+  }
+  function throwIfAborted(signal) {
+    if (signal && signal.aborted) throw makeAbortError();
+  }
+  // Branche un signal d'annulation sur un ffmpeg.wasm en cours. Sur abort
+  // on appelle ffmpeg.terminate() (rejette l'exec actif) et on invalide
+  // le singleton mémoïsé : le worker est détruit, le prochain compression
+  // rechargera ffmpeg.
+  function hookFfmpegAbort(ffmpeg, signal) {
+    if (!signal) return () => {};
+    throwIfAborted(signal);
+    const onAbort = () => {
+      try { ffmpeg.terminate(); } catch { /* déjà terminé */ }
+      ffmpegPromise = null;
+      preferredVideoCodec = null;
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    return () => signal.removeEventListener('abort', onAbort);
+  }
+
   // ── Image → WebP (Canvas) ────────────────────────────────────────
-  async function compressImage(file, { onStatus } = {}) {
+  async function compressImage(file, { onStatus, signal } = {}) {
+    throwIfAborted(signal);
     onStatus && onStatus('image : décodage…');
     const img = await loadImage(file);
     const { width, height } = scaled(img.width, img.height, IMAGE_MAX_DIM);
@@ -142,9 +172,11 @@
   }
 
   // ── Audio → Opus/WebM (ffmpeg.wasm) ──────────────────────────────
-  async function compressAudio(file, { onProgress, onStatus, onLog } = {}) {
+  async function compressAudio(file, { onProgress, onStatus, onLog, signal } = {}) {
+    throwIfAborted(signal);
     onStatus && onStatus('audio : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
+    const unhookAbort = hookFfmpegAbort(ffmpeg, signal);
     const { fetchFile } = window.FFmpegUtil;
     const inputName = 'in' + guessExt(file, 'webm');
     const outputName = 'out.webm';
@@ -182,7 +214,13 @@
         mime: 'audio/webm',
         ext: 'webm',
       };
+    } catch (err) {
+      // Si l'utilisateur a abort, ffmpeg.terminate() rejette l'exec en
+      // cours avec un message générique : on remap en AbortError.
+      if (signal && signal.aborted) throw makeAbortError();
+      throw err;
     } finally {
+      unhookAbort();
       if (audioLogListener) ffmpeg.off('log', audioLogListener);
       if (progHandler) ffmpeg.off('progress', progHandler);
       try { await ffmpeg.deleteFile(inputName); } catch {}
@@ -234,7 +272,8 @@
     return null;
   }
 
-  async function compressVideoNative(file, { onProgress, onStatus, onLog } = {}) {
+  async function compressVideoNative(file, { onProgress, onStatus, onLog, signal } = {}) {
+    throwIfAborted(signal);
     const mime = pickRecorderMime();
     if (!mime) throw new Error('MediaRecorder indisponible ou aucun codec supporté');
 
@@ -319,6 +358,20 @@
       onStatus && onStatus(`vidéo (natif) : encodage ${mime.split(';')[0]}…`);
       recorder.start(500);
 
+      // Branche l'annulation : sur abort, on stoppe le recorder et la
+      // lecture pour libérer le SoC et débloquer les awaits suivants.
+      let abortListener = null;
+      let abortRejecter = null;
+      const abortPromise = new Promise((_, reject) => { abortRejecter = reject; });
+      if (signal) {
+        abortListener = () => {
+          try { if (recorder.state !== 'inactive') recorder.stop(); } catch {}
+          try { video.pause(); } catch {}
+          if (abortRejecter) abortRejecter(makeAbortError());
+        };
+        signal.addEventListener('abort', abortListener, { once: true });
+      }
+
       // Boucle de dessin : préfère requestVideoFrameCallback pour ne
       // dessiner qu'à la cadence des frames effectivement décodées
       // (sinon RAF dessine à 60 Hz et MediaRecorder duplique des frames).
@@ -351,8 +404,12 @@
       });
 
       await video.play();
-      await ended;
+      // Race avec l'annulation : si signal.abort, abortPromise rejette
+      // avec AbortError et on quitte sans attendre la fin de la vidéo.
+      if (signal) await Promise.race([ended, abortPromise]);
+      else await ended;
       drawing = false;
+      if (abortListener) signal.removeEventListener('abort', abortListener);
       // Une dernière frame pour ne pas perdre la dernière image.
       try { ctx.drawImage(video, 0, 0, dstW, dstH); } catch {}
 
@@ -384,9 +441,11 @@
   //   libx265    → MP4, audio AAC. Tag hvc1 pour la lecture iOS.
   //   libvpx-vp9 → WebM, audio Opus. CRF de référence + bitrate libre.
   //   libx264    → MP4, audio AAC. Cap maxrate pour éviter le no-op.
-  async function compressVideoWasm(file, { onProgress, onStatus, onLog } = {}) {
+  async function compressVideoWasm(file, { onProgress, onStatus, onLog, signal } = {}) {
+    throwIfAborted(signal);
     onStatus && onStatus('vidéo : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
+    const unhookAbort = hookFfmpegAbort(ffmpeg, signal);
     const { fetchFile } = window.FFmpegUtil;
     const codec = await detectVideoCodec(ffmpeg);
     const isVp9  = codec === 'libvpx-vp9';
@@ -495,7 +554,12 @@
         codec,
         path: 'wasm',
       };
+    } catch (err) {
+      // Voir compressAudio : si abort en cours, on remap.
+      if (signal && signal.aborted) throw makeAbortError();
+      throw err;
     } finally {
+      unhookAbort();
       ffmpeg.off('log', logListener);
       if (progHandler) ffmpeg.off('progress', progHandler);
       try { await ffmpeg.deleteFile(inputName); } catch {}
@@ -514,6 +578,8 @@
     try {
       return await compressVideoNative(file, opts);
     } catch (err) {
+      // L'utilisateur a annulé : on ne tente pas le fallback ffmpeg.wasm.
+      if (err.name === 'AbortError') throw err;
       opts.onLog && opts.onLog('warn', `[native] échec, fallback ffmpeg.wasm : ${err.message}`);
       return compressVideoWasm(file, opts);
     }
@@ -544,6 +610,10 @@
         result = await compressVideo(file, opts);
       }
     } catch (err) {
+      // L'annulation utilisateur doit remonter au caller pour qu'il
+      // arrête tout le pipeline (au lieu d'envoyer le fichier original
+      // comme on le fait pour les vraies erreurs de compression).
+      if (err.name === 'AbortError') throw err;
       console.warn('compression échouée, upload du fichier original :', err);
       return { blob: file, filename: file.name, mime: type, original, compressed: original, skipped: true, error: err.message };
     }

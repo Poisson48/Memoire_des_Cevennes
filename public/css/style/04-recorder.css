@@ -6,10 +6,34 @@
   border: 1px solid var(--border);
   border-radius: 5px;
 }
+.compress-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+}
 .compress-label {
   font-size: 0.9rem;
   color: var(--accent-dark);
-  margin-bottom: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.compress-elapsed {
+  font-family: Consolas, Menlo, monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.compress-cancel {
+  font-size: 0.85rem;
+  flex: 0 0 auto;
+}
+.compress-meta {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
 }
 .compress-bar {
   width: 100%;
