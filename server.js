@@ -62,6 +62,43 @@ app.use('/api/visits',  visitsRouter);
 // API — administration (X-Admin-Token OU JWT admin via requireAdmin)
 app.use('/api/admin',   adminRouter);
 
+// SEO : sitemap.xml dynamique. Listé à la racine pour que les robots qui
+// lisent robots.txt y trouvent les URLs canoniques. Pour l'instant
+// minimaliste (home + tutoriel) ; l'étape suivante du plan SEO ajoutera
+// les URLs entité (/lieu/:slug, /recit/:slug, /personne/:slug) une fois
+// que ces routes existeront côté serveur avec meta tags pré-rendus.
+app.get('/sitemap.xml', (req, res) => {
+  const fs = require('fs');
+  const SITE = 'https://memoires-cevenoles.poisson48.fr';
+  // lastmod calé sur la dernière modif de public/index.html : reflète
+  // la date du dernier déploiement (changements de meta, structure…)
+  // sans mentir avec une date « maintenant ».
+  let lastmod;
+  try {
+    lastmod = fs.statSync(path.join(PUBLIC_DIR, 'index.html')).mtime
+      .toISOString().slice(0, 10);
+  } catch {
+    lastmod = new Date().toISOString().slice(0, 10);
+  }
+  const urls = [
+    { loc: `${SITE}/`,           changefreq: 'weekly',  priority: '1.0' },
+    { loc: `${SITE}/aide.html`,  changefreq: 'monthly', priority: '0.5' },
+  ];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    urls.map(u =>
+      `  <url>\n` +
+      `    <loc>${u.loc}</loc>\n` +
+      `    <lastmod>${lastmod}</lastmod>\n` +
+      `    <changefreq>${u.changefreq}</changefreq>\n` +
+      `    <priority>${u.priority}</priority>\n` +
+      `  </url>`
+    ).join('\n') +
+    `\n</urlset>\n`;
+  res.set('Content-Type', 'application/xml; charset=utf-8');
+  res.send(xml);
+});
+
 // Statique
 app.use('/uploads', express.static(UPLOADS_DIR, { fallthrough: true }));
 // Expose data/ pour cohérence avec le mode statique (GitHub Pages) — le

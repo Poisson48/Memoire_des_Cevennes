@@ -1,0 +1,23 @@
+# Mémoire des Cévennes
+# robots.txt : règle ce que les moteurs de recherche peuvent crawler.
+# Les pages privées (login, mon-compte, admin…) portent un meta noindex
+# dans leur HTML : pas besoin de les bloquer ici (laisser Google les
+# crawler permet de respecter ce noindex).
+
+User-agent: *
+Allow: /
+
+# API et données brutes : pas indexable utilement.
+Disallow: /api/
+Disallow: /data/
+
+# Médias uploadés : la visibilité (membres / public) n'est pas filtrée
+# au niveau du fichier statique, on bloque par prudence pour ne pas
+# exposer des récits réservés aux membres dans Google Images.
+Disallow: /uploads/
+
+# Console d'admin : aucune raison d'aller fouiller.
+Disallow: /admin
+Disallow: /admin.html
+
+Sitemap: https://memoires-cevenoles.poisson48.fr/sitemap.xml
