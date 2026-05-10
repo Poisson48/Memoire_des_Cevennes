@@ -171,8 +171,314 @@
     return { width: Math.round(w * ratio), height: Math.round(h * ratio) };
   }
 
+  // ── Audio : voie WebCodecs (rapide) ─────────────────────────────
+  // Décodage natif via AudioContext.decodeAudioData (rapide), puis
+  // encodage via WebCodecs AudioEncoder (codec opus), puis muxing dans
+  // un container WebM via webm-muxer (vendored). Vitesse typique 10-30×
+  // realtime sur desktop, 3-10× sur téléphone récent.
+  //
+  // Limite RAM : decodeAudioData charge tout le PCM décodé en mémoire.
+  // 48 kHz stéréo float32 = ~23 Mo/min. Le dispatcher (pickAudioOrder)
+  // ne choisit cette voie que si l'estimation tient dans le budget RAM.
+  let webmMuxerPromise = null;
+  function loadWebmMuxer() {
+    if (webmMuxerPromise) return webmMuxerPromise;
+    webmMuxerPromise = loadScript(`${location.origin}/vendor/webm-muxer/webm-muxer.min.js`);
+    return webmMuxerPromise;
+  }
+
+  async function compressAudioWebCodecs(file, { onProgress, onStatus, onLog, signal } = {}) {
+    throwIfAborted(signal);
+    if (typeof window.AudioEncoder === 'undefined') {
+      throw new Error('WebCodecs AudioEncoder indisponible');
+    }
+    const support = await window.AudioEncoder.isConfigSupported({
+      codec: 'opus',
+      sampleRate: 48000,
+      numberOfChannels: 2,
+      bitrate: 64000,
+    }).catch(() => ({ supported: false }));
+    if (!support.supported) {
+      throw new Error('AudioEncoder ne supporte pas opus 48 kHz stéréo sur ce navigateur');
+    }
+
+    await loadWebmMuxer();
+    if (!window.WebMMuxer || !window.WebMMuxer.Muxer) {
+      throw new Error('webm-muxer absent ou non chargé');
+    }
+
+    onLog && onLog('info', '[webcodecs] décodage natif via AudioContext…');
+    onStatus && onStatus('audio (rapide) : décodage…');
+    const arrayBuffer = await file.arrayBuffer();
+    throwIfAborted(signal);
+
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioBuffer;
+    try {
+      audioBuffer = await new Promise((resolve, reject) => {
+        // Forme à callbacks : compatible Safari < 14.1, et plus robuste
+        // sur les conteneurs exotiques que la version Promise.
+        ctx.decodeAudioData(arrayBuffer, resolve, (e) => reject(e || new Error('decodeAudioData a échoué')));
+      });
+    } finally {
+      try { await ctx.close(); } catch {}
+    }
+    throwIfAborted(signal);
+
+    const targetRate = 48000;
+    const targetChannels = Math.min(2, audioBuffer.numberOfChannels);
+    onLog && onLog('info', `[webcodecs] décodé : ${audioBuffer.duration.toFixed(1)} s, ${audioBuffer.sampleRate} Hz, ${audioBuffer.numberOfChannels} canal(aux) → cible ${targetRate} Hz / ${targetChannels} ch`);
+
+    let processed = audioBuffer;
+    if (audioBuffer.sampleRate !== targetRate || audioBuffer.numberOfChannels !== targetChannels) {
+      onStatus && onStatus(`audio (rapide) : ré-échantillonnage ${audioBuffer.sampleRate} → ${targetRate} Hz…`);
+      const offline = new OfflineAudioContext(targetChannels, Math.ceil(audioBuffer.duration * targetRate), targetRate);
+      const src = offline.createBufferSource();
+      src.buffer = audioBuffer;
+      src.connect(offline.destination);
+      src.start();
+      processed = await offline.startRendering();
+      throwIfAborted(signal);
+    }
+
+    onStatus && onStatus('audio (rapide) : encodage Opus via WebCodecs…');
+
+    const { Muxer, ArrayBufferTarget } = window.WebMMuxer;
+    const muxer = new Muxer({
+      target: new ArrayBufferTarget(),
+      audio: {
+        codec: 'A_OPUS',
+        sampleRate: targetRate,
+        numberOfChannels: targetChannels,
+      },
+      type: 'webm',
+    });
+
+    let firstError = null;
+    let chunksWritten = 0;
+    const encoder = new AudioEncoder({
+      output: (chunk, meta) => {
+        try {
+          muxer.addAudioChunk(chunk, meta);
+          chunksWritten++;
+        } catch (e) {
+          firstError = e;
+        }
+      },
+      error: (e) => { firstError = e; },
+    });
+    encoder.configure({
+      codec: 'opus',
+      sampleRate: targetRate,
+      numberOfChannels: targetChannels,
+      bitrate: 64000,
+    });
+
+    // Frames de 20 ms = 960 échantillons à 48 kHz. C'est la taille de
+    // frame opus standard en mode CELT, et la plupart des encodeurs
+    // WebCodecs l'attendent comme unité d'entrée.
+    const FRAME_SIZE = 960;
+    const totalSamples = processed.length;
+    const channels = [];
+    for (let ch = 0; ch < targetChannels; ch++) channels.push(processed.getChannelData(ch));
+
+    let abortListener = null;
+    if (signal) {
+      abortListener = () => { firstError = makeAbortError(); };
+      signal.addEventListener('abort', abortListener, { once: true });
+    }
+
+    try {
+      for (let offset = 0; offset < totalSamples; offset += FRAME_SIZE) {
+        if (firstError) throw firstError;
+        const numFrames = Math.min(FRAME_SIZE, totalSamples - offset);
+        const interleaved = new Float32Array(numFrames * targetChannels);
+        for (let ch = 0; ch < targetChannels; ch++) {
+          const cd = channels[ch];
+          for (let i = 0; i < numFrames; i++) {
+            interleaved[i * targetChannels + ch] = cd[offset + i];
+          }
+        }
+        const audioData = new AudioData({
+          format: 'f32',
+          sampleRate: targetRate,
+          numberOfFrames: numFrames,
+          numberOfChannels: targetChannels,
+          timestamp: Math.round((offset / targetRate) * 1_000_000),
+          data: interleaved,
+        });
+        encoder.encode(audioData);
+        audioData.close();
+
+        if (onProgress) onProgress(offset / totalSamples);
+
+        // Backpressure : éviter de saturer la file d'attente de l'encodeur.
+        if (encoder.encodeQueueSize > 30) {
+          await new Promise((resolve) => {
+            const wait = () => {
+              if (encoder.encodeQueueSize <= 10 || firstError) resolve();
+              else setTimeout(wait, 5);
+            };
+            wait();
+          });
+        }
+      }
+      if (firstError) throw firstError;
+      await encoder.flush();
+      if (firstError) throw firstError;
+    } finally {
+      try { encoder.close(); } catch {}
+      if (abortListener && signal) signal.removeEventListener('abort', abortListener);
+    }
+
+    muxer.finalize();
+    const buffer = muxer.target.buffer;
+    if (!buffer || buffer.byteLength === 0) {
+      throw new Error('webm-muxer a produit un buffer vide');
+    }
+    onLog && onLog('info', `[webcodecs] terminé : ${(buffer.byteLength/1024/1024).toFixed(2)} Mo, ${chunksWritten} frames`);
+
+    return {
+      blob: new Blob([buffer], { type: 'audio/webm' }),
+      mime: 'audio/webm',
+      ext: 'webm',
+      codec: 'opus (WebCodecs)',
+      path: 'webcodecs',
+    };
+  }
+
+  // ── Audio : voie native (MediaRecorder) ─────────────────────────
+  // Pourquoi en premier : ffmpeg.wasm en mono-thread alloue tout en RAM
+  // et s'effondre (OOM silencieuse) au-delà de quelques minutes d'audio.
+  // Sur les interviews longues (1h+, parfois 5h), c'est inutilisable.
+  // MediaRecorder branche le décodeur natif du navigateur en streaming :
+  // pas d'OOM, indépendant de la durée. Real-time bounded (un fichier de
+  // N minutes prend ≥ N min à encoder), accélérable via playbackRate
+  // quand le navigateur le supporte sans déformer la sortie.
+  function pickAudioRecorderMime() {
+    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return null;
+    const candidates = [
+      'audio/webm;codecs=opus',     // Chrome / Firefox / Edge
+      'audio/webm',
+      'audio/mp4;codecs=mp4a.40.2', // Safari
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+    ];
+    for (const t of candidates) {
+      try { if (MediaRecorder.isTypeSupported(t)) return t; } catch {}
+    }
+    return null;
+  }
+
+  async function compressAudioNative(file, { onProgress, onStatus, onLog, signal } = {}) {
+    throwIfAborted(signal);
+    const mime = pickAudioRecorderMime();
+    if (!mime) throw new Error('MediaRecorder audio indisponible ou aucun codec supporté');
+
+    onLog && onLog('info', `[native-audio] mime retenu : ${mime}`);
+    onStatus && onStatus('audio (natif) : analyse de la source…');
+
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.muted = false;     // garde l'audio dans captureStream
+    audio.volume = 0;        // mais inaudible côté utilisateur
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+
+    let progressInterval = null;
+    let abortListener = null;
+
+    try {
+      await new Promise((resolve, reject) => {
+        audio.addEventListener('loadedmetadata', resolve, { once: true });
+        audio.addEventListener('error', () => reject(new Error('lecture audio impossible (format non supporté par le navigateur)')), { once: true });
+      });
+
+      const dur = isFinite(audio.duration) ? audio.duration : 0;
+      onLog && onLog('info', `[native-audio] durée source : ${dur.toFixed(2)} s`);
+
+      if (typeof audio.captureStream !== 'function') {
+        throw new Error('audio.captureStream indisponible');
+      }
+      const stream = audio.captureStream();
+      const audioTracks = stream.getAudioTracks();
+      if (!audioTracks.length) {
+        throw new Error('aucune piste audio détectée dans le fichier');
+      }
+
+      const chunks = [];
+      const recorder = new MediaRecorder(stream, {
+        mimeType: mime,
+        audioBitsPerSecond: 64_000, // voix très intelligible, marge sur 48 kbps
+      });
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+
+      const stopped = new Promise((resolve, reject) => {
+        recorder.onstop = resolve;
+        recorder.onerror = (e) => reject(e.error || new Error('erreur MediaRecorder audio'));
+      });
+
+      onStatus && onStatus(`audio (natif) : encodage ${mime.split(';')[0]}…`);
+      recorder.start(1000);
+
+      let abortRejecter = null;
+      const abortPromise = new Promise((_, reject) => { abortRejecter = reject; });
+      if (signal) {
+        abortListener = () => {
+          try { if (recorder.state !== 'inactive') recorder.stop(); } catch {}
+          try { audio.pause(); } catch {}
+          if (abortRejecter) abortRejecter(makeAbortError());
+        };
+        signal.addEventListener('abort', abortListener, { once: true });
+      }
+
+      if (onProgress && dur > 0) {
+        progressInterval = setInterval(() => {
+          onProgress(Math.min(1, audio.currentTime / dur));
+        }, 500);
+      }
+
+      const ended = new Promise((resolve, reject) => {
+        audio.addEventListener('ended', resolve, { once: true });
+        audio.addEventListener('error', () => reject(new Error('lecture interrompue')), { once: true });
+      });
+
+      await audio.play();
+      if (signal) await Promise.race([ended, abortPromise]);
+      else await ended;
+
+      if (recorder.state !== 'inactive') recorder.stop();
+      await stopped;
+
+      const containerMime = mime.split(';')[0];
+      const ext = containerMime === 'audio/mp4' ? 'm4a'
+                : containerMime === 'audio/ogg' ? 'ogg'
+                : 'webm';
+      const blob = new Blob(chunks, { type: containerMime });
+      onLog && onLog('info', `[native-audio] terminé : ${(blob.size/1024/1024).toFixed(2)} Mo`);
+      if (blob.size === 0) throw new Error('audio (natif) : sortie vide');
+
+      return {
+        blob,
+        mime: containerMime,
+        ext,
+        codec: mime,
+        path: 'native',
+      };
+    } finally {
+      if (progressInterval) clearInterval(progressInterval);
+      if (abortListener && signal) signal.removeEventListener('abort', abortListener);
+      try { audio.pause(); } catch {}
+      try { audio.removeAttribute('src'); audio.load(); } catch {}
+      URL.revokeObjectURL(url);
+    }
+  }
+
   // ── Audio → Opus/WebM (ffmpeg.wasm) ──────────────────────────────
-  async function compressAudio(file, { onProgress, onStatus, onLog, signal } = {}) {
+  // Voie de repli, fiable uniquement sur des fichiers courts (< 10 min
+  // typiquement). Au-delà, OOM silencieuse du worker wasm.
+  async function compressAudioWasm(file, { onProgress, onStatus, onLog, signal } = {}) {
     throwIfAborted(signal);
     onStatus && onStatus('audio : chargement de ffmpeg (~25 Mo, une seule fois)…');
     const ffmpeg = await loadFfmpeg();
@@ -188,31 +494,47 @@
       };
       ffmpeg.on('progress', progHandler);
     }
-    let audioLogListener = null;
-    if (onLog) {
-      audioLogListener = ({ type, message }) => {
+
+    // Capture stderr pour remonter une cause précise quand exec échoue
+    // silencieusement (codec inconnu, conteneur cassé, paramètres refusés…).
+    let lastErrorLine = '';
+    const logListener = ({ type, message }) => {
+      if (type === 'stderr' && /error|invalid|unsupported|fatal/i.test(message)) {
+        lastErrorLine = message;
+      }
+      if (onLog) {
         try { onLog(type, message); } catch {}
-      };
-      ffmpeg.on('log', audioLogListener);
-    }
+      }
+    };
+    ffmpeg.on('log', logListener);
 
     try {
       onStatus && onStatus('audio : import…');
       await ffmpeg.writeFile(inputName, await fetchFile(file));
       onStatus && onStatus('audio : encodage Opus (48 kbps)…');
-      await ffmpeg.exec([
+      // -application audio : profil générique, correct pour la voix comme
+      // pour la musique. (L'ancien 'voip' était calibré uniquement pour
+      // la voix et certaines sources le faisaient échouer silencieusement.)
+      const exitCode = await ffmpeg.exec([
         '-i', inputName,
         '-vn',                      // pas de piste vidéo
         '-c:a', 'libopus',
         '-b:a', AUDIO_BITRATE,
-        '-application', 'voip',     // optimise pour la voix
+        '-application', 'audio',
         outputName,
       ]);
+      if (exitCode !== 0) {
+        throw new Error(`ffmpeg exit ${exitCode}${lastErrorLine ? ' : ' + lastErrorLine : ''}`);
+      }
       const data = await ffmpeg.readFile(outputName);
+      if (!data || !data.buffer || data.buffer.byteLength === 0) {
+        throw new Error('ffmpeg a produit un fichier audio vide');
+      }
       return {
         blob: new Blob([data.buffer], { type: 'audio/webm' }),
         mime: 'audio/webm',
         ext: 'webm',
+        codec: 'libopus',
       };
     } catch (err) {
       // Si l'utilisateur a abort, ffmpeg.terminate() rejette l'exec en
@@ -221,7 +543,7 @@
       throw err;
     } finally {
       unhookAbort();
-      if (audioLogListener) ffmpeg.off('log', audioLogListener);
+      ffmpeg.off('log', logListener);
       if (progHandler) ffmpeg.off('progress', progHandler);
       try { await ffmpeg.deleteFile(inputName); } catch {}
       try { await ffmpeg.deleteFile(outputName); } catch {}
@@ -569,10 +891,11 @@
 
   // Dispatcher vidéo : tente la voie native (MediaRecorder → encodeur du
   // SoC) en premier, retombe sur ffmpeg.wasm si elle n'est pas dispo ou
-  // qu'elle échoue. L'option `forceVideoPath: 'native' | 'wasm'` court-
-  // circuite ce choix (utile pour A/B tester depuis l'admin).
+  // qu'elle échoue. L'option `forceVideoPath: 'native' | 'wasm'` (alias
+  // `forcePath`) court-circuite ce choix (utile pour A/B tester depuis
+  // l'admin).
   async function compressVideo(file, opts = {}) {
-    const force = opts.forceVideoPath;
+    const force = opts.forcePath || opts.forceVideoPath;
     if (force === 'wasm') return compressVideoWasm(file, opts);
     if (force === 'native') return compressVideoNative(file, opts);
     try {
@@ -583,6 +906,101 @@
       opts.onLog && opts.onLog('warn', `[native] échec, fallback ffmpeg.wasm : ${err.message}`);
       return compressVideoWasm(file, opts);
     }
+  }
+
+  // Dispatcher audio : choix automatique selon durée, RAM, format.
+  //
+  // Trois voies, du plus rapide au plus universel :
+  //   webcodecs  → AudioContext.decodeAudioData + AudioEncoder + webm-muxer.
+  //                10-30× realtime, mais charge tout le PCM en RAM.
+  //                Disponible Chrome 94+, Edge 94+, Firefox 130+, Safari 16.4+.
+  //   native     → <audio>.captureStream + MediaRecorder.
+  //                Real-time strict mais aucune limite de durée (streaming).
+  //                Disponible partout sauf Safari très ancien.
+  //   wasm       → ffmpeg.wasm. Universel mais OOM silencieuse > 10 min.
+  //
+  // Heuristique :
+  //   PCM décodé estimé = durée × 384 ko/s (48 kHz × 2 ch × 4 octets).
+  //   Si PCM tient dans 25 % de la RAM device → webcodecs viable.
+  //   Sinon → native (real-time mais sans limite).
+  //   Si webcodecs et native indispos → wasm (sera lent et instable mais
+  //   vaut mieux que rien).
+  function pickAudioOrder({ duration }) {
+    const hasWC = typeof window.AudioEncoder !== 'undefined' &&
+                  typeof window.AudioData !== 'undefined' &&
+                  typeof window.OfflineAudioContext !== 'undefined';
+    const hasMR = typeof MediaRecorder !== 'undefined' && pickAudioRecorderMime() !== null;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+    // navigator.deviceMemory n'existe pas sur Safari ; valeur par défaut
+    // prudente (3 Go mobile, 8 Go desktop).
+    const ramGB = navigator.deviceMemory || (isMobile ? 3 : 8);
+    const ramBudgetBytes = ramGB * 1024 * 1024 * 1024 * 0.25;
+    const pcmBytes = duration && isFinite(duration) ? duration * 384_000 : Infinity;
+
+    const order = [];
+    if (hasWC && pcmBytes < ramBudgetBytes) order.push('webcodecs');
+    if (hasMR) order.push('native');
+    order.push('wasm');
+    return { order, hasWC, hasMR, ramGB, pcmMB: pcmBytes === Infinity ? null : pcmBytes / 1024 / 1024 };
+  }
+
+  // Sonde rapide de durée via <audio>.preload="metadata" : on ne lit
+  // que les premiers octets du conteneur, suffisant pour la durée.
+  // Timeout 5 s pour ne pas bloquer si le format est exotique.
+  function probeAudioDuration(file) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (val) => { if (!done) { done = true; resolve(val); } };
+      const url = URL.createObjectURL(file);
+      const audio = document.createElement('audio');
+      audio.preload = 'metadata';
+      audio.src = url;
+      const cleanup = () => {
+        try { audio.removeAttribute('src'); audio.load(); } catch {}
+        URL.revokeObjectURL(url);
+      };
+      audio.addEventListener('loadedmetadata', () => {
+        const d = isFinite(audio.duration) ? audio.duration : null;
+        cleanup();
+        finish(d);
+      }, { once: true });
+      audio.addEventListener('error', () => { cleanup(); finish(null); }, { once: true });
+      setTimeout(() => { cleanup(); finish(null); }, 5000);
+    });
+  }
+
+  async function compressAudio(file, opts = {}) {
+    const force = opts.forcePath || opts.forceAudioPath;
+    if (force === 'wasm') return compressAudioWasm(file, opts);
+    if (force === 'native') return compressAudioNative(file, opts);
+    if (force === 'webcodecs') return compressAudioWebCodecs(file, opts);
+
+    opts.onStatus && opts.onStatus('audio : analyse de la source…');
+    const duration = await probeAudioDuration(file);
+    const { order, hasWC, hasMR, ramGB, pcmMB } = pickAudioOrder({ duration });
+    opts.onLog && opts.onLog('info',
+      `[dispatch-audio] durée=${duration ? Math.round(duration) + 's' : '?'}, ` +
+      `RAM=${ramGB}Go, PCM~${pcmMB ? Math.round(pcmMB) + 'Mo' : '?'}, ` +
+      `WebCodecs=${hasWC ? 'oui' : 'non'}, MediaRecorder=${hasMR ? 'oui' : 'non'} ` +
+      `→ ordre : ${order.join(' > ')}`
+    );
+
+    const fns = {
+      webcodecs: compressAudioWebCodecs,
+      native: compressAudioNative,
+      wasm: compressAudioWasm,
+    };
+    let lastErr = null;
+    for (const path of order) {
+      try {
+        return await fns[path](file, opts);
+      } catch (err) {
+        if (err.name === 'AbortError') throw err;
+        lastErr = err;
+        opts.onLog && opts.onLog('warn', `[${path}] échec : ${err.message}`);
+      }
+    }
+    throw lastErr || new Error('aucune voie audio disponible');
   }
 
   function guessExt(file, fallback) {

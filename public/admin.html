@@ -353,12 +353,14 @@
           </label>
           <label class="tc-path">Voie&nbsp;:
             <select id="tc-path">
-              <option value="auto" selected>auto (natif puis wasm)</option>
+              <option value="auto" selected>auto (selon durée + RAM)</option>
+              <option value="webcodecs">forcer WebCodecs (audio rapide)</option>
               <option value="native">forcer natif (MediaRecorder)</option>
               <option value="wasm">forcer ffmpeg.wasm</option>
             </select>
           </label>
           <button type="button" id="tc-run" class="btn-primary" disabled>Compresser</button>
+          <button type="button" id="tc-cancel" class="btn-ghost" hidden>Annuler</button>
         </div>
         <div id="tc-status" class="tc-status" hidden></div>
         <progress id="tc-progress" class="tc-progress" value="0" max="1" hidden></progress>

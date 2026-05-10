@@ -10,12 +10,22 @@
   const fileInput = document.getElementById('tc-file');
   const pathSel   = document.getElementById('tc-path');
   const runBtn    = document.getElementById('tc-run');
+  const cancelBtn = document.getElementById('tc-cancel');
   const statusEl  = document.getElementById('tc-status');
   const progEl    = document.getElementById('tc-progress');
   const resultEl  = document.getElementById('tc-result');
   const logsWrap  = document.getElementById('tc-logs-wrap');
   const logsEl    = document.getElementById('tc-logs');
   if (!fileInput || !runBtn) return;
+
+  let currentAbort = null;
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      if (currentAbort) {
+        try { currentAbort.abort(); } catch {}
+      }
+    });
+  }
 
   let lastUrl = null;
 
@@ -42,12 +52,14 @@ runBtn.addEventListener('click', async () => {
     if (!file) return;
     runBtn.disabled = true;
     fileInput.disabled = true;
+    if (cancelBtn) { cancelBtn.hidden = false; cancelBtn.disabled = false; }
     resultEl.hidden = true;
     progEl.hidden = false;
     progEl.value = 0;
     logsWrap.hidden = true;
     logsEl.textContent = '';
     if (lastUrl) { try { URL.revokeObjectURL(lastUrl); } catch {} lastUrl = null; }
+    currentAbort = new AbortController();
 
     const t0 = performance.now();
     let lastStatus = `Préparation… (source : ${file.name}, ${fmtSize(file.size)})`;
@@ -80,7 +92,8 @@ runBtn.addEventListener('click', async () => {
       }
       const forced = pathSel && pathSel.value !== 'auto' ? pathSel.value : undefined;
       const r = await window.Compress.compressIfNeeded(file, {
-        forceVideoPath: forced,
+        forcePath: forced,
+        signal: currentAbort.signal,
         onStatus: (s) => setStatusKeep(s),
         onProgress: (p) => { progEl.value = Math.max(0, Math.min(1, p || 0)); },
         onLog: (type, message) => {
@@ -109,7 +122,12 @@ runBtn.addEventListener('click', async () => {
         lines.push(`<dt>Compressé</dt><dd>${escapeHtml(r.filename)} — ${fmtSize(r.compressed)} (${escapeHtml(r.mime)})</dd>`);
         lines.push(`<dt>Réduction</dt><dd>−${ratio}%</dd>`);
         if (r.codec) lines.push(`<dt>Codec</dt><dd>${escapeHtml(r.codec)}</dd>`);
-        if (r.path)  lines.push(`<dt>Voie</dt><dd>${escapeHtml(r.path === 'native' ? 'native (MediaRecorder, encodeur du SoC)' : 'ffmpeg.wasm')}</dd>`);
+        if (r.path) {
+          const voie = r.path === 'webcodecs' ? 'WebCodecs (rapide, AudioEncoder + webm-muxer)'
+                     : r.path === 'native'    ? 'native (MediaRecorder, encodeur du SoC)'
+                     :                          'ffmpeg.wasm';
+          lines.push(`<dt>Voie</dt><dd>${escapeHtml(voie)}</dd>`);
+        }
       }
       lines.push(`<dt>Durée</dt><dd>${dt.toFixed(1)} s</dd>`);
       lines.push(`</dl>`);
@@ -131,12 +149,18 @@ runBtn.addEventListener('click', async () => {
       setStatus(r.skipped ? 'Compression non appliquée.' : 'Compression terminée.');
     } catch (err) {
       progEl.hidden = true;
-      setStatus('Erreur : ' + (err && err.message ? err.message : String(err)));
-      console.error('[testcompress]', err);
+      if (err && err.name === 'AbortError') {
+        setStatus('Compression annulée.');
+      } else {
+        setStatus('Erreur : ' + (err && err.message ? err.message : String(err)));
+        console.error('[testcompress]', err);
+      }
     } finally {
       clearInterval(ticker);
       runBtn.disabled = false;
       fileInput.disabled = false;
+      if (cancelBtn) { cancelBtn.hidden = true; cancelBtn.disabled = true; }
+      currentAbort = null;
     }
   });
 
