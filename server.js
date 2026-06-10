@@ -69,7 +69,7 @@ app.use('/api/admin',   adminRouter);
 // que ces routes existeront côté serveur avec meta tags pré-rendus.
 app.get('/sitemap.xml', (req, res) => {
   const fs = require('fs');
-  const SITE = 'https://memoires-cevenoles.poisson48.fr';
+  const SITE = 'https://memoires-cevenoles.les-crevettes-cevenoles.fr';
   // lastmod calé sur la dernière modif de public/index.html : reflète
   // la date du dernier déploiement (changements de meta, structure…)
   // sans mentir avec une date « maintenant ».

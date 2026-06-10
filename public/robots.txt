@@ -20,4 +20,4 @@ Disallow: /uploads/
 Disallow: /admin
 Disallow: /admin.html
 
-Sitemap: https://memoires-cevenoles.poisson48.fr/sitemap.xml
+Sitemap: https://memoires-cevenoles.les-crevettes-cevenoles.fr/sitemap.xml
