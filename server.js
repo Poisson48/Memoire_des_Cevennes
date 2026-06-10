@@ -35,6 +35,35 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// Anti-scraping : blocage dur des robots d'IA et aspirateurs de contenu.
+// public/robots.txt demande poliment a ces robots de ne pas crawler, mais
+// les plus agressifs l'ignorent. On renvoie donc un 403 des l'entree, avant
+// tout traitement, pour les User-Agent connus de scraping / entrainement.
+// IMPORTANT : on ne bloque QUE des robots clairement identifies. Les vrais
+// moteurs de recherche (Googlebot, Bingbot, DuckDuckBot...) ne matchent pas
+// cette liste et restent autorises, pour que le site reste indexable Google.
+const BLOCKED_BOTS = new RegExp([
+  'GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'Google-Extended',
+  'anthropic-ai', 'ClaudeBot', 'Claude-Web', 'CCBot',
+  'PerplexityBot', 'Perplexity-User', 'Bytespider', 'Amazonbot',
+  'Applebot-Extended', 'FacebookBot', 'meta-externalagent',
+  'Meta-ExternalFetcher', 'cohere-ai', 'cohere-training-data-crawler',
+  'Diffbot', 'Omgilibot', 'Omgili', 'ImagesiftBot', 'YouBot', 'AI2Bot',
+  'Timpibot', 'DataForSeoBot', 'SemrushBot', 'AhrefsBot', 'MJ12bot', 'DotBot',
+].join('|'), 'i');
+
+app.use((req, res, next) => {
+  const ua = req.get('user-agent') || '';
+  if (BLOCKED_BOTS.test(ua)) {
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    return res
+      .status(403)
+      .type('text/plain; charset=utf-8')
+      .send("403 : robots d'IA et de scraping non autorises sur Memoire des Cevennes.\n");
+  }
+  next();
+});
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
