@@ -95,10 +95,62 @@
 }
 .edit-media-existing-row .media-fname { flex: 1; }
 
-/* Accès au livret PDF : bien visible dans la barre du haut (accessibilité). */
-.btn-livret {
+/* Menu « Actions » de la barre du haut : un seul bouton qui regroupe les
+   liens secondaires, pour ne pas surcharger l'écran. */
+.topbar-menu { position: relative; }
+.btn-menu {
   border: 1.5px solid var(--accent, #8c5a2b);
   color: var(--accent-dark, #6a4420);
   font-weight: 600;
 }
-.btn-livret:hover { background: rgba(140, 90, 43, .1); }
+.btn-menu:hover { background: rgba(140, 90, 43, .1); }
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 230px;
+  background: var(--panel-bg, #fbf7ef);
+  border: 1px solid var(--border, #d9cfbd);
+  border-radius: 10px;
+  box-shadow: var(--shadow, 0 4px 20px rgba(0,0,0,.18));
+  padding: .4rem;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.menu-dropdown .menu-item,
+.menu-dropdown .menu-greeting {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: .7rem .8rem;          /* grande zone tactile */
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 1.02rem;
+  color: var(--fg, #2b2a27);
+  cursor: pointer;
+  text-decoration: none;
+}
+.menu-dropdown .menu-item:hover,
+.menu-dropdown .menu-item:focus-visible {
+  background: rgba(140, 90, 43, .12);
+  outline: none;
+}
+.menu-dropdown .menu-greeting {
+  cursor: default;
+  font-weight: 600;
+  color: var(--muted, #6d6a63);
+  border-bottom: 1px solid var(--border, #d9cfbd);
+  border-radius: 0;
+  margin-bottom: .15rem;
+}
+
+/* Sur mobile, la barre d'actions passe pleine largeur : le menu s'aligne
+   à droite et reste accessible. */
+@media (max-width: 600px) {
+  .topbar-menu { margin-left: auto; }
+  .menu-dropdown { right: 0; left: auto; min-width: 60vw; }
+}

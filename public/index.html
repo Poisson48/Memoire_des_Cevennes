@@ -42,10 +42,17 @@
         ou touche la carte directement,
         ou <button type="button" id="btn-locate-me" class="btn-link">📍 utilise ma position</button>.
       </span>
-      <a href="livret.html" class="btn-ghost btn-livret" title="Composer un livret imprimable des récits">📖 Livret à imprimer</a>
-      <a href="login.html" id="btn-member-login" class="btn-ghost" title="Espace membre">👤 Connexion membre</a>
-      <button id="btn-member-logout" class="btn-ghost" type="button" hidden title="Déconnexion">Déconnexion</button>
-      <span id="member-greeting" class="hint" hidden></span>
+      <div class="topbar-menu">
+        <button type="button" id="menu-btn" class="btn-ghost btn-menu"
+                aria-haspopup="true" aria-expanded="false" aria-controls="menu-dropdown">☰ Menu</button>
+        <div id="menu-dropdown" class="menu-dropdown" role="menu" aria-labelledby="menu-btn" hidden>
+          <span id="member-greeting" class="menu-greeting" hidden></span>
+          <a href="livret.html" class="menu-item" role="menuitem">📖 Livret à imprimer</a>
+          <a href="aide.html" class="menu-item" role="menuitem">📘 Tutoriel</a>
+          <a href="login.html" id="btn-member-login" class="menu-item" role="menuitem">👤 Connexion membre</a>
+          <button type="button" id="btn-member-logout" class="menu-item" role="menuitem" hidden>🚪 Déconnexion</button>
+        </div>
+      </div>
     </div>
   </header>
   <div id="readonly-banner" class="banner" hidden>
@@ -548,6 +555,7 @@
   <script src="js/geo.js"></script>
   <script src="js/tagger.js"></script>
   <script src="js/redact.js"></script>
+  <script src="js/menu.js"></script>
   <script src="js/autocomplete.js"></script>
   <script src="js/inline-mentions.js"></script>
   <script src="js/markdown.js"></script>
