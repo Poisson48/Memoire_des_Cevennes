@@ -13,6 +13,7 @@ const path = require('path');
 const { rateLimit } = require('express-rate-limit');
 const audience = require('../audience');
 const livret = require('../livret');
+const { opLog } = require('../oplog');
 
 const router = express.Router();
 
@@ -56,14 +57,28 @@ router.post('/', pdfLimiter, async (req, res, next) => {
       ? req.body.title.slice(0, 120) : 'Mémoire des Cévennes';
     const includeImages = req.body && req.body.includeImages !== false;
 
+    const t0 = Date.now();
+    const stories = livret.selectStories(selection, aud);
     const html = livret.buildHtml({ title, selection, aud, includeImages, css: printCss() });
     const pdf = await livret.renderPdf(html);
+    opLog(req, 'pdf', {
+      aud,
+      places: selection.placeIds.length,
+      people: selection.personIds.length,
+      recits: stories.length,
+      images: includeImages ? 1 : 0,
+      bytes: pdf.length,
+      ms: Date.now() - t0,
+    });
 
     const fname = 'livret-memoire-cevennes.pdf';
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="${fname}"`);
     res.send(pdf);
-  } catch (e) { next(e); }
+  } catch (e) {
+    opLog(req, 'pdf.fail', { err: e.message });
+    next(e);
+  }
 });
 
 module.exports = router;

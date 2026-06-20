@@ -14,6 +14,8 @@ const places = require('../places');
 const people = require('../people');
 const audience = require('../audience');
 const tts = require('../tts');
+const { opLog } = require('../oplog');
+const fs = require('fs');
 
 const router = express.Router();
 
@@ -50,7 +52,7 @@ router.get('/story/:id', ttsLimiter, async (req, res, next) => {
     const text = textForStory(story, aud, req.query.part).trim();
     if (!text) return res.status(400).json({ error: 'Rien à lire.' });
 
-    await serveSynth(res, text);
+    await serveSynth(req, res, text, 'story', req.params.id);
   } catch (e) {
     if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
     next(e);
@@ -67,7 +69,7 @@ router.get('/place/:id', ttsLimiter, async (req, res, next) => {
     }
     const text = ((place.primaryName ? place.primaryName + '. ' : '') + (place.description || '')).trim();
     if (!text) return res.status(400).json({ error: 'Rien à lire.' });
-    await serveSynth(res, text);
+    await serveSynth(req, res, text, 'place', req.params.id);
   } catch (e) {
     if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
     next(e);
@@ -84,15 +86,20 @@ router.get('/person/:id', ttsLimiter, async (req, res, next) => {
     }
     const text = ((person.primaryName ? person.primaryName + '. ' : '') + (person.bio || '')).trim();
     if (!text) return res.status(400).json({ error: 'Rien à lire.' });
-    await serveSynth(res, text);
+    await serveSynth(req, res, text, 'person', req.params.id);
   } catch (e) {
     if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
     next(e);
   }
 });
 
-async function serveSynth(res, text) {
+async function serveSynth(req, res, text, kind, id) {
+  const t0 = Date.now();
   const { path: filePath, contentType } = await tts.synthesize(text);
+  const ms = Date.now() - t0;
+  let bytes; try { bytes = fs.statSync(filePath).size; } catch {}
+  // ms tres court => servi depuis le cache ; ms eleve => synthese reelle.
+  opLog(req, 'tts', { kind, id, chars: text.length, ms, bytes, cached: ms < 50 ? 1 : 0 });
   res.set('Cache-Control', 'public, max-age=86400');
   res.type(contentType);
   res.sendFile(filePath); // Express gere Range + 304
