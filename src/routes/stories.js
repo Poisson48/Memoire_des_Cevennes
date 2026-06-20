@@ -9,8 +9,19 @@ const { logActivity } = require('../activityLog');
 const audioNorm = require('../audio-normalize');
 const audience = require('../audience');
 const { normRedactions } = require('../schema');
+const { rateLimit } = require('express-rate-limit');
 
 const router = express.Router();
+
+// L'OCR (a posteriori) est couteux en CPU : on borne le rythme meme pour
+// les membres connectes.
+const mediaOcrLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 40,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Trop de demandes d’OCR : patiente quelques minutes.' },
+});
 
 router.get('/', (req, res) => {
   const status = req.query.status === 'all' ? 'all' : 'approved';
@@ -175,7 +186,7 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
 // OCR a posteriori d'une image deja uploadee (membres). Lit le fichier sur
 // disque, renvoie le texte extrait (ne le stocke PAS : le membre le relit
 // puis l'enregistre via PATCH ci-dessous).
-router.post('/:id/media/ocr', requireAuth('member'), async (req, res, next) => {
+router.post('/:id/media/ocr', requireAuth('member'), mediaOcrLimiter, async (req, res, next) => {
   try {
     const url = req.body && req.body.url;
     if (!url) return res.status(400).json({ error: 'url du média requise' });

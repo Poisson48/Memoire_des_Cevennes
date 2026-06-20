@@ -119,8 +119,9 @@ app.get('/sitemap.xml', (req, res) => {
     lastmod = new Date().toISOString().slice(0, 10);
   }
   const urls = [
-    { loc: `${SITE}/`,           changefreq: 'weekly',  priority: '1.0' },
-    { loc: `${SITE}/aide.html`,  changefreq: 'monthly', priority: '0.5' },
+    { loc: `${SITE}/`,            changefreq: 'weekly',  priority: '1.0' },
+    { loc: `${SITE}/aide.html`,   changefreq: 'monthly', priority: '0.5' },
+    { loc: `${SITE}/livret.html`, changefreq: 'monthly', priority: '0.4' },
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
