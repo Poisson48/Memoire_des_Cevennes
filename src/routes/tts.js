@@ -10,6 +10,8 @@
 const express = require('express');
 const { rateLimit } = require('express-rate-limit');
 const stories = require('../stories');
+const places = require('../places');
+const people = require('../people');
 const audience = require('../audience');
 const tts = require('../tts');
 
@@ -48,14 +50,52 @@ router.get('/story/:id', ttsLimiter, async (req, res, next) => {
     const text = textForStory(story, aud, req.query.part).trim();
     if (!text) return res.status(400).json({ error: 'Rien à lire.' });
 
-    const { path: filePath, contentType } = await tts.synthesize(text);
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.type(contentType);
-    res.sendFile(filePath); // Express gere Range + 304
+    await serveSynth(res, text);
   } catch (e) {
     if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
     next(e);
   }
 });
+
+// Lecture d'une fiche Lieu (nom + description), audience respectee.
+router.get('/place/:id', ttsLimiter, async (req, res, next) => {
+  try {
+    const aud = audience.audienceOf(req);
+    const place = places.get(req.params.id);
+    if (!place || !audience.isVisible(place, aud)) {
+      return res.status(404).json({ error: 'Lieu introuvable' });
+    }
+    const text = ((place.primaryName ? place.primaryName + '. ' : '') + (place.description || '')).trim();
+    if (!text) return res.status(400).json({ error: 'Rien à lire.' });
+    await serveSynth(res, text);
+  } catch (e) {
+    if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+    next(e);
+  }
+});
+
+// Lecture d'une fiche Personne (nom + bio), audience respectee.
+router.get('/person/:id', ttsLimiter, async (req, res, next) => {
+  try {
+    const aud = audience.audienceOf(req);
+    const person = people.get(req.params.id);
+    if (!person || !audience.isVisible(person, aud)) {
+      return res.status(404).json({ error: 'Personne introuvable' });
+    }
+    const text = ((person.primaryName ? person.primaryName + '. ' : '') + (person.bio || '')).trim();
+    if (!text) return res.status(400).json({ error: 'Rien à lire.' });
+    await serveSynth(res, text);
+  } catch (e) {
+    if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+    next(e);
+  }
+});
+
+async function serveSynth(res, text) {
+  const { path: filePath, contentType } = await tts.synthesize(text);
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.type(contentType);
+  res.sendFile(filePath); // Express gere Range + 304
+}
 
 module.exports = router;

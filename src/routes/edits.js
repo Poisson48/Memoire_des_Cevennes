@@ -7,6 +7,17 @@ const { resolveContributor } = require('../contributor');
 
 const router = express.Router({ mergeParams: true });
 
+// Un admin ne « propose » pas : sa modification s'applique tout de suite.
+// On garde la trace dans l'audit en passant par propose() + approve()
+// (même mécanisme que la file de modération, mais en un geste).
+async function maybeAutoApply(req, edit) {
+  if (req.member && req.member.role === 'admin') {
+    await edits.approve(edit.id, { reviewer: req.member.name || 'admin' });
+    return true;
+  }
+  return false;
+}
+
 // Le pattern :type(places|people|stories) verrouille les types autorisés.
 router.post('/:type(places|people|stories)/:id/edits', async (req, res, next) => {
   try {
@@ -21,7 +32,13 @@ router.post('/:type(places|people|stories)/:id/edits', async (req, res, next) =>
       note: (req.body && req.body.note) || '',
       submittedBy,
     });
-    res.status(201).json({ edit, message: 'Proposition reçue : en attente de validation admin.' });
+    const applied = await maybeAutoApply(req, edit);
+    res.status(201).json({
+      edit, applied,
+      message: applied
+        ? 'Modification appliquée.'
+        : 'Proposition reçue : en attente de validation admin.',
+    });
   } catch (err) { next(err); }
 });
 
@@ -47,7 +64,13 @@ router.post('/stories/:sid/completions/:cid/edits', async (req, res, next) => {
       note: (req.body && req.body.note) || '',
       submittedBy,
     });
-    res.status(201).json({ edit, message: 'Proposition reçue : en attente de validation admin.' });
+    const applied = await maybeAutoApply(req, edit);
+    res.status(201).json({
+      edit, applied,
+      message: applied
+        ? 'Modification appliquée.'
+        : 'Proposition reçue : en attente de validation admin.',
+    });
   } catch (err) { next(err); }
 });
 

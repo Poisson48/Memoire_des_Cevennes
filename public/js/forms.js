@@ -1080,6 +1080,20 @@ function openEditDialog(entityType, entity) {
     else { mediaSection.hidden = true; }
   }
 
+  // Admin : modification directe (pas de proposition). On adapte le libellé,
+  // on masque l'identité « qui es-tu ? » et la note de modération.
+  const isAdmin = typeof hasRole === 'function' && hasRole('admin');
+  const titleEl = dlgEdit.querySelector('h2');
+  const submitEl = formEdit.querySelector('button[type=submit]');
+  const noteEl = document.getElementById('edit-proposal-note');
+  const idFieldset = formEdit.querySelector('fieldset.contributor-id');
+  const idName = idFieldset && idFieldset.querySelector('input[name="name"]');
+  if (titleEl) titleEl.textContent = isAdmin ? '✏️ Modifier le contenu' : '✏️ Proposer une modification';
+  if (submitEl) submitEl.textContent = isAdmin ? 'Enregistrer' : 'Envoyer la proposition';
+  if (noteEl) noteEl.hidden = isAdmin;
+  if (idFieldset) idFieldset.hidden = isAdmin;
+  if (idName) idName.required = !isAdmin;
+
   dlgEdit.showModal();
 }
 
@@ -1231,12 +1245,15 @@ formEdit.addEventListener('submit', async (e) => {
     }
 
     dlgEdit.close('submit');
+    const isAdmin = typeof hasRole === 'function' && hasRole('admin');
     const txtMsg = Object.keys(changes).length
-      ? 'Proposition de texte envoyée (en attente de validation).'
+      ? (isAdmin ? 'Modifications enregistrées.' : 'Proposition de texte envoyée (en attente de validation).')
       : '';
     const medMsg = hasMediaOps ? ' Images mises à jour.' : '';
     alert((txtMsg + medMsg).trim() || 'Modifications enregistrées.');
-    if (hasMediaOps) location.reload();
+    // Rechargement si quelque chose a été appliqué immédiatement (médias, ou
+    // édition de texte par un admin qui s'applique directement).
+    if (hasMediaOps || (isAdmin && Object.keys(changes).length)) location.reload();
   } catch (err) {
     alert('Erreur : ' + err.message);
   }

@@ -506,32 +506,45 @@ function toggleListen(btn) {
   // Re-clic sur le bouton en cours : on arrête.
   if (currentTtsBtn === btn) { stopListening(); return; }
   stopListening();
-  const id = btn.dataset.storyId;
-  const story = state.stories.find(s => s.id === id);
-  if (!story) return;
+  const kind = btn.dataset.listenKind || 'story';
+  const id = btn.dataset.listenId;
+  if (!id) return;
 
   if (state.mode === 'live' && ttsServerAvailable !== false) {
-    const audio = new Audio(`/api/tts/story/${encodeURIComponent(id)}`);
+    const audio = new Audio(`/api/tts/${kind}/${encodeURIComponent(id)}`);
     currentTtsAudio = audio;
     markPlaying(btn);
     audio.addEventListener('ended', stopListening);
     audio.addEventListener('error', () => {
       // Repli navigateur si le serveur échoue malgré tout.
-      if (currentTtsBtn === btn) { speakInBrowser(story, btn); }
+      if (currentTtsBtn === btn) { speakInBrowser(kind, id, btn); }
     });
-    audio.play().catch(() => speakInBrowser(story, btn));
+    audio.play().catch(() => speakInBrowser(kind, id, btn));
   } else {
-    speakInBrowser(story, btn);
+    speakInBrowser(kind, id, btn);
   }
 }
 
+// Texte brut à lire selon le type d'entité (pour le repli navigateur).
+function listenTextFor(kind, id) {
+  if (kind === 'place') {
+    const p = state.places.get(id);
+    return p ? (p.primaryName ? p.primaryName + '. ' : '') + (p.description || '') : '';
+  }
+  if (kind === 'person') {
+    const p = state.people.get(id);
+    return p ? (p.primaryName ? p.primaryName + '. ' : '') + (p.bio || '') : '';
+  }
+  const s = state.stories.find(x => x.id === id);
+  return s ? (s.title ? s.title + '. ' : '') + String(s.body || '').replace(/<[^>]+>/g, '') : '';
+}
+
 // Repli : synthèse vocale du navigateur (Web Speech API), 100% local.
-function speakInBrowser(story, btn) {
+function speakInBrowser(kind, id, btn) {
   if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
   if (!window.speechSynthesis) { alert('La lecture vocale n’est pas disponible sur ce navigateur.'); return; }
-  const raw = (story.title ? story.title + '. ' : '') +
-    String(story.body || '').replace(/<[^>]+>/g, '');
-  const text = cleanForSpeech(raw);
+  const text = cleanForSpeech(listenTextFor(kind, id));
+  if (!text) return;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   u.rate = 0.95;
@@ -569,10 +582,12 @@ function openPlacePanel(placeId) {
   // approximative directement, sans passer par la file de modération.
   const canContribute = state.mode === 'live' && hasRole('member');
   const canMove       = state.mode === 'live' && hasRole('admin');
+  const editLabel = hasRole('admin') ? '✏️ Modifier' : '✏️ Proposer une modification';
   const actions = `
     <div class="entity-actions">
       ${canContribute ? `<button class="btn-primary btn-add-story" type="button" data-place-id="${escapeAttr(place.id)}">+ Ajouter un contenu</button>` : ''}
-      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">✏️ Proposer une modification</button>
+      ${place.description ? `<button class="btn-ghost btn-listen" type="button" data-listen-kind="place" data-listen-id="${escapeAttr(place.id)}" aria-pressed="false" title="Écouter ce lieu à voix haute">🔊 Écouter</button>` : ''}
+      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="places" data-entity-id="${escapeAttr(place.id)}">${editLabel}</button>
       <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/lieu/${place.id}`)}" data-share-label="${escapeAttr(place.primaryName)}" data-share-caption="${escapeAttr(place.description || '')}">📤 Partager</button>
       ${canMove ? `<button class="btn-ghost btn-move-place" type="button" data-place-id="${escapeAttr(place.id)}">🔧 Déplacer ce lieu</button>` : ''}
     </div>`;
@@ -641,9 +656,11 @@ function openPersonPanel(personId) {
   ].filter(Boolean).join(' · ');
 
   const hasFamily = parentLinks || spouseLinks || childLinks;
+  const editLabelP = hasRole('admin') ? '✏️ Modifier' : '✏️ Proposer une modification';
   const actions = `
     <div class="entity-actions">
-      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">✏️ Proposer une modification</button>
+      ${person.bio ? `<button class="btn-ghost btn-listen" type="button" data-listen-kind="person" data-listen-id="${escapeAttr(person.id)}" aria-pressed="false" title="Écouter cette fiche à voix haute">🔊 Écouter</button>` : ''}
+      <button class="btn-ghost btn-propose-edit" type="button" data-entity-type="people" data-entity-id="${escapeAttr(person.id)}">${editLabelP}</button>
       <button class="btn-ghost btn-share" type="button" data-share-url="${escapeAttr(`${location.origin}/#/personne/${person.id}`)}" data-share-label="${escapeAttr(person.primaryName)}" data-share-caption="${escapeAttr(dates || '')}">📤 Partager</button>
     </div>`;
 
@@ -817,7 +834,7 @@ function renderStoryCard(s, { full = false } = {}) {
   const canRedact = state.mode === 'live' && hasRole('member');
   const actions = `
     <div class="story-actions">
-      ${s.body ? `<button type="button" class="btn-ghost btn-listen" data-story-id="${escapeAttr(s.id)}" title="Écouter ce récit à voix haute" aria-pressed="false">🔊 Écouter</button>` : ''}
+      ${s.body ? `<button type="button" class="btn-ghost btn-listen" data-listen-kind="story" data-listen-id="${escapeAttr(s.id)}" title="Écouter ce récit à voix haute" aria-pressed="false">🔊 Écouter</button>` : ''}
       <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}" title="Ajouter un souvenir ou une précision à cette histoire">➕ Compléter</button>
       <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}" title="Proposer une correction du texte">✏️ Modifier</button>
       ${canRedact ? `<button type="button" class="btn-ghost btn-redact" data-story-id="${escapeAttr(s.id)}" title="Anonymiser ou censurer un passage (vie privée)">🕶️ Anonymiser</button>` : ''}
