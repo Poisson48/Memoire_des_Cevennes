@@ -94,3 +94,11 @@
   filter: grayscale(1);
 }
 .edit-media-existing-row .media-fname { flex: 1; }
+
+/* Accès au livret PDF : bien visible dans la barre du haut (accessibilité). */
+.btn-livret {
+  border: 1.5px solid var(--accent, #8c5a2b);
+  color: var(--accent-dark, #6a4420);
+  font-weight: 600;
+}
+.btn-livret:hover { background: rgba(140, 90, 43, .1); }
