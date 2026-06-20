@@ -168,78 +168,84 @@ function renderMediaCaptions() {
   div.innerHTML = '';
   const files = Array.from(storyMediaInput.files || []);
   if (!files.length) return;
-  files.forEach((f, i) => {
-    const row = document.createElement('div');
-    row.className = 'media-caption-row';
+  const bodyTa = formStory.querySelector('textarea[name=body]');
+  files.forEach((f, i) => div.appendChild(mediaRow(f, i, bodyTa)));
+}
 
-    const thumb = document.createElement('div');
-    thumb.className = 'media-thumb';
-    if (f.type.startsWith('image/')) {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(f);
-      img.onload = () => URL.revokeObjectURL(img.src);
-      thumb.appendChild(img);
-    } else {
-      const icon =
-        f.type.startsWith('audio/') ? '🎙️' :
-        f.type.startsWith('video/') ? '🎬' : '📎';
-      thumb.textContent = icon;
-    }
+// Construit une ligne média : vignette + légende + (pour les images) bloc
+// OCR. `bodyTextarea` = la zone de texte du récit où insérer le texte OCR
+// (formStory en création, formEdit en édition). Réutilisé par les deux flux.
+function mediaRow(f, i, bodyTextarea) {
+  const row = document.createElement('div');
+  row.className = 'media-caption-row';
 
-    const right = document.createElement('div');
-    right.className = 'media-cap-right';
-    const fname = document.createElement('div');
-    fname.className = 'media-fname';
-    fname.textContent = f.name;
-    const cap = document.createElement('input');
-    cap.type = 'text';
-    cap.name = `caption_${i}`;
-    cap.placeholder = 'Légende (facultatif)';
-    cap.maxLength = 500;
-    cap.className = 'media-caption-input';
+  const thumb = document.createElement('div');
+  thumb.className = 'media-thumb';
+  if (f.type.startsWith('image/')) {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    img.onload = () => URL.revokeObjectURL(img.src);
+    thumb.appendChild(img);
+  } else {
+    const icon =
+      f.type.startsWith('audio/') ? '🎙️' :
+      f.type.startsWith('video/') ? '🎬' : '📎';
+    thumb.textContent = icon;
+  }
 
-    right.appendChild(fname);
-    right.appendChild(cap);
+  const right = document.createElement('div');
+  right.className = 'media-cap-right';
+  const fname = document.createElement('div');
+  fname.className = 'media-fname';
+  fname.textContent = f.name;
+  const cap = document.createElement('input');
+  cap.type = 'text';
+  cap.name = `caption_${i}`;
+  cap.placeholder = 'Légende (facultatif)';
+  cap.maxLength = 500;
+  cap.className = 'media-caption-input';
 
-    // OCR : pour les images, propose d'extraire le texte (document scanné,
-    // lettre, page de cahier…). Disponible seulement si le serveur a
-    // l'OCR actif (window.__ocrAvailable, sondé au chargement).
-    if (f.type.startsWith('image/') && window.__ocrAvailable) {
-      const ocrWrap = document.createElement('div');
-      ocrWrap.className = 'ocr-wrap';
+  right.appendChild(fname);
+  right.appendChild(cap);
 
-      const ocrBtn = document.createElement('button');
-      ocrBtn.type = 'button';
-      ocrBtn.className = 'ocr-btn';
-      ocrBtn.textContent = '🔎 Extraire le texte (OCR)';
+  // OCR : pour les images, propose d'extraire le texte (document scanné,
+  // lettre, page de cahier…). Disponible seulement si le serveur a
+  // l'OCR actif (window.__ocrAvailable, sondé au chargement).
+  if (f.type.startsWith('image/') && window.__ocrAvailable) {
+    const ocrWrap = document.createElement('div');
+    ocrWrap.className = 'ocr-wrap';
 
-      const ocrArea = document.createElement('textarea');
-      ocrArea.name = `ocr_${i}`;
-      ocrArea.className = 'ocr-text';
-      ocrArea.rows = 4;
-      ocrArea.placeholder = 'Le texte extrait apparaîtra ici (corrige-le si besoin).';
-      ocrArea.hidden = true;
-      ocrArea.maxLength = 30000;
+    const ocrBtn = document.createElement('button');
+    ocrBtn.type = 'button';
+    ocrBtn.className = 'ocr-btn';
+    ocrBtn.textContent = '🔎 Extraire le texte (OCR)';
 
-      const insertBtn = document.createElement('button');
-      insertBtn.type = 'button';
-      insertBtn.className = 'ocr-insert-btn';
-      insertBtn.textContent = '⤵ Insérer dans le récit';
-      insertBtn.hidden = true;
+    const ocrArea = document.createElement('textarea');
+    ocrArea.name = `ocr_${i}`;
+    ocrArea.className = 'ocr-text';
+    ocrArea.rows = 4;
+    ocrArea.placeholder = 'Le texte extrait apparaîtra ici (corrige-le si besoin).';
+    ocrArea.hidden = true;
+    ocrArea.maxLength = 30000;
 
-      ocrBtn.addEventListener('click', () => runOcr(f, ocrBtn, ocrArea, insertBtn));
-      insertBtn.addEventListener('click', () => insertOcrIntoBody(ocrArea.value));
+    const insertBtn = document.createElement('button');
+    insertBtn.type = 'button';
+    insertBtn.className = 'ocr-insert-btn';
+    insertBtn.textContent = '⤵ Insérer dans le récit';
+    insertBtn.hidden = true;
 
-      ocrWrap.appendChild(ocrBtn);
-      ocrWrap.appendChild(ocrArea);
-      ocrWrap.appendChild(insertBtn);
-      right.appendChild(ocrWrap);
-    }
+    ocrBtn.addEventListener('click', () => runOcr(f, ocrBtn, ocrArea, insertBtn));
+    insertBtn.addEventListener('click', () => insertOcrIntoBody(ocrArea.value, bodyTextarea));
 
-    row.appendChild(thumb);
-    row.appendChild(right);
-    div.appendChild(row);
-  });
+    ocrWrap.appendChild(ocrBtn);
+    ocrWrap.appendChild(ocrArea);
+    ocrWrap.appendChild(insertBtn);
+    right.appendChild(ocrWrap);
+  }
+
+  row.appendChild(thumb);
+  row.appendChild(right);
+  return row;
 }
 
 // Appelle l'OCR serveur sur une image et remplit la zone de texte editable.
@@ -257,7 +263,7 @@ async function runOcr(file, btn, area, insertBtn) {
     area.hidden = false;
     insertBtn.hidden = !area.value;
     btn.textContent = area.value ? '🔁 Relancer l’OCR' : 'Aucun texte détecté';
-    scheduleDraftSave();
+    if (typeof dlgStory !== 'undefined' && dlgStory.open) scheduleDraftSave();
   } catch (err) {
     alert('OCR : ' + err.message);
     btn.textContent = orig;
@@ -266,10 +272,10 @@ async function runOcr(file, btn, area, insertBtn) {
   }
 }
 
-// Ajoute le texte OCR à la fin du récit en cours de rédaction.
-function insertOcrIntoBody(text) {
+// Ajoute le texte OCR à la fin de la zone de texte ciblée.
+function insertOcrIntoBody(text, ta) {
   if (!text) return;
-  const ta = formStory.querySelector('textarea[name=body]');
+  ta = ta || formStory.querySelector('textarea[name=body]');
   if (!ta) return;
   ta.value = (ta.value.trim() ? ta.value.trim() + '\n\n' : '') + text.trim();
   ta.dispatchEvent(new Event('input', { bubbles: true }));
@@ -280,6 +286,95 @@ function insertOcrIntoBody(text) {
 fetch('/api/ocr/status').then(r => r.json()).then(d => {
   window.__ocrAvailable = !!(d && d.available);
 }).catch(() => { window.__ocrAvailable = false; });
+
+// ── Médias dans l'édition d'un récit ───────────────────────────────────
+// L'édition (proposition de modif) gère désormais aussi les images : on peut
+// en retirer et en ajouter (avec OCR). Contrairement au texte (qui passe en
+// modération), les médias sont membres-only et appliqués immédiatement, comme
+// à la création.
+let editMediaToDelete = new Set();
+const editMediaInput = document.getElementById('edit-media-input');
+if (editMediaInput) {
+  editMediaInput.addEventListener('change', () => {
+    const rows = document.getElementById('edit-media-rows');
+    rows.innerHTML = '';
+    const files = Array.from(editMediaInput.files || []);
+    const bodyTa = formEdit.querySelector('textarea[name=body]');
+    files.forEach((f, i) => rows.appendChild(mediaRow(f, i, bodyTa)));
+  });
+}
+
+function setupEditMedia(story) {
+  editMediaToDelete = new Set();
+  if (editMediaInput) editMediaInput.value = '';
+  const rows = document.getElementById('edit-media-rows');
+  if (rows) rows.innerHTML = '';
+  const isMember = typeof hasRole === 'function' && hasRole('member') && state.mode === 'live';
+  document.getElementById('edit-media-hint').hidden = isMember;
+  document.getElementById('edit-media-add').style.display = isMember ? '' : 'none';
+  renderEditExisting(story, isMember);
+}
+
+function renderEditExisting(story, isMember) {
+  const wrap = document.getElementById('edit-media-existing');
+  const imgs = (story.mediaFiles || []).filter(m => (m.mime || '').startsWith('image/'));
+  if (!imgs.length) {
+    wrap.innerHTML = '<p class="dialog-note">Aucune image pour l’instant.</p>';
+    return;
+  }
+  wrap.innerHTML = '';
+  imgs.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'edit-media-existing-row';
+    const img = document.createElement('img');
+    img.src = m.url; img.alt = m.caption || '';
+    const info = document.createElement('span');
+    info.className = 'media-fname';
+    info.textContent = m.caption || m.url.split('/').pop();
+    row.appendChild(img);
+    row.appendChild(info);
+    if (isMember) {
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'btn-ghost btn-inline';
+      del.textContent = '🗑️ Retirer';
+      del.addEventListener('click', () => {
+        if (editMediaToDelete.has(m.url)) {
+          editMediaToDelete.delete(m.url); row.classList.remove('to-delete'); del.textContent = '🗑️ Retirer';
+        } else {
+          editMediaToDelete.add(m.url); row.classList.add('to-delete'); del.textContent = '↩️ Garder';
+        }
+      });
+      row.appendChild(del);
+    }
+    wrap.appendChild(row);
+  });
+}
+
+// Upload des nouvelles images (compression + légende + OCR) sur un récit.
+// `scopeSelector` borne la recherche des champs caption_/ocr_ au bon dialog.
+async function uploadNewMedia(storyId, inputEl, scopeSelector) {
+  const files = [...((inputEl && inputEl.files) || [])];
+  if (!files.length) return 0;
+  const mediaForm = new FormData();
+  let added = 0;
+  for (let idx = 0; idx < files.length; idx++) {
+    const file = files[idx];
+    if (!file || file.size <= 0) continue;
+    const result = await runCompression(file, file.name, new AbortController().signal);
+    mediaForm.append('media', result.blob, result.filename || file.name);
+    const cap = document.querySelector(`${scopeSelector} input[name="caption_${idx}"]`)?.value || '';
+    mediaForm.append('captions', cap);
+    const ocr = document.querySelector(`${scopeSelector} textarea[name="ocr_${idx}"]`)?.value || '';
+    mediaForm.append('ocrText', ocr);
+    added++;
+  }
+  if (added > 0) {
+    const r = await fetch(`/api/stories/${encodeURIComponent(storyId)}/media`, { method: 'POST', body: mediaForm });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || r.statusText); }
+  }
+  return added;
+}
 
 // ── Flux 1 : ajouter un lieu ───────────────────────────────────────────
 // `state.addMode` est partagé (défini dans app.js) : on en lit la valeur
@@ -890,6 +985,14 @@ function openEditDialog(entityType, entity) {
   formEdit.dataset.originalData = JSON.stringify(
     Object.fromEntries(fields.map(f => [f.key, entity[f.key] ?? '']))
   );
+
+  // Section images : seulement pour les récits.
+  const mediaSection = document.getElementById('edit-media-section');
+  if (mediaSection) {
+    if (entityType === 'stories') { mediaSection.hidden = false; setupEditMedia(entity); }
+    else { mediaSection.hidden = true; }
+  }
+
   dlgEdit.showModal();
 }
 
@@ -987,34 +1090,66 @@ formEdit.addEventListener('submit', async (e) => {
   const changes = {};
   for (const [k, v] of fd.entries()) {
     if (k === 'note' || k === 'pseudo') continue;
+    // Champs de la section média (légendes / OCR) : ne pas confondre avec
+    // les champs éditables texte.
+    if (/^caption_\d+$/.test(k) || /^ocr_\d+$/.test(k)) continue;
     if (String(original[k] ?? '') !== String(v ?? '')) {
       changes[k] = v;
     }
   }
 
-  if (Object.keys(changes).length === 0) {
+  const isStory = entityType === 'stories';
+  const hasMediaOps = isStory && (
+    (editMediaInput && editMediaInput.files && editMediaInput.files.length > 0) ||
+    editMediaToDelete.size > 0
+  );
+
+  if (Object.keys(changes).length === 0 && !hasMediaOps) {
     alert('Aucun changement détecté.');
     return;
   }
   if (blockedByStaticMode('la proposition de modification')) return;
 
-  const payload = {
-    changes,
-    note: fd.get('note') || '',
-    submittedBy: extractSubmittedBy(fd),
-    newPerson: extractNewPerson(fd),
-  };
-
   try {
-    const res = await fetch(`/api/${entityType}/${encodeURIComponent(entityId)}/edits`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || res.statusText);
+    // 1) Changements texte → proposition de modification (modération).
+    if (Object.keys(changes).length > 0) {
+      const payload = {
+        changes,
+        note: fd.get('note') || '',
+        submittedBy: extractSubmittedBy(fd),
+        newPerson: extractNewPerson(fd),
+      };
+      const res = await fetch(`/api/${entityType}/${encodeURIComponent(entityId)}/edits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+    }
+
+    // 2) Médias (immédiat, membres) : suppressions puis ajouts.
+    if (hasMediaOps) {
+      for (const url of editMediaToDelete) {
+        const r = await fetch(`/api/stories/${encodeURIComponent(entityId)}/media`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ url }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || r.statusText); }
+      }
+      await uploadNewMedia(entityId, editMediaInput, '#dlg-edit');
+      hideCompressUI();
+    }
+
     dlgEdit.close('submit');
-    alert(data.message || 'Proposition reçue : en attente de validation.');
+    const txtMsg = Object.keys(changes).length
+      ? 'Proposition de texte envoyée (en attente de validation).'
+      : '';
+    const medMsg = hasMediaOps ? ' Images mises à jour.' : '';
+    alert((txtMsg + medMsg).trim() || 'Modifications enregistrées.');
+    if (hasMediaOps) location.reload();
   } catch (err) {
     alert('Erreur : ' + err.message);
   }

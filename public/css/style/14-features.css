@@ -68,3 +68,29 @@
   gap: .5rem;
   align-items: center;
 }
+
+/* ── Images dans l'édition d'un récit ─────────────────────────────── */
+#edit-media-section { margin: .8rem 0; }
+.edit-media-title { font-size: 1rem; margin: .4rem 0; }
+.edit-media-existing-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .3rem 0;
+  border-bottom: 1px dashed #e6ddcc;
+}
+.edit-media-existing-row img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+.edit-media-existing-row.to-delete {
+  opacity: .5;
+}
+.edit-media-existing-row.to-delete img {
+  outline: 2px solid #c0392b;
+  filter: grayscale(1);
+}
+.edit-media-existing-row .media-fname { flex: 1; }

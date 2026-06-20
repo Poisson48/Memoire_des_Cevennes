@@ -172,6 +172,44 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
   });
 });
 
+// Suppression d'un media rattache a un recit (membres). Retire l'entree de
+// mediaFiles et supprime le fichier sur disque (best effort, si bien sous
+// uploads/:id/). Utilise par l'edition d'un recit pour "modifier l'image".
+router.delete('/:id/media', requireAuth('member'), async (req, res, next) => {
+  try {
+    const url = req.body && req.body.url;
+    if (!url) return res.status(400).json({ error: 'url du média requise' });
+    const story = stories.get(req.params.id);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const exists = (story.mediaFiles || []).some(m => m.url === url);
+    if (!exists) return res.status(404).json({ error: 'Média introuvable' });
+
+    const updated = await stories.patch(req.params.id, (s) => ({
+      mediaFiles: (s.mediaFiles || []).filter(m => m.url !== url),
+    }));
+
+    // Suppression du fichier physique, seulement s'il est bien sous le
+    // dossier du recit (anti path-traversal).
+    const expectedPrefix = `/uploads/${req.params.id}/`;
+    if (url.startsWith(expectedPrefix)) {
+      const fs = require('fs');
+      const { UPLOADS_DIR } = require('../upload');
+      const filePath = path.join(UPLOADS_DIR, req.params.id, path.basename(url));
+      if (filePath.startsWith(path.join(UPLOADS_DIR, req.params.id) + path.sep)) {
+        fs.unlink(filePath, () => {});
+      }
+    }
+    logActivity({
+      memberId: req.member.id,
+      action: 'delete',
+      entityType: 'media',
+      entityId: req.params.id,
+      ip: req.ip,
+    });
+    res.json({ story: updated });
+  } catch (e) { next(e); }
+});
+
 // ── Redactions de confidentialite (anonymiser / censurer) ────────────────
 // Un membre marque un passage du body a masquer pour le public (et/ou les
 // membres). Effet immediat (proteger la vie privee ne doit pas attendre la

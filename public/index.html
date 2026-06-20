@@ -238,6 +238,20 @@
       <h2>✏️ Proposer une modification</h2>
       <p id="edit-target-name" class="coords"></p>
       <div id="edit-fields"></div>
+
+      <!-- Section images : visible seulement pour les récits. Permet de
+           retirer une image existante et d'en ajouter (avec OCR). -->
+      <div id="edit-media-section" hidden>
+        <h3 class="edit-media-title">🖼️ Images</h3>
+        <div id="edit-media-existing"></div>
+        <p id="edit-media-hint" class="dialog-note" hidden>
+          🔒 Connecte-toi en membre pour modifier les images.
+        </p>
+        <label id="edit-media-add">Ajouter des images
+          <input type="file" id="edit-media-input" accept="image/*" multiple />
+        </label>
+        <div id="edit-media-rows"></div>
+      </div>
       <label>Résumé de la modification (pourquoi ce changement ?)
         <input type="text" name="note" maxlength="500" placeholder="Ex. « corrige l'orthographe du nom » ou « ajoute une date » : visible par l'admin"/>
       </label>
