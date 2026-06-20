@@ -349,6 +349,56 @@ router.get('/queue', (req, res) => {
   res.json({ queue: moderation.queue({ type }), counts: moderation.counts() });
 });
 
+// ─── Anonymisations (redactions) : vue d'ensemble admin ───────────────
+// Liste tous les passages masqués de tous les récits, avec le texte
+// original (admin) pour pouvoir les revoir/retirer d'un endroit central.
+router.get('/redactions', (_req, res) => {
+  const out = [];
+  for (const s of stories.list({ status: 'all' })) {
+    for (const r of (s.redactions || [])) {
+      out.push({
+        storyId: s.id,
+        storyTitle: s.title || '(récit sans titre)',
+        id: r.id,
+        start: r.start,
+        end: r.end,
+        mode: r.mode,
+        hideBelow: r.hideBelow,
+        replacement: r.replacement || '',
+        reason: r.reason || '',
+        by: r.by || '',
+        at: r.at || '',
+        // Texte original masqué (l'admin a le droit de le voir).
+        original: String(s.body || '').slice(r.start, r.end),
+      });
+    }
+  }
+  out.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  res.json({ redactions: out });
+});
+
+router.delete('/redactions/:storyId/:rid', async (req, res, next) => {
+  try {
+    const story = stories.get(req.params.storyId);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const before = (story.redactions || []).length;
+    const updated = await stories.patch(req.params.storyId, (s) => ({
+      redactions: (s.redactions || []).filter(r => r.id !== req.params.rid),
+    }));
+    if (!updated || (updated.redactions || []).length === before) {
+      return res.status(404).json({ error: 'Anonymisation introuvable' });
+    }
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin',
+      action: 'unredact',
+      entityType: 'story',
+      entityId: req.params.storyId,
+      ip: req.ip,
+    });
+    res.json({ ok: true, story: updated });
+  } catch (e) { next(e); }
+});
+
 // ─── Propositions de modification ─────────────────────────────────────
 router.get('/edits/:id', (req, res) => {
   const edit = edits.get(req.params.id);

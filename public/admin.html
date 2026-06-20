@@ -80,6 +80,7 @@
         <button type="button" class="tab-btn" data-tab="members">Membres</button>
         <button type="button" class="tab-btn" data-tab="resets">Mots de passe oubliés</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
+        <button type="button" class="tab-btn" data-tab="redactions">🕶️ Anonymisations</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
@@ -186,6 +187,12 @@
       <div id="activity" class="queue" hidden>
         <h3>Journal d'activité (200 dernières)</h3>
         <div id="activity-list"></div>
+      </div>
+
+      <div id="redactions" class="queue" hidden>
+        <h3>🕶️ Anonymisations / passages masqués</h3>
+        <p class="hint">Tous les passages anonymisés ou censurés des récits. Tu vois le texte original (admin) et tu peux retirer un masquage.</p>
+        <div id="redactions-list"></div>
       </div>
 
       <div id="backups" class="queue" hidden>
@@ -651,6 +658,7 @@
   <script src="js/admin/core.js"></script>
   <script src="js/admin/queue.js"></script>
   <script src="js/admin/activity.js"></script>
+  <script src="js/admin/redactions.js"></script>
   <script src="js/admin/resets.js"></script>
   <script src="js/admin/members.js"></script>
   <script src="js/admin/backups.js"></script>

@@ -20,11 +20,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (cadastreSection) cadastreSection.hidden = currentTab !== 'cadastre';
     if (testCompressSection) testCompressSection.hidden = currentTab !== 'testcompress';
     if (helpSection)    helpSection.hidden    = currentTab !== 'help';
+    const redactionsSection = document.getElementById('redactions');
+    if (redactionsSection) redactionsSection.hidden = currentTab !== 'redactions';
     if (currentTab === 'queue')    renderQueue(lastQueue);
     if (currentTab === 'aliases')  refreshAliases();
     if (currentTab === 'members')  refreshMembers();
     if (currentTab === 'resets')   refreshResets();
     if (currentTab === 'activity') refreshActivity();
+    if (currentTab === 'redactions') refreshRedactions();
     if (currentTab === 'backups')  refreshBackups();
     if (currentTab === 'welcome')  refreshWelcome();
     if (currentTab === 'settings') refreshSettings();

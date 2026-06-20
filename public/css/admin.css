@@ -873,3 +873,22 @@
   font-size: 0.78rem;
   white-space: pre-wrap;
 }
+
+/* Anonymisations (onglet admin) */
+.redaction-row {
+  border: 1px solid #e6ddcc;
+  border-radius: 8px;
+  padding: .6rem .8rem;
+  margin-bottom: .6rem;
+  background: #fcf9f3;
+}
+.redaction-row .redaction-orig {
+  font-style: italic;
+  color: #555;
+  margin: .3rem 0;
+}
+.redaction-row .redaction-meta {
+  font-size: .82rem;
+  color: #888;
+  margin-bottom: .4rem;
+}
