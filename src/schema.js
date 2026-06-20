@@ -212,7 +212,35 @@ function normMediaFile(f) {
     url: str(f.url, 500),
     mime: str(f.mime, 120),
     ...(f.caption ? { caption: str(f.caption, 500) } : {}),
+    // Texte extrait par OCR a l'import (relu/corrige par le contributeur).
+    // Sert a la recherche, a l'accessibilite (TTS) et au livret PDF.
+    ...(f.ocrText ? { ocrText: str(f.ocrText, 30000) } : {}),
   };
+}
+
+// Redactions de confidentialite sur le `body` d'un recit. Chaque entree
+// marque un passage [start,end) (offsets UTF-16) a masquer pour les
+// audiences sous un seuil. Voir src/audience.js (applyRedactions).
+function normRedactions(list, bodyLength) {
+  if (!Array.isArray(list)) return [];
+  return list.map(r => {
+    if (!r) return null;
+    const start = Math.max(0, Math.floor(num(r.start)));
+    const end = Math.max(start, Math.floor(num(r.end)));
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+    if (end > bodyLength || end <= start) return null;
+    const mode = r.mode === 'censor' ? 'censor' : 'anonymize';
+    const hideBelow = r.hideBelow === 'admin' ? 'admin' : 'member';
+    const out = {
+      id: r.id ? str(r.id, 40) : randomUUID().slice(0, 10),
+      start, end, mode, hideBelow,
+    };
+    if (mode === 'anonymize' && r.replacement) out.replacement = str(r.replacement, 160);
+    if (r.reason) out.reason = str(r.reason, 500);
+    if (r.by) out.by = str(r.by, 120);
+    out.at = r.at ? str(r.at, 40) : new Date().toISOString();
+    return out;
+  }).filter(Boolean);
 }
 
 function makeStory(input, existingIds) {
@@ -238,6 +266,7 @@ function makeStory(input, existingIds) {
     titleMentions: normMentions(input.titleMentions, title.length),
     mediaFiles: (Array.isArray(input.mediaFiles) ? input.mediaFiles : [])
       .map(normMediaFile).filter(Boolean),
+    redactions: normRedactions(input.redactions, body.length),
     visibility: normVisibility(input.visibility),
     createdAt: new Date().toISOString(),
     ...freshModerationFields(input),
@@ -250,6 +279,8 @@ module.exports = {
   makeStory,
   normSubmittedBy,
   normAliases,
+  normRedactions,
+  normMediaFile,
   slugify,
   STORY_TYPES,
 };

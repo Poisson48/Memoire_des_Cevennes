@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Créer un livret PDF : Mémoire des Cévennes</title>
+  <meta name="description" content="Composez un livret imprimable des récits des Cévennes en choisissant les lieux et les personnes qui vous intéressent." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
+  <style>
+    .livret-main { max-width: 1000px; margin: 0 auto; padding: 1rem 1rem 4rem; }
+    .livret-intro { color: #555; }
+    .livret-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 720px) { .livret-cols { grid-template-columns: 1fr; } }
+    .tag-col h2 { font-size: 1.05rem; margin: 0 0 .4rem; }
+    .tag-col .filter { width: 100%; margin-bottom: .5rem; }
+    .tag-list { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow: auto;
+      border: 1px solid #e0d6c6; border-radius: 8px; }
+    .tag-list li { padding: .35rem .6rem; border-bottom: 1px solid #f0e9dd; }
+    .tag-list li:last-child { border-bottom: 0; }
+    .tag-list label { display: flex; gap: .5rem; align-items: baseline; cursor: pointer; }
+    .tag-list .sub { color: #999; font-size: .82em; }
+    .livret-bar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #e0d6c6;
+      padding: .8rem 0; margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
+    .livret-bar .count { font-weight: 600; }
+    .livret-options { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+    .livret-options input[type=text] { min-width: 240px; }
+    #livret-status { color: #777; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-titles">
+      <a href="/" class="topbar-home" aria-label="Retour à la carte">← Carte</a>
+      <h1>📖 Créer un livret PDF</h1>
+    </div>
+  </header>
+
+  <main class="livret-main">
+    <p class="livret-intro">
+      Choisissez un ou plusieurs <strong>lieux</strong> et/ou <strong>personnes</strong> :
+      tous les récits qui s'y rattachent seront rassemblés dans un livret imprimable.
+      Le contenu respecte la confidentialité (les passages anonymisés restent masqués
+      selon que vous êtes connecté·e ou non).
+    </p>
+
+    <div class="livret-options">
+      <label>Titre du livret
+        <input type="text" id="livret-title" maxlength="120" value="Mémoire des Cévennes" />
+      </label>
+      <label><input type="checkbox" id="livret-images" checked /> Inclure les photos</label>
+    </div>
+
+    <div class="livret-cols">
+      <div class="tag-col">
+        <h2>📍 Lieux</h2>
+        <input type="text" class="filter" id="filter-places" placeholder="Filtrer les lieux…" />
+        <ul class="tag-list" id="list-places"></ul>
+      </div>
+      <div class="tag-col">
+        <h2>👤 Personnes</h2>
+        <input type="text" class="filter" id="filter-people" placeholder="Filtrer les personnes…" />
+        <ul class="tag-list" id="list-people"></ul>
+      </div>
+    </div>
+
+    <div class="livret-bar">
+      <span class="count" id="livret-count">Coche des sujets pour composer le livret.</span>
+      <button type="button" class="btn-ghost" id="livret-clear">Tout décocher</button>
+      <button type="button" class="btn-primary" id="livret-generate" disabled>📥 Générer le PDF</button>
+      <span id="livret-status" aria-live="polite"></span>
+    </div>
+  </main>
+
+  <script src="js/livret.js"></script>
+</body>
+</html>

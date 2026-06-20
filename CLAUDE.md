@@ -150,6 +150,48 @@ README et par `aide.html` (qui les charge depuis `/screenshots/`,
 servi par `server.js` et copié dans `_site/screenshots/` par le workflow
 GitHub Pages).
 
+## 🔎 OCR, 🔊 synthèse vocale, 📖 livret PDF, 🕶️ anonymisation
+
+Quatre fonctionnalités locales (aucune API tierce). Les binaires/modèles
+lourds sont vendorisés dans `vendor/` (git-ignoré) par
+**`scripts/setup-ocr-tts.sh`** (à relancer sur un nouveau serveur, sans
+`sudo`) : `fra.traineddata` (OCR), binaire Piper + voix `fr_FR-siwis-medium`
+(TTS). Tesseract, ImageMagick (`convert`), ffmpeg et Playwright/Chromium sont
+attendus déjà installés sur la machine.
+
+- **OCR** (`src/ocr.js`, `POST /api/ocr`, membres) : Tesseract `fra` +
+  pré-traitement `convert`. Dans le dialogue d'import (`forms.js`,
+  `renderMediaCaptions`), un bouton « Extraire le texte » par image ; le
+  contributeur relit, peut insérer dans le récit, et le texte est stocké sur
+  le média (`mediaFiles[].ocrText`, cf. `normMediaFile` dans `schema.js`,
+  parsé dans `routes/stories.js` en parallèle de `captions[]`).
+- **TTS** (`src/tts.js`, `GET /api/tts/story/:id`) : Piper → WAV → MP3
+  (ffmpeg), cache disque `uploads/tts/` clé = sha256(texte+voix). Bouton
+  « 🔊 Écouter » sur chaque récit (`app.js`). En mode statique (GitHub
+  Pages) ou si Piper absent : repli sur l'API Web Speech du navigateur.
+- **Livret PDF** (`src/livret.js`, `routes/livret.js`, page
+  `public/livret.html`) : on coche des lieux/personnes (alias affichés),
+  `POST /api/livret/preview` donne le compte, `POST /api/livret` génère le
+  PDF (HTML → Chromium via Playwright, instance partagée + rendu sérialisé).
+  Images embarquées en data-URI, CSS `public/css/livret-print.css`.
+  **Playwright est maintenant en `dependencies`.**
+- **Anonymisation / censure** (`src/audience.js`, éditeur
+  `public/js/redact.js`) : un membre/admin sélectionne un passage du `body`
+  et le masque selon l'audience. Stocké dans `stories[].redactions[]`
+  (`{start,end,mode:anonymize|censor,hideBelow:member|admin,replacement?}`,
+  offsets UTF-16 comme les mentions). `POST /api/stories/:id/redactions`
+  (membre, effet immédiat, garde-fou : la portion stockée doit matcher le
+  texte sélectionné) ; `DELETE …/:rid` (admin uniquement, dé-divulgation).
+
+**`src/audience.js` est le point unique « qui voit quoi »** : `audienceOf(req)`
+(public/member/admin), `visibleStories/Places/People` (visibilité
+enregistrement), `applyRedactions` / `viewStory` (masquage texte par
+audience). **Désormais branché dans `GET /api/stories`** : le corps des
+récits est rendu selon l'audience (les passages masqués ne fuient plus, ni
+les métadonnées des redactions). Réutilisé par le TTS et le livret PDF.
+Couvert par `tests/audience.test.js`. `SCHEMA_VERSION` est passé à **3**
+(champs optionnels `ocrText` + `redactions`, migration no-op).
+
 ## 💾 Sauvegardes / Export / Import
 
 Le module `src/backup.js` produit des archives `.tar.gz` autoporteuses

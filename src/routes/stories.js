@@ -7,6 +7,8 @@ const { resolveContributor } = require('../contributor');
 const { requireAuth } = require('../middleware');
 const { logActivity } = require('../activityLog');
 const audioNorm = require('../audio-normalize');
+const audience = require('../audience');
+const { normRedactions } = require('../schema');
 
 const router = express.Router();
 
@@ -21,6 +23,9 @@ router.get('/', (req, res) => {
   if (!req.member) {
     list = list.filter(s => s.visibility === 'public');
   }
+  // Anonymisation/censure : masque les passages selon l'audience.
+  const aud = audience.audienceOf(req);
+  list = list.map(s => audience.viewStory(s, aud));
   res.json({ stories: list });
 });
 
@@ -34,7 +39,7 @@ router.get('/:id', (req, res) => {
   if (!req.member && story.visibility !== 'public') {
     return res.status(404).json({ error: 'Récit introuvable' });
   }
-  res.json({ story });
+  res.json({ story: audience.viewStory(story, audience.audienceOf(req)) });
 });
 
 router.post('/', requireAuth('member'), async (req, res, next) => {
@@ -135,6 +140,12 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
         ? rawCaptions
         : (rawCaptions ? [rawCaptions] : []);
 
+      // Texte OCR relu par le contributeur, associe par index aux fichiers.
+      const rawOcr = req.body && req.body.ocrText;
+      const ocrTexts = Array.isArray(rawOcr)
+        ? rawOcr
+        : (rawOcr ? [rawOcr] : []);
+
       const files = (req.files || []).map((f, i) => {
         const out = {
           url: `/uploads/${req.params.id}/${f.filename}`,
@@ -142,6 +153,8 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
         };
         const cap = captions[i] && String(captions[i]).trim().slice(0, 500);
         if (cap) out.caption = cap;
+        const ocrText = ocrTexts[i] && String(ocrTexts[i]).trim().slice(0, 30000);
+        if (ocrText) out.ocrText = ocrText;
         return out;
       });
       const updated = await stories.patch(req.params.id, (s) => ({
@@ -157,6 +170,76 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
       res.json({ story: updated, added: files });
     } catch (e) { next(e); }
   });
+});
+
+// ── Redactions de confidentialite (anonymiser / censurer) ────────────────
+// Un membre marque un passage du body a masquer pour le public (et/ou les
+// membres). Effet immediat (proteger la vie privee ne doit pas attendre la
+// file de moderation). Le retrait d'une redaction (re-divulgation) est plus
+// sensible : reserve aux admins.
+
+router.post('/:id/redactions', requireAuth('member'), async (req, res, next) => {
+  try {
+    const story = stories.get(req.params.id);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const candidate = {
+      start: req.body && req.body.start,
+      end: req.body && req.body.end,
+      mode: req.body && req.body.mode,
+      hideBelow: req.body && req.body.hideBelow,
+      replacement: req.body && req.body.replacement,
+      reason: req.body && req.body.reason,
+      by: (req.member && req.member.name) || 'membre',
+    };
+    const [clean] = normRedactions([candidate], (story.body || '').length);
+    if (!clean) {
+      return res.status(400).json({ error: 'Sélection invalide (bornes hors du texte ou vides).' });
+    }
+    // Garde-fou d'integrite : la portion ciblee doit correspondre au texte
+    // que le client a selectionne. Evite de masquer le mauvais passage si le
+    // body a change (ou si l'affichage cote client differait du stocke).
+    if (typeof req.body.text === 'string') {
+      const slice = (story.body || '').slice(clean.start, clean.end);
+      if (slice !== req.body.text) {
+        return res.status(409).json({
+          error: 'La sélection ne correspond plus au texte du récit. Recharge la page et réessaie.',
+        });
+      }
+    }
+    const updated = await stories.patch(req.params.id, (s) => ({
+      redactions: [...(s.redactions || []), clean].sort((a, b) => a.start - b.start),
+    }));
+    logActivity({
+      memberId: req.member.id,
+      action: 'redact',
+      entityType: 'story',
+      entityId: req.params.id,
+      ip: req.ip,
+    });
+    res.status(201).json({ redaction: clean, story: updated });
+  } catch (err) { next(err); }
+});
+
+router.delete('/:id/redactions/:rid', requireAuth('admin'), async (req, res, next) => {
+  try {
+    const story = stories.get(req.params.id);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const before = (story.redactions || []).length;
+    const updated = await stories.patch(req.params.id, (s) => ({
+      redactions: (s.redactions || []).filter(r => r.id !== req.params.rid),
+    }));
+    if (!updated || (updated.redactions || []).length === before) {
+      return res.status(404).json({ error: 'Redaction introuvable' });
+    }
+    logActivity({
+      memberId: req.member.id,
+      action: 'unredact',
+      entityType: 'story',
+      entityId: req.params.id,
+      ip: req.ip,
+    });
+    res.json({ story: updated });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

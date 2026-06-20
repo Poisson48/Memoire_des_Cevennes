@@ -200,11 +200,86 @@ function renderMediaCaptions() {
 
     right.appendChild(fname);
     right.appendChild(cap);
+
+    // OCR : pour les images, propose d'extraire le texte (document scanné,
+    // lettre, page de cahier…). Disponible seulement si le serveur a
+    // l'OCR actif (window.__ocrAvailable, sondé au chargement).
+    if (f.type.startsWith('image/') && window.__ocrAvailable) {
+      const ocrWrap = document.createElement('div');
+      ocrWrap.className = 'ocr-wrap';
+
+      const ocrBtn = document.createElement('button');
+      ocrBtn.type = 'button';
+      ocrBtn.className = 'ocr-btn';
+      ocrBtn.textContent = '🔎 Extraire le texte (OCR)';
+
+      const ocrArea = document.createElement('textarea');
+      ocrArea.name = `ocr_${i}`;
+      ocrArea.className = 'ocr-text';
+      ocrArea.rows = 4;
+      ocrArea.placeholder = 'Le texte extrait apparaîtra ici (corrige-le si besoin).';
+      ocrArea.hidden = true;
+      ocrArea.maxLength = 30000;
+
+      const insertBtn = document.createElement('button');
+      insertBtn.type = 'button';
+      insertBtn.className = 'ocr-insert-btn';
+      insertBtn.textContent = '⤵ Insérer dans le récit';
+      insertBtn.hidden = true;
+
+      ocrBtn.addEventListener('click', () => runOcr(f, ocrBtn, ocrArea, insertBtn));
+      insertBtn.addEventListener('click', () => insertOcrIntoBody(ocrArea.value));
+
+      ocrWrap.appendChild(ocrBtn);
+      ocrWrap.appendChild(ocrArea);
+      ocrWrap.appendChild(insertBtn);
+      right.appendChild(ocrWrap);
+    }
+
     row.appendChild(thumb);
     row.appendChild(right);
     div.appendChild(row);
   });
 }
+
+// Appelle l'OCR serveur sur une image et remplit la zone de texte editable.
+async function runOcr(file, btn, area, insertBtn) {
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Lecture en cours…';
+  try {
+    const fd = new FormData();
+    fd.append('media', file, file.name);
+    const res = await fetch('/api/ocr', { method: 'POST', body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    area.value = (data.text || '').trim();
+    area.hidden = false;
+    insertBtn.hidden = !area.value;
+    btn.textContent = area.value ? '🔁 Relancer l’OCR' : 'Aucun texte détecté';
+    scheduleDraftSave();
+  } catch (err) {
+    alert('OCR : ' + err.message);
+    btn.textContent = orig;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Ajoute le texte OCR à la fin du récit en cours de rédaction.
+function insertOcrIntoBody(text) {
+  if (!text) return;
+  const ta = formStory.querySelector('textarea[name=body]');
+  if (!ta) return;
+  ta.value = (ta.value.trim() ? ta.value.trim() + '\n\n' : '') + text.trim();
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  ta.focus();
+}
+
+// Sonde la disponibilité de l'OCR une fois, pour afficher/masquer le bouton.
+fetch('/api/ocr/status').then(r => r.json()).then(d => {
+  window.__ocrAvailable = !!(d && d.available);
+}).catch(() => { window.__ocrAvailable = false; });
 
 // ── Flux 1 : ajouter un lieu ───────────────────────────────────────────
 // `state.addMode` est partagé (défini dans app.js) : on en lit la valeur
@@ -585,12 +660,15 @@ formStory.addEventListener('submit', async (e) => {
       mediaForm.append('media', result.blob, result.filename || file.name);
       const cap = document.querySelector(`#dlg-story input[name="caption_${idx}"]`)?.value || '';
       mediaForm.append('captions', cap);
+      const ocr = document.querySelector(`#dlg-story textarea[name="ocr_${idx}"]`)?.value || '';
+      mediaForm.append('ocrText', ocr);
       added++;
     }
     if (recordedBlob) {
       const ext = (recordedBlob.type.includes('webm') ? 'webm' : 'ogg');
       mediaForm.append('media', recordedBlob, `enregistrement-${Date.now()}.${ext}`);
       mediaForm.append('captions', '');   // pas de légende sur enregistrement direct
+      mediaForm.append('ocrText', '');     // pas d'OCR sur enregistrement audio
       added++;
     }
     hideCompressUI();

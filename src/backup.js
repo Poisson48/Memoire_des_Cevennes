@@ -45,7 +45,7 @@ const DATA_FILES = [
   'site_config.json',
 ];
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 // Migrations de schéma : clé = version SOURCE, valeur = fonction qui
 // reçoit l'objet { 'data/foo.json': parsedJson, ... } et le mute pour
@@ -55,6 +55,11 @@ const MIGRATIONS = {
   // backfill nécessaire : `undefined` est traité comme « pas de
   // téléphone » par le code lecteur.
   1: (_files) => {},
+  // v2 → v3 : ajout des champs optionnels `mediaFiles[].ocrText` (texte OCR)
+  // et `stories[].redactions` (anonymisation/censure par audience). Tous deux
+  // optionnels et traités comme « absent » par le code lecteur : aucun
+  // backfill nécessaire.
+  2: (_files) => {},
 };
 
 // ─── Chiffrement ──────────────────────────────────────────────────────

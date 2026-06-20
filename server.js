@@ -20,6 +20,9 @@ const editsRouter   = require('./src/routes/edits');
 const adminRouter   = require('./src/routes/admin');
 const reportsRouter = require('./src/routes/reports');
 const visitsRouter  = require('./src/routes/visits');
+const ocrRouter     = require('./src/routes/ocr');
+const ttsRouter     = require('./src/routes/tts');
+const livretRouter  = require('./src/routes/livret');
 
 const PORT       = Number(process.env.PORT) || 3003;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -87,6 +90,12 @@ app.use('/api/stories', storiesRouter);
 app.use('/api', editsRouter);         // /api/:type/:id/edits
 app.use('/api/reports', reportsRouter);
 app.use('/api/visits',  visitsRouter);
+
+// API — OCR (extraction de texte des images, membres), synthese vocale
+// (Piper, lecture des recits) et livret PDF par tags. Tout local.
+app.use('/api/ocr',     ocrRouter);
+app.use('/api/tts',     ttsRouter);
+app.use('/api/livret',  livretRouter);
 
 // API — administration (X-Admin-Token OU JWT admin via requireAdmin)
 app.use('/api/admin',   adminRouter);

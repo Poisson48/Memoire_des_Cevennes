@@ -139,6 +139,15 @@ passent en plein écran, les boutons font ≥ 44 px pour les doigts.
   refusée par les admins avec diff avant/après. Plusieurs admins peuvent
   partager le même compte (un token commun).
 - **Page `/admin`** : interface web de la file de modération.
+- **OCR à l'import** : extraction locale du texte des images scannées
+  (Tesseract `fra`), relue par le contributeur, stockée avec le média.
+- **Lecture vocale** : bouton « 🔊 Écouter » sur chaque récit (voix française
+  neuronale Piper, locale ; repli sur la synthèse du navigateur).
+- **Livret PDF par tags** (`/livret.html`) : cocher des lieux/personnes pour
+  générer un recueil imprimable de tous les récits liés.
+- **Anonymisation / censure** : un membre/admin masque un passage sensible
+  d'un récit selon l'audience (public / membres / admins), pour respecter la
+  vie privée.
 - **Mobile-friendly** : responsive complet.
 - **Preview GitHub Pages** : déploiement automatique à chaque push.
 

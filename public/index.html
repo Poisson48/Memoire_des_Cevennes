@@ -82,6 +82,8 @@
     <footer class="site-footer">
       <a href="aide.html">📘 Tutoriel</a>
       <span class="sep">·</span>
+      <a href="livret.html">📖 Livret PDF</a>
+      <span class="sep">·</span>
       <a href="legal/mentions.html">Mentions légales</a>
       <span class="sep">·</span>
       <a href="legal/confidentialite.html">Confidentialité</a>
@@ -425,6 +427,49 @@
     </form>
   </dialog>
 
+  <!-- Dialog d'anonymisation / censure (membres + admin) -->
+  <dialog id="dlg-redact">
+    <form id="form-redact">
+      <h2>🕶️ Anonymiser ou censurer un passage</h2>
+      <p class="dialog-note">
+        Sélectionne directement dans le texte ci-dessous le passage à protéger
+        (un nom, une adresse…), puis choisis comment le masquer et pour qui.
+      </p>
+      <div id="redact-body" class="redact-body" tabindex="0"></div>
+      <p class="coords">Sélection : <strong id="redact-selection">(rien sélectionné)</strong></p>
+
+      <fieldset>
+        <legend>Comment masquer ?</legend>
+        <label><input type="radio" name="redact-mode" value="anonymize" checked /> 🫥 Anonymiser (remplacer par un libellé neutre)</label>
+        <label><input type="radio" name="redact-mode" value="censor" /> ⬛ Censurer (passage masqué)</label>
+        <label id="redact-replacement-wrap">Texte de remplacement
+          <input type="text" name="redact-replacement" maxlength="160" placeholder="ex. une habitante, [nom retiré]…" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Masquer pour qui ?</legend>
+        <label><input type="radio" name="redact-hide" value="member" checked /> 👁️ Le public (les membres connectés voient l'original)</label>
+        <label><input type="radio" name="redact-hide" value="admin" /> 🔒 Le public et les membres (seuls les admins voient l'original)</label>
+      </fieldset>
+
+      <label>Motif <em>(facultatif, pour l'audit)</em>
+        <input type="text" name="redact-reason" maxlength="500" placeholder="ex. personne vivante, pas de consentement" />
+      </label>
+
+      <div id="redact-existing" class="redact-existing"></div>
+
+      <p class="dialog-note">
+        ⚡ Effet immédiat : protéger la vie privée n'attend pas la file de
+        modération. Le retrait d'une anonymisation est réservé aux admins.
+      </p>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close>Fermer</button>
+        <button type="submit" class="btn-primary" id="redact-submit" disabled>Masquer ce passage</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Modal d'accueil : s'ouvre à chaque visite, contenu markdown
        personnalisable par l'admin via /admin.html. -->
   <dialog id="welcome-dialog" class="welcome-dialog">
@@ -487,6 +532,7 @@
   <script src="js/dialog-swipe.js"></script>
   <script src="js/geo.js"></script>
   <script src="js/tagger.js"></script>
+  <script src="js/redact.js"></script>
   <script src="js/autocomplete.js"></script>
   <script src="js/inline-mentions.js"></script>
   <script src="js/markdown.js"></script>

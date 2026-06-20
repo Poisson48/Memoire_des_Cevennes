@@ -442,9 +442,89 @@ function openPanel(html) {
       }
     });
   });
+  panelContent.querySelectorAll('.btn-listen').forEach(btn => {
+    btn.addEventListener('click', () => toggleListen(btn));
+  });
+  panelContent.querySelectorAll('.btn-redact').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (typeof window.openRedactDialog === 'function') {
+        window.openRedactDialog(btn.dataset.storyId);
+      }
+    });
+  });
+}
+
+// ─── Synthèse vocale (accessibilité) ───────────────────────────────────
+// En mode live, on lit l'audio Piper du serveur (voix FR de qualité, texte
+// déjà adapté à l'audience). En mode statique (GitHub Pages) ou si le
+// serveur n'a pas Piper, on bascule sur la synthèse du navigateur.
+let ttsServerAvailable = null;     // null = pas encore sondé
+let currentTtsAudio = null;
+let currentTtsBtn = null;
+
+fetch('/api/tts/status').then(r => r.json()).then(d => {
+  ttsServerAvailable = !!(d && d.available);
+}).catch(() => { ttsServerAvailable = false; });
+
+function stopListening() {
+  if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentTtsBtn) {
+    currentTtsBtn.classList.remove('playing');
+    currentTtsBtn.setAttribute('aria-pressed', 'false');
+    currentTtsBtn.textContent = '🔊 Écouter';
+    currentTtsBtn = null;
+  }
+}
+
+function markPlaying(btn) {
+  currentTtsBtn = btn;
+  btn.classList.add('playing');
+  btn.setAttribute('aria-pressed', 'true');
+  btn.textContent = '⏹ Arrêter';
+}
+
+function toggleListen(btn) {
+  // Re-clic sur le bouton en cours : on arrête.
+  if (currentTtsBtn === btn) { stopListening(); return; }
+  stopListening();
+  const id = btn.dataset.storyId;
+  const story = state.stories.find(s => s.id === id);
+  if (!story) return;
+
+  if (state.mode === 'live' && ttsServerAvailable !== false) {
+    const audio = new Audio(`/api/tts/story/${encodeURIComponent(id)}`);
+    currentTtsAudio = audio;
+    markPlaying(btn);
+    audio.addEventListener('ended', stopListening);
+    audio.addEventListener('error', () => {
+      // Repli navigateur si le serveur échoue malgré tout.
+      if (currentTtsBtn === btn) { speakInBrowser(story, btn); }
+    });
+    audio.play().catch(() => speakInBrowser(story, btn));
+  } else {
+    speakInBrowser(story, btn);
+  }
+}
+
+// Repli : synthèse vocale du navigateur (Web Speech API), 100% local.
+function speakInBrowser(story, btn) {
+  if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
+  if (!window.speechSynthesis) { alert('La lecture vocale n’est pas disponible sur ce navigateur.'); return; }
+  const text = (story.title ? story.title + '. ' : '') +
+    String(story.body || '').replace(/<[^>]+>/g, '');
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'fr-FR';
+  u.rate = 0.95;
+  const frVoice = window.speechSynthesis.getVoices().find(v => /fr/i.test(v.lang));
+  if (frVoice) u.voice = frVoice;
+  u.onend = stopListening;
+  markPlaying(btn);
+  window.speechSynthesis.speak(u);
 }
 
 function closePanel() {
+  stopListening();
   panel.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('panel-open');
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
@@ -715,10 +795,13 @@ function renderStoryCard(s, { full = false } = {}) {
   // sheet court et où le corps du récit peut être long.
   const shareLabel = s.title ? s.title.replace(/<[^>]+>/g, '') : 'ce récit';
   const shareCaption = (s.body || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 240);
+  const canRedact = state.mode === 'live' && hasRole('member');
   const actions = `
     <div class="story-actions">
+      ${s.body ? `<button type="button" class="btn-ghost btn-listen" data-story-id="${escapeAttr(s.id)}" title="Écouter ce récit à voix haute" aria-pressed="false">🔊 Écouter</button>` : ''}
       <button type="button" class="btn-ghost btn-complete-story" data-story-id="${escapeAttr(s.id)}" title="Ajouter un souvenir ou une précision à cette histoire">➕ Compléter</button>
       <button type="button" class="btn-ghost btn-propose-edit" data-entity-type="stories" data-entity-id="${escapeAttr(s.id)}" title="Proposer une correction du texte">✏️ Modifier</button>
+      ${canRedact ? `<button type="button" class="btn-ghost btn-redact" data-story-id="${escapeAttr(s.id)}" title="Anonymiser ou censurer un passage (vie privée)">🕶️ Anonymiser</button>` : ''}
       <button type="button" class="btn-ghost btn-share" data-share-url="${escapeAttr(`${location.origin}/#/recit/${s.id}`)}" data-share-label="${escapeAttr(shareLabel)}" data-share-caption="${escapeAttr(shareCaption)}" title="Partager ce récit">📤 Partager</button>
     </div>
   `;
