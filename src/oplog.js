@@ -1,20 +1,25 @@
-// Journalisation concise des operations sensibles/couteuses (OCR, TTS, PDF…)
-// pour reperer les abus. Une ligne par appel, format greppable, ecrite sur
-// la sortie standard -> capturee par systemd (journalctl -u
-// memoires-cevenoles | grep '\[op\]').
+// Journalisation des operations sensibles/couteuses (OCR, TTS, PDF…) pour
+// reperer les abus. Chaque appel ecrit :
+//   1. une ligne greppable sur la sortie standard -> journal systemd ;
+//   2. une ligne JSON dans data/op_log.jsonl -> consultable depuis l'admin
+//      (onglet « Operations »).
 //
-// Choix : on logue ICI plutot que dans data/activity_log.json pour ne pas
-// gonfler le JSON metier avec des operations frequentes/publiques. Le journal
-// systemd est horodate, rotatif, et fait pour ca.
+// On garde ca SEPARE de data/activity_log.json (audit metier) : ces
+// operations sont frequentes/publiques (TTS, PDF) et gonfleraient l'audit.
 //
-// Exemple de ligne :
-//   [op] tts ip=78.x.x.x user=anon kind=story id=geo... ms=412 bytes=327713
+// Le fichier est borne : au-dela de KEEP_LINES, on ne garde que les plus
+// recentes (rotation paresseuse, faite a la lecture).
 
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
+const OP_LOG = path.join(__dirname, '..', 'data', 'op_log.jsonl');
+const KEEP_LINES = 5000;
+
 function ipOf(req) {
   if (!req) return '-';
-  // req.ip respecte trust proxy ; fallback sur l'en-tete si besoin.
   return req.ip || (req.headers && req.headers['x-forwarded-for']) || '-';
 }
 
@@ -25,17 +30,41 @@ function userOf(req) {
 
 function fmt(v) {
   if (v === undefined || v === null) return '';
-  // Pas de retours a la ligne ni d'espaces qui casseraient le format clef=val.
   return String(v).replace(/\s+/g, ' ').slice(0, 200);
 }
 
 function opLog(req, op, fields = {}) {
-  const base = `ip=${fmt(ipOf(req))} user=${fmt(userOf(req))}`;
+  const ip = fmt(ipOf(req));
+  const user = fmt(userOf(req));
+
+  // 1. Journal systemd (greppable).
   const extra = Object.entries(fields)
     .filter(([, v]) => v !== undefined && v !== null && v !== '')
     .map(([k, v]) => `${k}=${fmt(v)}`)
     .join(' ');
-  console.log(`[op] ${op} ${base}${extra ? ' ' + extra : ''}`);
+  console.log(`[op] ${op} ip=${ip} user=${user}${extra ? ' ' + extra : ''}`);
+
+  // 2. Fichier JSONL pour l'admin (best effort, async, ne bloque jamais).
+  const entry = { ts: new Date().toISOString(), op, ip, user, ...fields };
+  fs.appendFile(OP_LOG, JSON.stringify(entry) + '\n', () => {});
 }
 
-module.exports = { opLog, ipOf, userOf };
+// Lit les dernieres operations (plus recentes d'abord). Effectue une
+// rotation paresseuse si le fichier a trop grossi.
+function readOps({ limit = 300 } = {}) {
+  let lines;
+  try {
+    lines = fs.readFileSync(OP_LOG, 'utf8').split('\n').filter(Boolean);
+  } catch {
+    return [];
+  }
+  if (lines.length > KEEP_LINES + 1000) {
+    const trimmed = lines.slice(-KEEP_LINES);
+    try { fs.writeFileSync(OP_LOG, trimmed.join('\n') + '\n'); } catch {}
+    lines = trimmed;
+  }
+  const recent = lines.slice(-Math.max(1, Math.min(limit, KEEP_LINES))).reverse();
+  return recent.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+}
+
+module.exports = { opLog, readOps, ipOf, userOf };

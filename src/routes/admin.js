@@ -20,6 +20,7 @@ const siteConfig = require('../siteConfig');
 const passwordResets = require('../passwordResets');
 const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
+const { readOps } = require('../oplog');
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
@@ -347,6 +348,24 @@ router.get('/activity', (req, res) => {
 router.get('/queue', (req, res) => {
   const type = req.query.type;
   res.json({ queue: moderation.queue({ type }), counts: moderation.counts() });
+});
+
+// ─── Journal des operations (OCR, TTS, PDF…) : detection d'abus ────────
+// Renvoie les operations recentes + un recap par IP et par type, pour
+// reperer un usage anormal (ex. une IP qui genere 200 PDF).
+router.get('/oplog', (req, res) => {
+  const all = readOps({ limit: 2000 });
+  const byIp = {};
+  const byOp = {};
+  for (const e of all) {
+    byIp[e.ip] = (byIp[e.ip] || 0) + 1;
+    byOp[e.op] = (byOp[e.op] || 0) + 1;
+  }
+  const topIps = Object.entries(byIp).map(([ip, count]) => ({ ip, count }))
+    .sort((a, b) => b.count - a.count).slice(0, 15);
+  const ops = Object.entries(byOp).map(([op, count]) => ({ op, count }))
+    .sort((a, b) => b.count - a.count);
+  res.json({ recent: all.slice(0, 300), total: all.length, topIps, ops });
 });
 
 // ─── Anonymisations (redactions) : vue d'ensemble admin ───────────────

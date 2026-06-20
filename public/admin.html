@@ -81,6 +81,7 @@
         <button type="button" class="tab-btn" data-tab="resets">Mots de passe oubliés</button>
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="redactions">🕶️ Anonymisations</button>
+        <button type="button" class="tab-btn" data-tab="oplog">🛰️ Opérations</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
@@ -193,6 +194,13 @@
         <h3>🕶️ Anonymisations / passages masqués</h3>
         <p class="hint">Tous les passages anonymisés ou censurés des récits. Tu vois le texte original (admin) et tu peux retirer un masquage.</p>
         <div id="redactions-list"></div>
+      </div>
+
+      <div id="oplog" class="queue" hidden>
+        <h3>🛰️ Opérations (OCR, lecture vocale, livret PDF)</h3>
+        <p class="hint">Pour repérer un usage anormal : récap par IP et par type, puis les dernières opérations. <button type="button" id="oplog-refresh" class="btn-ghost btn-inline">↻ Rafraîchir</button></p>
+        <div id="oplog-summary"></div>
+        <div id="oplog-list"></div>
       </div>
 
       <div id="backups" class="queue" hidden>
@@ -659,6 +667,7 @@
   <script src="js/admin/queue.js"></script>
   <script src="js/admin/activity.js"></script>
   <script src="js/admin/redactions.js"></script>
+  <script src="js/admin/oplog.js"></script>
   <script src="js/admin/resets.js"></script>
   <script src="js/admin/members.js"></script>
   <script src="js/admin/backups.js"></script>

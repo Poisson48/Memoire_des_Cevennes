@@ -892,3 +892,15 @@
   color: #888;
   margin-bottom: .4rem;
 }
+
+/* Journal des opérations (détection d'abus) */
+.oplog-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 700px) { .oplog-cards { grid-template-columns: 1fr; } }
+.oplog-card { border: 1px solid #e6ddcc; border-radius: 8px; padding: .6rem .8rem; background: #fcf9f3; }
+.oplog-card h4 { margin: 0 0 .5rem; font-size: .95rem; }
+.oplog-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.oplog-chip { background: #efe6d4; border-radius: 999px; padding: .15rem .6rem; font-size: .85rem; }
+.oplog-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.oplog-table th, .oplog-table td { text-align: left; padding: .3rem .4rem; border-bottom: 1px solid #efe6d4; }
+.oplog-table .num { text-align: right; }
+.oplog-recent .oplog-details { color: #555; font-family: monospace; font-size: .8rem; }
