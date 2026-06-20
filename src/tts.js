@@ -52,6 +52,27 @@ function contentType() {
   return checkTools().ffmpeg ? 'audio/mpeg' : 'audio/wav';
 }
 
+// Normalise un texte pour la lecture vocale : retire le markdown et les
+// symboles que Piper prononcerait betement (asterisques, parentheses,
+// guillemets, tirets entre nombres lus comme « tiret »…). On garde le
+// contenu, on remplace les parentheses par une virgule (petite pause).
+function cleanForSpeech(text) {
+  let t = String(text || '');
+  t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');   // liens markdown [txt](url) -> txt
+  t = t.replace(/https?:\/\/\S+/g, ' ');            // URLs brutes
+  t = t.replace(/[*_`#~>]/g, ' ');                  // emphase / titres markdown
+  t = t.replace(/[«»"“”]/g, ' ');                   // guillemets
+  t = t.replace(/(\d)\s*[-–—]\s*(\d)/g, '$1 à $2'); // 1568-1629 -> 1568 à 1629
+  t = t.replace(/[()\[\]{}]/g, ', ');               // parentheses/crochets -> pause
+  t = t.replace(/^\s*[-•]\s+/gm, '');               // puces de liste
+  t = t.replace(/\s*,(\s*,)+/g, ',');               // virgules en double
+  t = t.replace(/\s+([,.;:!?])/g, '$1');            // espace avant ponctuation
+  t = t.replace(/,(\s*[.;:!?])/g, '$1');            // virgule collee a une autre ponctuation
+  t = t.replace(/[ \t]{2,}/g, ' ');
+  t = t.replace(/\n{2,}/g, '\n');
+  return t.trim();
+}
+
 function cacheKey(text, voice) {
   return crypto.createHash('sha256').update(voice + '\n' + text).digest('hex').slice(0, 32);
 }
@@ -111,7 +132,7 @@ async function synthesize(text, { voice = DEFAULT_VOICE } = {}) {
     err.statusCode = 503;
     throw err;
   }
-  const clean = String(text || '').trim().slice(0, MAX_CHARS);
+  const clean = cleanForSpeech(text).slice(0, MAX_CHARS);
   if (!clean) {
     const err = new Error('Rien à lire.');
     err.statusCode = 400;
@@ -154,4 +175,4 @@ async function synthesize(text, { voice = DEFAULT_VOICE } = {}) {
   return job;
 }
 
-module.exports = { synthesize, available, checkTools, DEFAULT_VOICE, contentType };
+module.exports = { synthesize, available, checkTools, DEFAULT_VOICE, contentType, cleanForSpeech };

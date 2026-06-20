@@ -466,6 +466,24 @@ fetch('/api/tts/status').then(r => r.json()).then(d => {
   ttsServerAvailable = !!(d && d.available);
 }).catch(() => { ttsServerAvailable = false; });
 
+// Nettoie le texte pour la lecture vocale (mêmes règles que src/tts.js) :
+// pas d'astérisques, de parenthèses ni de guillemets prononcés.
+function cleanForSpeech(text) {
+  let t = String(text || '');
+  t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+  t = t.replace(/https?:\/\/\S+/g, ' ');
+  t = t.replace(/[*_`#~>]/g, ' ');
+  t = t.replace(/[«»"“”]/g, ' ');
+  t = t.replace(/(\d)\s*[-–—]\s*(\d)/g, '$1 à $2');
+  t = t.replace(/[()\[\]{}]/g, ', ');
+  t = t.replace(/^\s*[-•]\s+/gm, '');
+  t = t.replace(/\s*,(\s*,)+/g, ',');
+  t = t.replace(/\s+([,.;:!?])/g, '$1');
+  t = t.replace(/,(\s*[.;:!?])/g, '$1');
+  t = t.replace(/[ \t]{2,}/g, ' ');
+  return t.trim();
+}
+
 function stopListening() {
   if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -511,8 +529,9 @@ function toggleListen(btn) {
 function speakInBrowser(story, btn) {
   if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
   if (!window.speechSynthesis) { alert('La lecture vocale n’est pas disponible sur ce navigateur.'); return; }
-  const text = (story.title ? story.title + '. ' : '') +
+  const raw = (story.title ? story.title + '. ' : '') +
     String(story.body || '').replace(/<[^>]+>/g, '');
+  const text = cleanForSpeech(raw);
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   u.rate = 0.95;
