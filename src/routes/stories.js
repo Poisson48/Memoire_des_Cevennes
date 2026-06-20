@@ -172,6 +172,81 @@ router.post('/:id/media', requireAuth('member'), (req, res, next) => {
   });
 });
 
+// OCR a posteriori d'une image deja uploadee (membres). Lit le fichier sur
+// disque, renvoie le texte extrait (ne le stocke PAS : le membre le relit
+// puis l'enregistre via PATCH ci-dessous).
+router.post('/:id/media/ocr', requireAuth('member'), async (req, res, next) => {
+  try {
+    const url = req.body && req.body.url;
+    if (!url) return res.status(400).json({ error: 'url du média requise' });
+    const story = stories.get(req.params.id);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const media = (story.mediaFiles || []).find(m => m.url === url);
+    if (!media) return res.status(404).json({ error: 'Média introuvable' });
+    if (!/^image\//.test(media.mime || '')) {
+      return res.status(400).json({ error: 'Ce média n’est pas une image.' });
+    }
+    const expectedPrefix = `/uploads/${req.params.id}/`;
+    if (!url.startsWith(expectedPrefix)) {
+      return res.status(400).json({ error: 'Chemin de média invalide.' });
+    }
+    const fs = require('fs');
+    const { UPLOADS_DIR } = require('../upload');
+    const ocr = require('../ocr');
+    const filePath = path.join(UPLOADS_DIR, req.params.id, path.basename(url));
+    if (!filePath.startsWith(path.join(UPLOADS_DIR, req.params.id) + path.sep)) {
+      return res.status(400).json({ error: 'Chemin de média invalide.' });
+    }
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Fichier introuvable.' });
+    const { text } = await ocr.recognize(fs.readFileSync(filePath), { mime: media.mime });
+    res.json({ text });
+  } catch (e) {
+    if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+    next(e);
+  }
+});
+
+// Mise a jour des champs texte d'un media existant (membres) : ocrText et/ou
+// caption. Sert a enregistrer le texte OCR relu (a posteriori).
+router.patch('/:id/media', requireAuth('member'), async (req, res, next) => {
+  try {
+    const url = req.body && req.body.url;
+    if (!url) return res.status(400).json({ error: 'url du média requise' });
+    const story = stories.get(req.params.id);
+    if (!story) return res.status(404).json({ error: 'Récit introuvable' });
+    const exists = (story.mediaFiles || []).some(m => m.url === url);
+    if (!exists) return res.status(404).json({ error: 'Média introuvable' });
+
+    const hasOcr = typeof req.body.ocrText === 'string';
+    const hasCap = typeof req.body.caption === 'string';
+    if (!hasOcr && !hasCap) return res.status(400).json({ error: 'Rien à mettre à jour.' });
+
+    const updated = await stories.patch(req.params.id, (s) => ({
+      mediaFiles: (s.mediaFiles || []).map(m => {
+        if (m.url !== url) return m;
+        const next = { ...m };
+        if (hasOcr) {
+          const t = String(req.body.ocrText).trim().slice(0, 30000);
+          if (t) next.ocrText = t; else delete next.ocrText;
+        }
+        if (hasCap) {
+          const c = String(req.body.caption).trim().slice(0, 500);
+          if (c) next.caption = c; else delete next.caption;
+        }
+        return next;
+      }),
+    }));
+    logActivity({
+      memberId: req.member.id,
+      action: 'update',
+      entityType: 'media',
+      entityId: req.params.id,
+      ip: req.ip,
+    });
+    res.json({ story: updated });
+  } catch (e) { next(e); }
+});
+
 // Suppression d'un media rattache a un recit (membres). Retire l'entree de
 // mediaFiles et supprime le fichier sur disque (best effort, si bien sous
 // uploads/:id/). Utilise par l'edition d'un recit pour "modifier l'image".

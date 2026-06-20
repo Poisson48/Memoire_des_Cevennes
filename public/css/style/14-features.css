@@ -86,10 +86,10 @@
   border-radius: 6px;
   border: 1px solid #ddd;
 }
-.edit-media-existing-row.to-delete {
-  opacity: .5;
-}
-.edit-media-existing-row.to-delete img {
+.edit-media-existing-block { border-bottom: 1px dashed #e6ddcc; padding-bottom: .4rem; margin-bottom: .4rem; }
+.edit-media-existing-row { border-bottom: 0; }
+.edit-media-existing-block.to-delete { opacity: .5; }
+.edit-media-existing-block.to-delete img {
   outline: 2px solid #c0392b;
   filter: grayscale(1);
 }

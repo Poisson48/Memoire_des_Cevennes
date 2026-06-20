@@ -322,17 +322,23 @@ function renderEditExisting(story, isMember) {
     wrap.innerHTML = '<p class="dialog-note">Aucune image pour l’instant.</p>';
     return;
   }
+  const storyId = story.id;
   wrap.innerHTML = '';
   imgs.forEach(m => {
+    const block = document.createElement('div');
+    block.className = 'edit-media-existing-block';
+
     const row = document.createElement('div');
     row.className = 'edit-media-existing-row';
     const img = document.createElement('img');
     img.src = m.url; img.alt = m.caption || '';
     const info = document.createElement('span');
     info.className = 'media-fname';
-    info.textContent = m.caption || m.url.split('/').pop();
+    info.textContent = (m.caption || m.url.split('/').pop()) +
+      (m.ocrText ? '  ✓ texte OCR enregistré' : '');
     row.appendChild(img);
     row.appendChild(info);
+
     if (isMember) {
       const del = document.createElement('button');
       del.type = 'button';
@@ -340,14 +346,95 @@ function renderEditExisting(story, isMember) {
       del.textContent = '🗑️ Retirer';
       del.addEventListener('click', () => {
         if (editMediaToDelete.has(m.url)) {
-          editMediaToDelete.delete(m.url); row.classList.remove('to-delete'); del.textContent = '🗑️ Retirer';
+          editMediaToDelete.delete(m.url); block.classList.remove('to-delete'); del.textContent = '🗑️ Retirer';
         } else {
-          editMediaToDelete.add(m.url); row.classList.add('to-delete'); del.textContent = '↩️ Garder';
+          editMediaToDelete.add(m.url); block.classList.add('to-delete'); del.textContent = '↩️ Garder';
         }
       });
       row.appendChild(del);
     }
-    wrap.appendChild(row);
+    block.appendChild(row);
+
+    // OCR a posteriori sur cette image deja uploadee.
+    if (isMember && window.__ocrAvailable) {
+      const ocrWrap = document.createElement('div');
+      ocrWrap.className = 'ocr-wrap';
+
+      const ocrBtn = document.createElement('button');
+      ocrBtn.type = 'button';
+      ocrBtn.className = 'ocr-btn';
+      ocrBtn.textContent = m.ocrText ? '🔁 Relancer l’OCR' : '🔎 Extraire le texte (OCR)';
+
+      const area = document.createElement('textarea');
+      area.className = 'ocr-text';
+      area.rows = 4;
+      area.maxLength = 30000;
+      area.value = m.ocrText || '';
+      area.hidden = !m.ocrText;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'ocr-insert-btn';
+      saveBtn.textContent = '💾 Enregistrer le texte';
+      saveBtn.hidden = !m.ocrText;
+
+      const insertBtn = document.createElement('button');
+      insertBtn.type = 'button';
+      insertBtn.className = 'ocr-insert-btn';
+      insertBtn.textContent = '⤵ Insérer dans le récit';
+      insertBtn.hidden = !m.ocrText;
+
+      ocrBtn.addEventListener('click', async () => {
+        const orig = ocrBtn.textContent;
+        ocrBtn.disabled = true; ocrBtn.textContent = '⏳ Lecture en cours…';
+        try {
+          const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/media/ocr`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ url: m.url }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          area.value = (data.text || '').trim();
+          area.hidden = false; saveBtn.hidden = false; insertBtn.hidden = !area.value;
+          ocrBtn.textContent = '🔁 Relancer l’OCR';
+        } catch (err) {
+          alert('OCR : ' + err.message);
+          ocrBtn.textContent = orig;
+        } finally { ocrBtn.disabled = false; }
+      });
+
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/media`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ url: m.url, ocrText: area.value }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          m.ocrText = area.value.trim();
+          saveBtn.textContent = '✓ Enregistré';
+          setTimeout(() => { saveBtn.textContent = '💾 Enregistrer le texte'; }, 1500);
+        } catch (err) {
+          alert('Erreur : ' + err.message);
+        } finally { saveBtn.disabled = false; }
+      });
+
+      insertBtn.addEventListener('click', () =>
+        insertOcrIntoBody(area.value, formEdit.querySelector('textarea[name=body]')));
+
+      ocrWrap.appendChild(ocrBtn);
+      ocrWrap.appendChild(area);
+      ocrWrap.appendChild(saveBtn);
+      ocrWrap.appendChild(insertBtn);
+      block.appendChild(ocrWrap);
+    }
+
+    wrap.appendChild(block);
   });
 }
 
