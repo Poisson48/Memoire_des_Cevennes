@@ -6,73 +6,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Créer un livret PDF : Mémoire des Cévennes</title>
   <meta name="description" content="Composez un livret imprimable des récits des Cévennes en choisissant les lieux et les personnes qui vous intéressent." />
+  <meta name="theme-color" content="#8c5a2b" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/legal.css" />
   <script src="js/text-size.js"></script>
-  <style>
-    .livret-main { max-width: 1000px; margin: 0 auto; padding: 1rem 1rem 4rem; }
-    .livret-intro { color: #555; }
-    .livret-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media (max-width: 720px) { .livret-cols { grid-template-columns: 1fr; } }
-    .tag-col h2 { font-size: 1.05rem; margin: 0 0 .4rem; }
-    .tag-col .filter { width: 100%; margin-bottom: .5rem; }
-    .tag-list { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow: auto;
-      border: 1px solid #e0d6c6; border-radius: 8px; }
-    .tag-list li { padding: .35rem .6rem; border-bottom: 1px solid #f0e9dd; }
-    .tag-list li:last-child { border-bottom: 0; }
-    .tag-list label { display: flex; gap: .5rem; align-items: baseline; cursor: pointer; }
-    .tag-list .sub { color: #999; font-size: .82em; }
-    .livret-bar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #e0d6c6;
-      padding: .8rem 0; margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
-    .livret-bar .count { font-weight: 600; }
-    .livret-options { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
-    .livret-options input[type=text] { min-width: 240px; }
-    #livret-status { color: #777; }
-  </style>
 </head>
-<body>
+<body class="legal-body">
   <header class="topbar">
     <div class="topbar-titles">
-      <a href="/" class="topbar-home" aria-label="Retour à la carte">← Carte</a>
       <h1>📖 Créer un livret PDF</h1>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
     </div>
   </header>
 
-  <main class="livret-main">
+  <main class="legal-main livret-main">
     <p class="livret-intro">
       Choisissez un ou plusieurs <strong>lieux</strong> et/ou <strong>personnes</strong> :
-      tous les récits qui s'y rattachent seront rassemblés dans un livret imprimable.
+      tous les récits qui s'y rattachent seront rassemblés dans un livret prêt à imprimer.
       Le contenu respecte la confidentialité (les passages anonymisés restent masqués
       selon que vous êtes connecté·e ou non).
     </p>
 
     <div class="livret-options">
-      <label>Titre du livret
+      <label class="livret-field">Titre du livret
         <input type="text" id="livret-title" maxlength="120" value="Mémoire des Cévennes" />
       </label>
-      <label><input type="checkbox" id="livret-images" checked /> Inclure les photos</label>
+      <label class="livret-check">
+        <input type="checkbox" id="livret-images" checked /> Inclure les photos
+      </label>
     </div>
 
     <div class="livret-cols">
-      <div class="tag-col">
-        <h2>📍 Lieux</h2>
-        <input type="text" class="filter" id="filter-places" placeholder="Filtrer les lieux…" />
-        <ul class="tag-list" id="list-places"></ul>
-      </div>
-      <div class="tag-col">
-        <h2>👤 Personnes</h2>
-        <input type="text" class="filter" id="filter-people" placeholder="Filtrer les personnes…" />
-        <ul class="tag-list" id="list-people"></ul>
-      </div>
-    </div>
-
-    <div class="livret-bar">
-      <span class="count" id="livret-count">Coche des sujets pour composer le livret.</span>
-      <button type="button" class="btn-ghost" id="livret-clear">Tout décocher</button>
-      <button type="button" class="btn-primary" id="livret-generate" disabled>📥 Générer le PDF</button>
-      <span id="livret-status" aria-live="polite"></span>
+      <section class="tag-col" aria-labelledby="livret-places-title">
+        <h2 id="livret-places-title">📍 Lieux</h2>
+        <input type="search" class="filter" id="filter-places"
+               placeholder="Filtrer les lieux…" aria-label="Filtrer les lieux" />
+        <ul class="tag-list" id="list-places" aria-label="Liste des lieux à inclure"></ul>
+      </section>
+      <section class="tag-col" aria-labelledby="livret-people-title">
+        <h2 id="livret-people-title">👤 Personnes</h2>
+        <input type="search" class="filter" id="filter-people"
+               placeholder="Filtrer les personnes…" aria-label="Filtrer les personnes" />
+        <ul class="tag-list" id="list-people" aria-label="Liste des personnes à inclure"></ul>
+      </section>
     </div>
   </main>
+
+  <!-- Barre d'action collante : toujours accessible, gros boutons -->
+  <div class="livret-bar" role="region" aria-label="Génération du livret">
+    <div class="livret-bar-inner">
+      <span class="count" id="livret-count" aria-live="polite">Cochez des sujets pour composer le livret.</span>
+      <div class="livret-bar-actions">
+        <button type="button" class="btn-ghost" id="livret-clear">Tout décocher</button>
+        <button type="button" class="btn-primary" id="livret-generate" disabled>📥 Générer le PDF</button>
+      </div>
+    </div>
+    <span id="livret-status" class="livret-status" role="status" aria-live="polite" hidden></span>
+  </div>
+
+  <style>
+    /* Page-specific — s'appuie sur les variables du thème (01-base.css). */
+    .livret-main { padding-bottom: 7rem; } /* place pour la barre collante */
+    .livret-intro { color: var(--muted); }
+
+    .livret-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 1.5rem;
+      align-items: center;
+      margin: 1.2rem 0;
+    }
+    .livret-field { display: flex; flex-direction: column; gap: .3rem; font-weight: 600; }
+    .livret-field input[type=text] {
+      font-weight: 400;
+      padding: .55rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-width: 16rem;
+      font-size: 1rem;
+    }
+    .livret-check { display: flex; align-items: center; gap: .5rem; }
+    .livret-check input { width: 1.15rem; height: 1.15rem; }
+
+    .livret-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    .tag-col h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+    .tag-col .filter {
+      width: 100%;
+      padding: .5rem .7rem;
+      margin-bottom: .5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .tag-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 50vh;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-bg);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    .tag-list li { border-bottom: 1px solid var(--border); }
+    .tag-list li:last-child { border-bottom: 0; }
+    .tag-list label {
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+      cursor: pointer;
+      padding: .6rem .7rem;       /* grande zone tactile */
+      min-height: 44px;
+    }
+    .tag-list label:hover { background: rgba(140, 90, 43, .07); }
+    .tag-list input[type=checkbox] { width: 1.2rem; height: 1.2rem; margin-top: .1rem; flex: none; }
+    .tag-list .sub { color: var(--muted); font-size: .82em; display: block; }
+    .tag-list .tag-empty { padding: .7rem; color: var(--muted); }
+
+    /* Barre d'action collante en bas */
+    .livret-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--panel-bg);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+      padding: .7rem max(.8rem, env(safe-area-inset-left)) calc(.7rem + env(safe-area-inset-bottom));
+      z-index: 50;
+    }
+    .livret-bar-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .livret-bar .count { font-weight: 600; flex: 1; min-width: 12rem; }
+    .livret-bar-actions { display: flex; gap: .6rem; }
+    .livret-bar .btn-primary, .livret-bar .btn-ghost { padding: .6rem 1rem; font-size: 1rem; }
+    .livret-status { display: block; max-width: 760px; margin: .5rem auto 0; color: var(--muted); }
+
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    @media (max-width: 720px) {
+      .livret-cols { grid-template-columns: 1fr; }
+      .tag-list { max-height: 38vh; }
+    }
+    @media (max-width: 600px) {
+      .livret-field input[type=text] { min-width: 0; width: 100%; }
+      .livret-field { width: 100%; }
+      .livret-bar-inner { flex-direction: column; align-items: stretch; gap: .6rem; }
+      .livret-bar .count { min-width: 0; text-align: center; }
+      .livret-bar-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .livret-bar-actions .btn-primary { grid-column: 1 / -1; order: -1; } /* CTA en haut, pleine largeur */
+    }
+  </style>
 
   <script src="js/livret.js"></script>
 </body>
