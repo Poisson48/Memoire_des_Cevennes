@@ -128,6 +128,7 @@ function renderAuthNav() {
   const loginBtn   = document.getElementById('btn-member-login');
   const logoutBtn  = document.getElementById('btn-member-logout');
   const greeting   = document.getElementById('member-greeting');
+  const accountLink = document.getElementById('menu-account');
 
   if (!loginBtn || !logoutBtn || !greeting) {
     // Page sans ces hooks (login/register/admin) : rien à faire.
@@ -138,20 +139,17 @@ function renderAuthNav() {
     loginBtn.hidden  = false;
     logoutBtn.hidden = true;
     greeting.hidden  = true;
+    if (accountLink) accountLink.hidden = true;
     return;
   }
 
   loginBtn.hidden  = true;
   logoutBtn.hidden = false;
   greeting.hidden  = false;
-  greeting.innerHTML = '';
-  const link = document.createElement('a');
-  link.href = 'mon-compte.html';
-  link.title = 'Mon compte';
-  link.style.color = 'inherit';
-  link.style.textDecoration = 'none';
-  link.textContent = `👤 ${state.member.name}`;
-  greeting.appendChild(link);
+  // En-tête du menu : qui est connecté (texte simple). L'accès au compte
+  // est un item dédié « 👤 Mon compte » juste en dessous.
+  greeting.textContent = `Connecté·e : ${state.member.name}`;
+  if (accountLink) accountLink.hidden = false;
 
   // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
   logoutBtn.onclick = async () => {
