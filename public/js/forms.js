@@ -147,6 +147,7 @@ if (draftClear) {
     const placeId = formStory.dataset.placeId;
     formStory.reset();
     updateStoryMediaVisibility();
+    storyStaged = [];
     const capsDiv = document.getElementById('story-media-captions');
     if (capsDiv) capsDiv.innerHTML = '';
     if (placeId) clearDraft(placeId);
@@ -159,23 +160,39 @@ if (draftClear) {
 formStory.addEventListener('input',  scheduleDraftSave);
 formStory.addEventListener('change', scheduleDraftSave);
 
-// Rendu dynamique des prévisualisations + champ « Légende » par fichier
-// sélectionné. Mis à jour à chaque changement de l'input fichier.
-storyMediaInput.addEventListener('change', renderMediaCaptions);
+// Liste « staging » des médias choisis à la création : on n'utilise pas
+// directement storyMediaInput.files (un nouvel input écrase la sélection
+// précédente et on ne peut rien retirer). À la place on accumule des objets
+// { file, caption, ocrText } qu'on peut compléter et retirer un par un.
+let storyStaged = [];
+
+storyMediaInput.addEventListener('change', () => {
+  for (const f of Array.from(storyMediaInput.files || [])) {
+    storyStaged.push({ file: f, caption: '', ocrText: '' });
+  }
+  storyMediaInput.value = '';   // permet de re-choisir et d'ajouter d'autres fichiers
+  renderMediaCaptions();
+  scheduleDraftSave();
+});
+
 function renderMediaCaptions() {
   const div = document.getElementById('story-media-captions');
   if (!div) return;
   div.innerHTML = '';
-  const files = Array.from(storyMediaInput.files || []);
-  if (!files.length) return;
   const bodyTa = formStory.querySelector('textarea[name=body]');
-  files.forEach((f, i) => div.appendChild(mediaRow(f, i, bodyTa)));
+  storyStaged.forEach((item, i) => {
+    div.appendChild(mediaRow(item.file, i, bodyTa, item, () => {
+      storyStaged.splice(i, 1);
+      renderMediaCaptions();
+    }));
+  });
 }
 
-// Construit une ligne média : vignette + légende + (pour les images) bloc
-// OCR. `bodyTextarea` = la zone de texte du récit où insérer le texte OCR
-// (formStory en création, formEdit en édition). Réutilisé par les deux flux.
-function mediaRow(f, i, bodyTextarea) {
+// Construit une ligne média : vignette + bouton retirer + légende +
+// (pour les images) bloc OCR. `bodyTextarea` = la zone de texte du récit
+// où insérer le texte OCR. `store` = objet { caption, ocrText } à
+// synchroniser (création) ; `onRemove` = callback de retrait (optionnel).
+function mediaRow(f, i, bodyTextarea, store, onRemove) {
   const row = document.createElement('div');
   row.className = 'media-caption-row';
 
@@ -195,22 +212,40 @@ function mediaRow(f, i, bodyTextarea) {
 
   const right = document.createElement('div');
   right.className = 'media-cap-right';
+
+  const head = document.createElement('div');
+  head.className = 'media-fname-row';
   const fname = document.createElement('div');
   fname.className = 'media-fname';
   fname.textContent = f.name;
+  head.appendChild(fname);
+  if (onRemove) {
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'media-remove-btn';
+    rm.title = 'Retirer ce fichier';
+    rm.setAttribute('aria-label', 'Retirer ce fichier');
+    rm.textContent = '✕';
+    rm.addEventListener('click', onRemove);
+    head.appendChild(rm);
+  }
+
   const cap = document.createElement('input');
   cap.type = 'text';
   cap.name = `caption_${i}`;
   cap.placeholder = 'Légende (facultatif)';
   cap.maxLength = 500;
   cap.className = 'media-caption-input';
+  if (store) {
+    cap.value = store.caption || '';
+    cap.addEventListener('input', () => { store.caption = cap.value; });
+  }
 
-  right.appendChild(fname);
+  right.appendChild(head);
   right.appendChild(cap);
 
-  // OCR : pour les images, propose d'extraire le texte (document scanné,
-  // lettre, page de cahier…). Disponible seulement si le serveur a
-  // l'OCR actif (window.__ocrAvailable, sondé au chargement).
+  // OCR : pour les images, propose d'extraire le texte. Disponible seulement
+  // si le serveur a l'OCR actif (window.__ocrAvailable, sondé au chargement).
   if (f.type.startsWith('image/') && window.__ocrAvailable) {
     const ocrWrap = document.createElement('div');
     ocrWrap.className = 'ocr-wrap';
@@ -218,23 +253,28 @@ function mediaRow(f, i, bodyTextarea) {
     const ocrBtn = document.createElement('button');
     ocrBtn.type = 'button';
     ocrBtn.className = 'ocr-btn';
-    ocrBtn.textContent = '🔎 Extraire le texte (OCR)';
+    ocrBtn.textContent = (store && store.ocrText) ? '🔁 Relancer l’OCR' : '🔎 Extraire le texte (OCR)';
 
     const ocrArea = document.createElement('textarea');
     ocrArea.name = `ocr_${i}`;
     ocrArea.className = 'ocr-text';
     ocrArea.rows = 4;
     ocrArea.placeholder = 'Le texte extrait apparaîtra ici (corrige-le si besoin).';
-    ocrArea.hidden = true;
     ocrArea.maxLength = 30000;
+    ocrArea.value = (store && store.ocrText) || '';
+    ocrArea.hidden = !ocrArea.value;
+    if (store) ocrArea.addEventListener('input', () => { store.ocrText = ocrArea.value; });
 
     const insertBtn = document.createElement('button');
     insertBtn.type = 'button';
     insertBtn.className = 'ocr-insert-btn';
     insertBtn.textContent = '⤵ Insérer dans le récit';
-    insertBtn.hidden = true;
+    insertBtn.hidden = !ocrArea.value;
 
-    ocrBtn.addEventListener('click', () => runOcr(f, ocrBtn, ocrArea, insertBtn));
+    ocrBtn.addEventListener('click', async () => {
+      await runOcr(f, ocrBtn, ocrArea, insertBtn);
+      if (store) store.ocrText = ocrArea.value;
+    });
     insertBtn.addEventListener('click', () => insertOcrIntoBody(ocrArea.value, bodyTextarea));
 
     ocrWrap.appendChild(ocrBtn);
@@ -563,7 +603,8 @@ function resetAddMode() {
 function openStoryDialog(placeId) {
   formStory.reset();
   // formStory.reset() vide l'input fichier mais ne déclenche pas 'change' :
-  // on nettoie manuellement la liste des légendes.
+  // on nettoie manuellement la liste des médias en attente.
+  storyStaged = [];
   const capsDiv = document.getElementById('story-media-captions');
   if (capsDiv) capsDiv.innerHTML = '';
   resetRecorderIfAvailable();
@@ -831,19 +872,18 @@ formStory.addEventListener('submit', async (e) => {
     // même ordre que les fichiers : multer les récupère via req.body.
     const mediaForm = new FormData();
     let added = 0;
-    const filesToProcess = [...(storyMediaInput.files || [])];
-    for (let idx = 0; idx < filesToProcess.length; idx++) {
-      const file = filesToProcess[idx];
+    const toProcess = storyStaged.slice();
+    for (let idx = 0; idx < toProcess.length; idx++) {
+      const item = toProcess[idx];
+      const file = item.file;
       if (!file || file.size <= 0) continue;
-      const label = filesToProcess.length > 1
-        ? `Fichier ${idx + 1}/${filesToProcess.length} : ${file.name}`
+      const label = toProcess.length > 1
+        ? `Fichier ${idx + 1}/${toProcess.length} : ${file.name}`
         : `${file.name}`;
       const result = await runCompression(file, label, activeCompressAbort.signal);
       mediaForm.append('media', result.blob, result.filename || file.name);
-      const cap = document.querySelector(`#dlg-story input[name="caption_${idx}"]`)?.value || '';
-      mediaForm.append('captions', cap);
-      const ocr = document.querySelector(`#dlg-story textarea[name="ocr_${idx}"]`)?.value || '';
-      mediaForm.append('ocrText', ocr);
+      mediaForm.append('captions', item.caption || '');
+      mediaForm.append('ocrText', item.ocrText || '');
       added++;
     }
     if (recordedBlob) {
@@ -868,6 +908,7 @@ formStory.addEventListener('submit', async (e) => {
     // Envoi réussi : on purge le brouillon de ce lieu pour ne pas le
     // re-proposer à la prochaine ouverture.
     clearDraft(placeId);
+    storyStaged = [];
     dlgStory.close('submit');
     resetRecorder();
     alert(data.message || 'Récit reçu. En attente de validation avant affichage public.');

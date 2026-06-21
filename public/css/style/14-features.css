@@ -154,3 +154,24 @@
   .topbar-menu { margin-left: auto; }
   .menu-dropdown { right: 0; left: auto; min-width: 60vw; }
 }
+
+/* Ligne média (création) : nom de fichier + bouton retirer */
+.media-fname-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.media-remove-btn {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border, #d9cfbd);
+  background: #fff;
+  border-radius: 6px;
+  color: #c0392b;
+  font-size: .95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.media-remove-btn:hover { background: #fbeae8; border-color: #c0392b; }
