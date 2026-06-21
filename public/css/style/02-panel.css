@@ -475,3 +475,73 @@ details.new-person .new-person-hint {
   font-size: 0.85rem;
 }
 
+
+/* ── PC : panneau centré comme une modale ───────────────────────────── */
+/* Au-dessus de 768 px, on ne montre plus le panneau collé à droite mais une
+   fenêtre centrée (comme le dialogue d'ajout de contenu), avec fond grisé.
+   En dessous (tablette portrait + mobile), on garde le bottom-sheet. */
+@media (min-width: 769px) {
+  .panel {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    height: auto;
+    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
+    width: min(900px, calc(100% - 4rem));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transform: translate(-50%, -50%) scale(0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .panel[aria-hidden="false"] {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Quand un dialog modal s'ouvre par-dessus, on efface le panneau centré. */
+  body:has(dialog[open]) .panel[aria-hidden="false"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+  /* Fond grisé (scrim) derrière la fenêtre centrée. */
+  .panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 490;
+    display: none;
+  }
+  body.panel-open .panel-backdrop { display: block; }
+  body:has(dialog[open]) .panel-backdrop { display: none; }
+}
+
+/* Backdrop masqué par défaut (visible seulement sur PC, panneau ouvert). */
+.panel-backdrop { display: none; }
+
+/* Barre de zoom de lecture, propre au panneau (en haut à gauche). */
+.panel-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0 0 0.4rem;
+}
+.panel-zoom-label { font-size: 0.85rem; color: var(--muted); }
+.panel-zoom-btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--accent-dark);
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+.panel-zoom-btn:hover { background: rgba(140, 90, 43, 0.1); }
+/* Laisse la place au bouton Fermer (absolu en haut à droite). */
+.panel-zoom { padding-right: 5rem; }

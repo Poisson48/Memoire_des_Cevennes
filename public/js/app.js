@@ -84,6 +84,41 @@ const addHint = document.getElementById('add-hint');
 const authNav = document.getElementById('auth-nav'); // peut être null si absent du HTML
 
 document.getElementById('panel-close').addEventListener('click', closePanel);
+
+// ─── Zoom de lecture PROPRE au panneau (indépendant du texte global) ────
+// Le visiteur peut grossir le récit affiché sans changer la taille du reste
+// du site. Mémorisé entre les visites.
+const PANEL_ZOOM_KEY = 'mdc-panel-zoom';
+const PANEL_ZOOM_MIN = 1, PANEL_ZOOM_MAX = 2.2, PANEL_ZOOM_STEP = 0.15;
+let panelZoom = parseFloat(localStorage.getItem(PANEL_ZOOM_KEY));
+if (!Number.isFinite(panelZoom)) panelZoom = 1.15;   // « histoire en gros » par défaut
+
+function applyPanelZoom() {
+  const c = document.getElementById('panel-content');
+  if (c) c.style.zoom = panelZoom;
+}
+function setPanelZoom(z) {
+  panelZoom = Math.min(PANEL_ZOOM_MAX, Math.max(PANEL_ZOOM_MIN, Math.round(z * 100) / 100));
+  try { localStorage.setItem(PANEL_ZOOM_KEY, String(panelZoom)); } catch {}
+  applyPanelZoom();
+}
+{
+  const zin = document.getElementById('panel-zoom-in');
+  const zout = document.getElementById('panel-zoom-out');
+  if (zin) zin.addEventListener('click', () => setPanelZoom(panelZoom + PANEL_ZOOM_STEP));
+  if (zout) zout.addEventListener('click', () => setPanelZoom(panelZoom - PANEL_ZOOM_STEP));
+}
+
+// Fond grisé (PC) : clic à côté de la fenêtre centrée = fermeture.
+const panelBackdrop = document.getElementById('panel-backdrop');
+if (panelBackdrop) panelBackdrop.addEventListener('click', closePanel);
+// Échap ferme le panneau (sauf si un dialog modal est ouvert : il gère son
+// propre Échap nativement).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.querySelector('dialog[open]')) return;
+  if (document.body.classList.contains('panel-open')) closePanel();
+});
 // Les dialogs (add-place / add-story / propose-edit) et leur logique vivent
 // dans forms.js, chargé après app.js.
 
@@ -382,6 +417,7 @@ function routeFromHash() {
 // ─── Panneau ────────────────────────────────────────────────────────────
 function openPanel(html) {
   panelContent.innerHTML = html;
+  applyPanelZoom();
   panel.setAttribute('aria-hidden', 'false');
   document.body.classList.add('panel-open');
   // délégation de clic pour les mentions internes
