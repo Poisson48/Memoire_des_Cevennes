@@ -61,6 +61,10 @@ async function preprocess(srcPath, workDir) {
     await run('convert', [
       srcPath,
       '-auto-orient',
+      // Borne la resolution : une photo de telephone (4000px+) est tres lente
+      // a OCRiser pour un gain de precision nul sur du texte imprime. Le « > »
+      // ne reduit QUE si l'image est plus grande. Divise le temps par 2-4.
+      '-resize', '2200x2200>',
       '-colorspace', 'Gray',
       '-normalize',
       '-deskew', '40%',

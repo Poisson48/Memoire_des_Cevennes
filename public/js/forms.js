@@ -292,7 +292,7 @@ function mediaRow(f, i, bodyTextarea, store, onRemove) {
 async function runOcr(file, btn, area, insertBtn) {
   const orig = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ Lecture en cours…';
+  btn.textContent = '⏳ Lecture en cours… (quelques secondes)';
   try {
     const fd = new FormData();
     fd.append('media', file, file.name);
@@ -426,7 +426,7 @@ function renderEditExisting(story, isMember) {
 
       ocrBtn.addEventListener('click', async () => {
         const orig = ocrBtn.textContent;
-        ocrBtn.disabled = true; ocrBtn.textContent = '⏳ Lecture en cours…';
+        ocrBtn.disabled = true; ocrBtn.textContent = '⏳ Lecture en cours… (quelques secondes)';
         try {
           const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/media/ocr`, {
             method: 'POST',
