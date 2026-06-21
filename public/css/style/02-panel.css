@@ -495,9 +495,14 @@ details.new-person .new-person-hint {
    En dessous (tablette portrait + mobile), on garde le bottom-sheet. */
 @media (min-width: 769px) {
   .panel {
+    /* fixed (et non absolute) : centrage réel sur l'ÉCRAN. En absolute le
+       panneau se centrait sur <main> (sous la barre du haut) et son bas
+       dépassait/était rogné sur les écrans peu hauts. */
+    position: fixed;
     top: 50%;
     left: 50%;
     right: auto;
+    bottom: auto;
     height: auto;
     max-height: calc(100vh - 4rem);
     max-height: calc(100dvh - 4rem);
@@ -508,6 +513,7 @@ details.new-person .new-person-hint {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1001;          /* au-dessus des contrôles Leaflet */
   }
   .panel[aria-hidden="false"] {
     transform: translate(-50%, -50%) scale(1);
@@ -525,7 +531,7 @@ details.new-person .new-person-hint {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: 490;
+    z-index: 1000;
     display: none;
   }
   body.panel-open .panel-backdrop { display: block; }
