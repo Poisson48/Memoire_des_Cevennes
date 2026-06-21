@@ -82,15 +82,17 @@
 
     <div id="panel-backdrop" class="panel-backdrop"></div>
     <aside id="panel" class="panel" aria-hidden="true">
-      <div class="panel-zoom" role="group" aria-label="Taille du texte de cette fenêtre">
-        <span class="panel-zoom-label">🔍 Texte</span>
-        <button type="button" id="panel-zoom-out" class="panel-zoom-btn" aria-label="Réduire le texte de cette fenêtre">A−</button>
-        <button type="button" id="panel-zoom-in" class="panel-zoom-btn" aria-label="Agrandir le texte de cette fenêtre">A+</button>
+      <div class="panel-head">
+        <div class="panel-zoom" role="group" aria-label="Taille du texte de cette fenêtre">
+          <span class="panel-zoom-label">🔍 Texte</span>
+          <button type="button" id="panel-zoom-out" class="panel-zoom-btn" aria-label="Réduire le texte de cette fenêtre">A−</button>
+          <button type="button" id="panel-zoom-in" class="panel-zoom-btn" aria-label="Agrandir le texte de cette fenêtre">A+</button>
+        </div>
+        <button class="panel-close" id="panel-close" aria-label="Fermer le panneau">
+          <span aria-hidden="true">×</span>
+          <span class="panel-close-label">Fermer</span>
+        </button>
       </div>
-      <button class="panel-close" id="panel-close" aria-label="Fermer le panneau">
-        <span aria-hidden="true">×</span>
-        <span class="panel-close-label">Fermer</span>
-      </button>
       <div id="panel-content"></div>
     </aside>
 

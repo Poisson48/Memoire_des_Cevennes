@@ -35,10 +35,23 @@ body:has(dialog[open]) .panel[aria-hidden="false"] {
   transform: translateX(100%);
 }
 
+/* En-tête du panneau : zoom à gauche, bouton fermer à droite. Collant pour
+   rester visible au défilement et ne JAMAIS être rogné (l'ancien
+   positionnement absolu se faisait couper quand le contenu débordait). */
+.panel-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: var(--panel-bg);
+  margin: 0 0 0.4rem;
+  padding: 0.2rem 0;
+}
+
 .panel-close {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.6rem;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -488,7 +501,7 @@ details.new-person .new-person-hint {
     height: auto;
     max-height: calc(100vh - 4rem);
     max-height: calc(100dvh - 4rem);
-    width: min(900px, calc(100% - 4rem));
+    width: min(1280px, 80vw);
     border: 1px solid var(--border);
     border-radius: 12px;
     transform: translate(-50%, -50%) scale(0.97);
@@ -522,12 +535,11 @@ details.new-person .new-person-hint {
 /* Backdrop masqué par défaut (visible seulement sur PC, panneau ouvert). */
 .panel-backdrop { display: none; }
 
-/* Barre de zoom de lecture, propre au panneau (en haut à gauche). */
+/* Barre de zoom de lecture, propre au panneau (dans l'en-tête, à gauche). */
 .panel-zoom {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  margin: 0 0 0.4rem;
 }
 .panel-zoom-label { font-size: 0.85rem; color: var(--muted); }
 .panel-zoom-btn {
@@ -543,5 +555,3 @@ details.new-person .new-person-hint {
   line-height: 1;
 }
 .panel-zoom-btn:hover { background: rgba(140, 90, 43, 0.1); }
-/* Laisse la place au bouton Fermer (absolu en haut à droite). */
-.panel-zoom { padding-right: 5rem; }
