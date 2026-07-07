@@ -79,6 +79,38 @@
   }
   /* Le sous-titre prend de la place précieuse sur petit écran. */
   .tagline { display: none; }
+
+  /* ── Accueil sur téléphone : titre réduit, puis « Ajouter un lieu » + Menu
+     + réglage « Texte » (zoom) réunis sur UNE SEULE ligne. ── */
+  .topbar.topbar-home {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3rem 0.4rem;
+  }
+  .topbar-home .topbar-titles {
+    order: -1;
+    flex: 1 1 100%;          /* identité seule sur la 1re ligne */
+    text-align: center;
+  }
+  .topbar-home .topbar-titles h1 { font-size: 0.95rem; line-height: 1.15; }
+  .topbar-home .version-badge { font-size: 0.62em; }
+  .topbar-home .topbar-left,
+  .topbar-home .topbar-actions {
+    width: auto;             /* annule le width:100% : reste sur la même ligne */
+    flex: 0 0 auto;
+    margin: 0;
+    justify-content: center;
+  }
+  .topbar-home .topbar-actions { gap: 0.3rem; flex-wrap: nowrap; }
+  .topbar-home #btn-add-place {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.82rem;
+    min-height: 34px;
+  }
+  .topbar-home .text-size-widget { gap: 0.12rem; }
+
   .topbar-actions {
     width: 100%;
     justify-content: stretch;
