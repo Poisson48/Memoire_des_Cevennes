@@ -96,8 +96,16 @@
   }
 
   async function generate() {
+    // Retour visuel immédiat : la génération (rendu Chromium) prend quelques
+    // secondes, il faut que l'utilisateur voie tout de suite qu'il se passe
+    // quelque chose. Spinner sur le bouton + message d'état bien visible.
+    const label = genBtn.textContent;
     genBtn.disabled = true;
-    statusEl.textContent = 'Génération du PDF… (cela peut prendre quelques secondes)';
+    genBtn.classList.add('is-loading');
+    genBtn.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Génération en cours…';
+    statusEl.hidden = false;
+    statusEl.className = 'livret-status is-working';
+    statusEl.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Génération du PDF en cours… cela peut prendre quelques secondes.';
     try {
       const payload = {
         ...selectionPayload(),
@@ -123,11 +131,15 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
-      statusEl.textContent = 'PDF téléchargé.';
+      statusEl.className = 'livret-status is-done';
+      statusEl.textContent = '✅ PDF téléchargé.';
     } catch (e) {
-      statusEl.textContent = 'Erreur : ' + e.message;
+      statusEl.className = 'livret-status is-error';
+      statusEl.textContent = '⚠️ Erreur : ' + e.message;
     } finally {
       genBtn.disabled = false;
+      genBtn.classList.remove('is-loading');
+      genBtn.textContent = label;
     }
   }
 
