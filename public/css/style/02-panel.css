@@ -44,7 +44,10 @@ body:has(dialog[open]) .panel[aria-hidden="false"] {
   z-index: 3;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* Réglage de taille du texte groupé à DROITE, juste avant « Fermer », pour
+     rester cohérent avec le widget « Texte » du site (dans la barre du haut,
+     lui aussi à droite). */
+  justify-content: flex-end;
   gap: 0.5rem;
   background: var(--panel-bg);
   margin: 0 0 0.4rem;
