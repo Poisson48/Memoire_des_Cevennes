@@ -175,6 +175,7 @@ function renderAuthNav() {
   const logoutBtn  = document.getElementById('btn-member-logout');
   const greeting   = document.getElementById('member-greeting');
   const accountLink = document.getElementById('menu-account');
+  const adminLink  = document.getElementById('menu-admin');
 
   if (!loginBtn || !logoutBtn || !greeting) {
     // Page sans ces hooks (login/register/admin) : rien à faire.
@@ -186,6 +187,7 @@ function renderAuthNav() {
     logoutBtn.hidden = true;
     greeting.hidden  = true;
     if (accountLink) accountLink.hidden = true;
+    if (adminLink) adminLink.hidden = true;
     return;
   }
 
@@ -196,6 +198,8 @@ function renderAuthNav() {
   // est un item dédié « 👤 Mon compte » juste en dessous.
   greeting.textContent = `Connecté·e : ${state.member.name}`;
   if (accountLink) accountLink.hidden = false;
+  // Le lien vers la console d'administration n'apparaît que pour les admins.
+  if (adminLink) adminLink.hidden = !hasRole('admin');
 
   // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
   logoutBtn.onclick = async () => {
@@ -778,6 +782,36 @@ function closeFullTree() {
   const overlay = document.getElementById('tree-overlay');
   if (overlay) overlay.remove();
 }
+
+// Point d'entrée « Arbre généalogique » depuis le menu : l'arbre est toujours
+// centré sur une personne, donc on ouvre celui de la personne la mieux reliée
+// (parents + conjoints + enfants). À défaut de liens familiaux, on prend la
+// première personne disponible.
+function openBestTree() {
+  const people = [...state.people.values()];
+  if (!people.length) {
+    openPanel(`<p class="desc">Aucune personne à afficher pour l'instant.</p>`);
+    return;
+  }
+  const childCount = new Map();
+  people.forEach(p => {
+    (p.parents || []).forEach(par => {
+      childCount.set(par.id, (childCount.get(par.id) || 0) + 1);
+    });
+  });
+  const score = (p) =>
+    (p.parents || []).length + (p.spouses || []).length + (childCount.get(p.id) || 0);
+  let best = people[0];
+  let bestScore = score(best);
+  for (const p of people) {
+    const s = score(p);
+    if (s > bestScore) { best = p; bestScore = s; }
+  }
+  navigateTo('arbre', best.id);
+}
+
+const treeMenuBtn = document.getElementById('menu-tree');
+if (treeMenuBtn) treeMenuBtn.addEventListener('click', openBestTree);
 
 function openStoryFocus(storyId) {
   const story = state.stories.find(s => s.id === storyId);
