@@ -23,10 +23,17 @@
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
     transform: translateY(100%);
-    padding-top:    1.1rem;
+  }
+  /* Le contenu défile (pas la coque) : les marges de sécurité vont sur la
+     zone de défilement et l'en-tête, pas sur le panneau. */
+  #panel-content {
     padding-right:  max(1rem, env(safe-area-inset-right));
     padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 1.5rem));
     padding-left:   max(1rem, env(safe-area-inset-left));
+  }
+  .panel-head {
+    padding-left:  max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
   .panel[aria-hidden="false"] {
     transform: translateY(0);
@@ -38,7 +45,7 @@
     height: 4px;
     background: var(--border);
     border-radius: 2px;
-    margin: -0.6rem auto 0.6rem;
+    margin: 0.5rem auto 0.2rem;
   }
   body.panel-open #map {
     filter: brightness(0.92);
@@ -104,23 +111,19 @@
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
     transform: translateY(100%);
-    padding-top:    1.1rem;
-    padding-right:  max(1rem, env(safe-area-inset-right));
-    padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 1.5rem));
-    padding-left:   max(1rem, env(safe-area-inset-left));
   }
   .panel[aria-hidden="false"] {
     transform: translateY(0);
   }
   .panel::before {
-    /* petite barre de "drag" visuelle */
+    /* petite barre de "drag" visuelle, tout en haut du bottom-sheet */
     content: '';
     display: block;
     width: 42px;
     height: 4px;
     background: var(--border);
     border-radius: 2px;
-    margin: -0.6rem auto 0.6rem;
+    margin: 0.5rem auto 0.2rem;
   }
   /* Bouton Fermer bien visible sur mobile (le back Android n'est pas
      toujours évident, surtout sur les surfaces plein écran). */

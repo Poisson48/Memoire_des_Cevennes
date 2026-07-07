@@ -71,6 +71,13 @@ body {
   align-items: center;
   gap: 0.6rem;
   flex-wrap: wrap;
+  /* Toujours collé à droite, y compris quand le titre est long et que le bloc
+     passe sur sa propre ligne : sans ça, le justify-content:space-between du
+     .topbar renvoie les actions à gauche sur la 2e ligne. margin-left:auto
+     absorbe l'espace libre à gauche ; justify-content:flex-end garde le
+     réglage « Texte » bien à droite si les actions se réenroulent. */
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .banner {
