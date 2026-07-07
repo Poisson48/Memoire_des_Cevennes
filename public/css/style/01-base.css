@@ -90,12 +90,17 @@ body {
   justify-self: end;
   margin-left: 0;
 }
-/* Numéro de version : sur sa propre ligne, entre le titre et l'accroche. */
+/* « Ajouter un lieu » : format compact (comme avant), pas un gros bouton. */
+.topbar-home #btn-add-place {
+  padding: 0.35rem 0.75rem;
+  min-height: 36px;
+  font-size: 0.9rem;
+}
+/* Numéro de version : sur sa propre ligne, entre le titre et l'accroche.
+   On conserve la pastille blanc-sur-marron définie dans legal.css : on ne
+   touche qu'à la marge pour la centrer (au lieu de la coller au titre). */
 .topbar-home .version-badge {
-  display: inline-block;
-  margin: 0.1rem 0;
-  font-size: 0.8rem;
-  color: var(--accent-dark);
+  margin: 0.15rem 0;
 }
 
 .topbar-actions {
