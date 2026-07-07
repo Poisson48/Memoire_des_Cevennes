@@ -41,6 +41,17 @@ function hasRole(minRole) {
   return ROLES_ORDER.indexOf(role) >= ROLES_ORDER.indexOf(need);
 }
 
+// ─── Cache client des tuiles de carte ─────────────────────────────────────
+// Un petit service worker (public/sw.js) met en cache les tuiles OSM / IGN
+// côté navigateur : re-visites et déplacements plus rapides, moins de charge
+// sur les serveurs de tuiles. Sans effet si le navigateur refuse le SW
+// (accès HTTP non sécurisé) : on ignore silencieusement l'échec.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
 // ─── Carte ──────────────────────────────────────────────────────────────
 // maxZoom à 22 : permet à l'utilisateur de zoomer au-delà de la résolution
 // native des tuiles (Leaflet upscale les tuiles natives, ça devient flou
@@ -489,16 +500,11 @@ function openPanel(html) {
 }
 
 // ─── Synthèse vocale (accessibilité) ───────────────────────────────────
-// En mode live, on lit l'audio Piper du serveur (voix FR de qualité, texte
-// déjà adapté à l'audience). En mode statique (GitHub Pages) ou si le
-// serveur n'a pas Piper, on bascule sur la synthèse du navigateur.
-let ttsServerAvailable = null;     // null = pas encore sondé
-let currentTtsAudio = null;
+// Lecture 100% côté client via la synthèse vocale du navigateur (Web Speech
+// API). On n'appelle plus l'audio Piper du serveur : ça évite de solliciter
+// son CPU à chaque écoute. Le corps des récits est déjà filtré par audience
+// côté serveur (GET /api/stories), donc aucun passage masqué ne fuite ici.
 let currentTtsBtn = null;
-
-fetch('/api/tts/status').then(r => r.json()).then(d => {
-  ttsServerAvailable = !!(d && d.available);
-}).catch(() => { ttsServerAvailable = false; });
 
 // Nettoie le texte pour la lecture vocale (mêmes règles que src/tts.js) :
 // pas d'astérisques, de parenthèses ni de guillemets prononcés.
@@ -519,7 +525,6 @@ function cleanForSpeech(text) {
 }
 
 function stopListening() {
-  if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   if (currentTtsBtn) {
     currentTtsBtn.classList.remove('playing');
@@ -543,23 +548,10 @@ function toggleListen(btn) {
   const kind = btn.dataset.listenKind || 'story';
   const id = btn.dataset.listenId;
   if (!id) return;
-
-  if (state.mode === 'live' && ttsServerAvailable !== false) {
-    const audio = new Audio(`/api/tts/${kind}/${encodeURIComponent(id)}`);
-    currentTtsAudio = audio;
-    markPlaying(btn);
-    audio.addEventListener('ended', stopListening);
-    audio.addEventListener('error', () => {
-      // Repli navigateur si le serveur échoue malgré tout.
-      if (currentTtsBtn === btn) { speakInBrowser(kind, id, btn); }
-    });
-    audio.play().catch(() => speakInBrowser(kind, id, btn));
-  } else {
-    speakInBrowser(kind, id, btn);
-  }
+  speakInBrowser(kind, id, btn);
 }
 
-// Texte brut à lire selon le type d'entité (pour le repli navigateur).
+// Texte brut à lire selon le type d'entité.
 function listenTextFor(kind, id) {
   if (kind === 'place') {
     const p = state.places.get(id);
@@ -573,9 +565,8 @@ function listenTextFor(kind, id) {
   return s ? (s.title ? s.title + '. ' : '') + String(s.body || '').replace(/<[^>]+>/g, '') : '';
 }
 
-// Repli : synthèse vocale du navigateur (Web Speech API), 100% local.
+// Lecture via la synthèse vocale du navigateur (Web Speech API), 100% local.
 function speakInBrowser(kind, id, btn) {
-  if (currentTtsAudio) { currentTtsAudio.pause(); currentTtsAudio = null; }
   if (!window.speechSynthesis) { alert('La lecture vocale n’est pas disponible sur ce navigateur.'); return; }
   const text = cleanForSpeech(listenTextFor(kind, id));
   if (!text) return;

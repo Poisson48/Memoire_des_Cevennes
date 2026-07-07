@@ -224,9 +224,10 @@
           errEl.hidden = false;
           return;
         }
-        okEl.textContent = 'Compte créé ! Votre accès sera activé après validation par un administrateur. Vous pourrez ensuite vous connecter avec l\'adresse et le mot de passe que vous venez de choisir.';
-        okEl.hidden = false;
+        // Compte créé : on redirige vers la page de connexion, qui affiche un
+        // message bien visible expliquant que l'accès doit être validé.
         e.target.reset();
+        window.location.href = 'login.html?inscrit=1';
       } catch {
         errEl.textContent = 'Impossible de joindre le serveur.';
         errEl.hidden = false;

@@ -165,10 +165,13 @@ attendus déjà installés sur la machine.
   contributeur relit, peut insérer dans le récit, et le texte est stocké sur
   le média (`mediaFiles[].ocrText`, cf. `normMediaFile` dans `schema.js`,
   parsé dans `routes/stories.js` en parallèle de `captions[]`).
-- **TTS** (`src/tts.js`, `GET /api/tts/story/:id`) : Piper → WAV → MP3
-  (ffmpeg), cache disque `uploads/tts/` clé = sha256(texte+voix). Bouton
-  « 🔊 Écouter » sur chaque récit (`app.js`). En mode statique (GitHub
-  Pages) ou si Piper absent : repli sur l'API Web Speech du navigateur.
+- **TTS** : la lecture « 🔊 Écouter » (sur chaque récit / lieu / personne,
+  `app.js`) se fait **100% côté client** via l'API Web Speech du navigateur,
+  pour ne pas solliciter le CPU serveur. Le corps des récits étant déjà
+  filtré par audience côté serveur (`GET /api/stories`), rien de masqué ne
+  fuit. La voie serveur Piper (`src/tts.js`, `GET /api/tts/story/:id` :
+  Piper → WAV → MP3 ffmpeg, cache `uploads/tts/`) reste en place mais
+  **n'est plus appelée** par le front.
 - **Livret PDF** (`src/livret.js`, `routes/livret.js`, page
   `public/livret.html`) : on coche des lieux/personnes (alias affichés),
   `POST /api/livret/preview` donne le compte, `POST /api/livret` génère le

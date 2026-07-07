@@ -150,17 +150,53 @@ ${sections || '<p class="vide">Aucun récit ne correspond aux sujets choisis.</p
 }
 
 // ── Rendu PDF via Playwright (instance partagee + verrou) ─────────────────
+// Repli navigateur : apres une mise a jour de Playwright, le Chromium
+// vendorise change de revision et n'est pas forcement re-telecharge (le
+// binaire manque alors dans ~/.cache/ms-playwright). Plutot que de casser la
+// generation de PDF, on retombe sur un Chromium systeme via executablePath.
+const CHROMIUM_CANDIDATES = [
+  process.env.PLAYWRIGHT_CHROMIUM_PATH,
+  process.env.CHROMIUM_PATH,
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+  '/snap/bin/chromium',
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/google-chrome',
+].filter(Boolean);
+
+async function launchChromium() {
+  const { chromium } = require('playwright');
+  const base = { headless: true, args: ['--no-sandbox'] };
+  // 1. Chromium fourni par Playwright (meilleure fidelite s'il est installe).
+  try {
+    return await chromium.launch(base);
+  } catch (bundledErr) {
+    // 2. Repli : premier Chromium systeme disponible.
+    for (const executablePath of CHROMIUM_CANDIDATES) {
+      try {
+        if (!fs.existsSync(executablePath)) continue;
+        return await chromium.launch({ ...base, executablePath });
+      } catch { /* candidat suivant */ }
+    }
+    // Aucun repli n'a fonctionne : on remonte l'erreur d'origine (message clair).
+    throw bundledErr;
+  }
+}
+
 let browserPromise = null;
 let chainTail = Promise.resolve(); // serialise les rendus (Chromium lourd)
 
 async function getBrowser() {
-  const { chromium } = require('playwright');
-  if (!browserPromise) {
-    browserPromise = chromium.launch({ headless: true, args: ['--no-sandbox'] });
+  if (!browserPromise) browserPromise = launchChromium();
+  let browser;
+  try {
+    browser = await browserPromise;
+  } catch (e) {
+    browserPromise = null; // laisse une chance a la prochaine demande
+    throw e;
   }
-  let browser = await browserPromise;
   if (!browser.isConnected()) {
-    browserPromise = chromium.launch({ headless: true, args: ['--no-sandbox'] });
+    browserPromise = launchChromium();
     browser = await browserPromise;
   }
   return browser;

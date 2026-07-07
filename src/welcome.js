@@ -22,11 +22,13 @@ Cette carte vivante rassemble les **lieux**, les **personnes** et les **histoire
 
 - 📍 **Explore la carte** : clique sur les pastilles pour découvrir lieux et récits.
 - 📖 **Lis les fiches** : chaque lieu peut contenir des photos, des audios, des témoignages.
-- ✍️ **Contribue** : crée un compte pour ajouter tes propres souvenirs (modérés par l'association).
+- ✍️ **Contribue** : ajoute tes propres souvenirs, photos et témoignages (modérés par l'association).
 
 ## Rejoindre l'aventure
 
-Pour aller plus loin, [crée un compte membre](register.html) ou [consulte le tutoriel](aide.html).
+Pour ajouter tes souvenirs, [crée un compte membre](register.html) (validé par l'association).
+
+Besoin d'un coup de main ? [Consulte le tutoriel](aide.html).
 
 *Bonne visite !*
 `;

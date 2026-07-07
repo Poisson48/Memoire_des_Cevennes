@@ -94,6 +94,36 @@
       margin: 0 0 1rem;
       font-size: 0.92rem;
     }
+    /* Message bien visible après une inscription (validation admin à venir). */
+    .auth-notice {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      background: #e8f5e9;
+      color: #14401a;
+      border: 2px solid #66bb6a;
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      margin: 0 0 1.4rem;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.15);
+    }
+    .auth-notice-icon { font-size: 1.7rem; line-height: 1.1; flex-shrink: 0; }
+    .auth-notice-body strong { color: #14401a; }
+    .auth-notice-body > strong {
+      display: block;
+      font-size: 1.15rem;
+      margin-bottom: 0.35rem;
+    }
+    .auth-notice-body p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    @media (min-width: 720px) {
+      .auth-notice-body > strong { font-size: 1.3rem; }
+      .auth-notice-body p { font-size: 1.1rem; }
+      .auth-notice-icon { font-size: 2rem; }
+    }
     .auth-sep {
       border: none;
       border-top: 1px solid var(--border);
@@ -123,6 +153,17 @@
   <main class="auth-main">
     <div class="auth-card">
       <h2>Espace membre</h2>
+      <div id="auth-notice" class="auth-notice" hidden>
+        <span class="auth-notice-icon" aria-hidden="true">✅</span>
+        <div class="auth-notice-body">
+          <strong>Votre compte a bien été créé&nbsp;!</strong>
+          <p>
+            Votre inscription doit d'abord être <strong>validée par un administrateur</strong>.
+            Une fois validée, connectez-vous ci-dessous avec l'adresse e-mail et le
+            mot de passe que vous venez de choisir.
+          </p>
+        </div>
+      </div>
       <p class="auth-intro">
         Connecte-toi pour consulter le contenu réservé aux membres et contribuer aux récits.
       </p>
@@ -162,6 +203,17 @@
   <script src="js/site-config.js"></script>
 
   <script>
+    // Arrivée depuis l'inscription : afficher le message de validation et
+    // nettoyer l'URL pour ne pas le ré-afficher après un rechargement.
+    if (new URLSearchParams(location.search).get('inscrit') === '1') {
+      const notice = document.getElementById('auth-notice');
+      if (notice) {
+        notice.hidden = false;
+        notice.scrollIntoView({ block: 'nearest' });
+      }
+      history.replaceState(null, '', location.pathname);
+    }
+
     document.getElementById('form-login').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errEl = document.getElementById('auth-error');

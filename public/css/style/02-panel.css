@@ -503,10 +503,12 @@ details.new-person .new-person-hint {
     left: 50%;
     right: auto;
     bottom: auto;
+    /* Fenêtre qui occupe quasiment tout l'écran, tout en s'adaptant à sa
+       taille : large sur grand moniteur, presque plein cadre sur laptop. */
     height: auto;
-    max-height: calc(100vh - 4rem);
-    max-height: calc(100dvh - 4rem);
-    width: min(1280px, 80vw);
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    width: min(1600px, 95vw);
     border: 1px solid var(--border);
     border-radius: 12px;
     transform: translate(-50%, -50%) scale(0.97);
