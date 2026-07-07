@@ -66,6 +66,38 @@ body {
   font-size: 0.95rem;
 }
 
+/* ── Barre du haut de l'ACCUEIL : 3 zones ──────────────────────────────
+   Action à gauche (« Ajouter un lieu »), identité centrée (titre, version,
+   accroche), Menu à droite. grid 1fr auto 1fr => le bloc central reste
+   VRAIMENT centré quel que soit le contenu des côtés. Scopé à .topbar-home
+   pour ne pas toucher les autres pages (login, livret…). */
+.topbar.topbar-home {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+.topbar-home .topbar-left {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.topbar-home .topbar-titles {
+  justify-self: center;
+  text-align: center;
+}
+.topbar-home .topbar-actions {
+  justify-self: end;
+  margin-left: 0;
+}
+/* Numéro de version : sur sa propre ligne, entre le titre et l'accroche. */
+.topbar-home .version-badge {
+  display: inline-block;
+  margin: 0.1rem 0;
+  font-size: 0.8rem;
+  color: var(--accent-dark);
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;

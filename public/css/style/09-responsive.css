@@ -3,6 +3,18 @@
   .topbar { padding: 0.6rem 0.9rem; }
   .topbar-titles h1 { font-size: 1.2rem; }
   .tagline { font-size: 0.88rem; }
+
+  /* Accueil : plus assez large pour 3 colonnes => on empile, centré, avec
+     l'identité (titre/version/accroche) en premier. */
+  .topbar.topbar-home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .topbar-home .topbar-titles { order: -1; }
+  .topbar-home .topbar-left,
+  .topbar-home .topbar-actions { justify-self: auto; }
 }
 
 /* ── Panneau bottom-sheet : tablette portrait + mobile ─────── */
