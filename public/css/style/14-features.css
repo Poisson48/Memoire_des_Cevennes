@@ -1,5 +1,32 @@
 /* Fonctionnalites : OCR a l'import, lecture vocale, anonymisation. */
 
+/* ── Champ mot de passe avec bouton « Voir / Masquer » ─────────────── */
+.pw-wrap {
+  position: relative;
+  display: block;
+}
+.pw-wrap input {
+  width: 100%;
+  padding-right: 6.2rem;   /* place pour le bouton */
+}
+.pw-toggle {
+  position: absolute;
+  right: .35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid var(--border, #d9cfbd);
+  background: var(--panel-bg, #fbf7ef);
+  color: var(--accent-dark, #6a4420);
+  border-radius: 6px;
+  padding: .25rem .5rem;
+  font-size: .82rem;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pw-toggle:hover { background: rgba(140, 90, 43, .12); }
+.pw-toggle:focus-visible { outline: 2px solid var(--accent, #8c5a2b); outline-offset: 1px; }
+
 /* ── OCR dans le dialogue d'import ─────────────────────────────────── */
 .ocr-wrap {
   margin-top: .4rem;

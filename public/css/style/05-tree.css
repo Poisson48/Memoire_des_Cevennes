@@ -102,6 +102,63 @@
 .tree-overlay-title strong {
   color: var(--fg);
 }
+.tree-search {
+  position: relative;
+  flex: 0 1 260px;
+}
+.tree-search-input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.tree-search-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.tree-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 10;
+}
+.tree-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tree-search-item:hover,
+.tree-search-item.active {
+  background: rgba(140, 90, 43, 0.12);
+}
+.tree-search-badge {
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tree-search-empty {
+  padding: 0.5rem 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
 .tree-overlay-close {
   display: inline-flex;
   align-items: center;
@@ -137,6 +194,10 @@
   .tree-overlay-title {
     flex: 1 0 100%;
     font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  .tree-search {
+    flex: 1 1 100%;
     margin-bottom: 0.3rem;
   }
 }

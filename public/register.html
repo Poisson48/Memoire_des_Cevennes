@@ -153,7 +153,11 @@
         </label>
         <label>Mot de passe
           <input type="password" name="password" required autocomplete="new-password" minlength="8" />
-          <span class="hint">8 caractères minimum.</span>
+          <span class="hint">8 caractères minimum. Clique « 👁 Voir » pour vérifier ta saisie.</span>
+        </label>
+        <label>Confirmer le mot de passe
+          <input type="password" name="password2" required autocomplete="new-password" minlength="8" />
+          <span class="hint">Retape le même mot de passe pour éviter toute faute de frappe.</span>
         </label>
         <div class="consent-row">
           <input type="checkbox" id="consent" name="consentGiven" required />
@@ -185,6 +189,7 @@
   </footer>
   <script src="js/version.js"></script>
   <script src="js/site-config.js"></script>
+  <script src="js/password-toggle.js"></script>
 
   <script>
     document.getElementById('form-register').addEventListener('submit', async (e) => {
@@ -199,6 +204,12 @@
 
       if (!consentGiven) {
         errEl.textContent = 'Vous devez accepter les conditions pour vous inscrire.';
+        errEl.hidden = false;
+        return;
+      }
+
+      if (fd.get('password') !== fd.get('password2')) {
+        errEl.textContent = 'Les deux mots de passe ne correspondent pas.';
         errEl.hidden = false;
         return;
       }

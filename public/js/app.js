@@ -748,7 +748,13 @@ function openFullTree(personId) {
     overlay.innerHTML = `
       <div class="tree-overlay-head">
         <div class="tree-overlay-title"></div>
-        <button type="button" class="btn-ghost tree-overlay-back">← Retour à la fiche</button>
+        <div class="tree-search">
+          <input type="search" class="tree-search-input" autocomplete="off"
+                 placeholder="Chercher une personne…"
+                 aria-label="Chercher une personne à afficher dans l'arbre" />
+          <ul class="tree-search-results" role="listbox" hidden></ul>
+        </div>
+        <button type="button" class="btn-ghost tree-overlay-back">👤 Voir la fiche</button>
         <button type="button" class="btn-ghost tree-overlay-close" aria-label="Fermer l'arbre">
           <span aria-hidden="true">×</span>
           <span class="close-label">Fermer</span>
@@ -765,10 +771,13 @@ function openFullTree(personId) {
     overlay.querySelector('.tree-overlay-back').addEventListener('click', () => {
       navigateTo('personne', overlay.dataset.personId);
     });
+    wireTreeSearch(overlay);
   }
   overlay.dataset.personId = personId;
   overlay.querySelector('.tree-overlay-title').innerHTML =
     `🌳 <strong>${escapeHtml(person.primaryName)}</strong> : arbre généalogique`;
+  const searchInput = overlay.querySelector('.tree-search-input');
+  if (searchInput) { searchInput.value = ''; }
   const body = overlay.querySelector('.tree-overlay-body');
   if (window.FamilyTree) {
     FamilyTree.render(body, personId, state.people, {
@@ -776,6 +785,89 @@ function openFullTree(personId) {
       onNavigate: (id) => navigateTo('arbre', id),
     });
   }
+}
+
+// Barre de recherche de l'arbre. Comme les familles peuvent être déconnectées
+// les unes des autres, c'est le moyen de passer de l'une à l'autre (et
+// d'atteindre n'importe qui) depuis l'entrée « menu ». Filtre sur le nom et les
+// alias, priorise les personnes qui ont déjà de la parenté, navigation clavier.
+function wireTreeSearch(overlay) {
+  const input = overlay.querySelector('.tree-search-input');
+  const list  = overlay.querySelector('.tree-search-results');
+  if (!input || !list) return;
+  let active = -1;
+
+  function familyMap() {
+    const childCount = new Map();
+    state.people.forEach(p => (p.parents || []).forEach(par => {
+      childCount.set(par.id, (childCount.get(par.id) || 0) + 1);
+    }));
+    return childCount;
+  }
+
+  function matches(q) {
+    const norm = (s) => (s || '').toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const nq = norm(q);
+    const childCount = familyMap();
+    const hasFam = (p) =>
+      (p.parents || []).length || (p.spouses || []).length || (childCount.get(p.id) || 0);
+    const people = [...state.people.values()].filter(p => {
+      if (!nq) return true;
+      const names = [p.primaryName, p.maidenName, ...((p.aliases || []).map(a => a.name))];
+      return names.some(n => norm(n).includes(nq));
+    });
+    // Parenté d'abord, puis ordre alphabétique.
+    people.sort((a, b) => {
+      const fa = hasFam(a) ? 0 : 1, fb = hasFam(b) ? 0 : 1;
+      if (fa !== fb) return fa - fb;
+      return a.primaryName.localeCompare(b.primaryName, 'fr');
+    });
+    return { people: people.slice(0, 12), hasFam };
+  }
+
+  function render() {
+    const { people, hasFam } = matches(input.value.trim());
+    if (!people.length) {
+      list.innerHTML = `<li class="tree-search-empty" aria-disabled="true">Aucune personne trouvée</li>`;
+      list.hidden = false;
+      active = -1;
+      return;
+    }
+    list.innerHTML = people.map((p, i) => `
+      <li role="option" data-id="${escapeAttr(p.id)}" class="tree-search-item${i === active ? ' active' : ''}">
+        <span class="tree-search-name">${escapeHtml(p.primaryName)}</span>
+        ${hasFam(p) ? '<span class="tree-search-badge">🌿 parenté</span>' : ''}
+      </li>
+    `).join('');
+    list.hidden = false;
+  }
+
+  function choose(id) {
+    if (!id) return;
+    list.hidden = true;
+    input.value = '';
+    navigateTo('arbre', id);
+  }
+
+  input.addEventListener('input', () => { active = -1; render(); });
+  input.addEventListener('focus', render);
+  input.addEventListener('keydown', (e) => {
+    const items = Array.from(list.querySelectorAll('.tree-search-item'));
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, items.length - 1); render(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); render(); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const pick = items[active] || items[0];
+      if (pick) choose(pick.dataset.id);
+    } else if (e.key === 'Escape') { list.hidden = true; input.blur(); }
+  });
+  list.addEventListener('mousedown', (e) => {
+    // mousedown (pas click) pour devancer le blur de l'input.
+    const li = e.target.closest('.tree-search-item');
+    if (li) { e.preventDefault(); choose(li.dataset.id); }
+  });
+  input.addEventListener('blur', () => { setTimeout(() => { list.hidden = true; }, 120); });
 }
 
 function closeFullTree() {
