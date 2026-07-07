@@ -247,20 +247,33 @@
       <nav class="tuto-toc">
         <strong>Au programme :</strong>
         <ul>
-          <li><a href="#guest-decouvrir">1. Découvrir la carte</a></li>
+          <li><a href="#guest-decouvrir">1. Découvrir la carte et le menu</a></li>
           <li><a href="#guest-couches">2. Voyager dans le temps : cartes anciennes et cadastre</a></li>
           <li><a href="#guest-fiches">3. Lire une fiche de lieu ou de personne</a></li>
-          <li><a href="#guest-inscrire">4. M'inscrire pour aller plus loin</a></li>
-          <li><a href="#guest-signaler">5. Signaler un contenu</a></li>
+          <li><a href="#guest-ecouter">4. Écouter une fiche à voix haute</a></li>
+          <li><a href="#guest-photos">5. Regarder les photos en grand</a></li>
+          <li><a href="#guest-arbre">6. Explorer l'arbre généalogique</a></li>
+          <li><a href="#guest-livret">7. Fabriquer un livret PDF à imprimer</a></li>
+          <li><a href="#guest-partager">8. Partager un lieu ou une personne</a></li>
+          <li><a href="#guest-inscrire">9. M'inscrire pour aller plus loin</a></li>
+          <li><a href="#guest-signaler">10. Signaler un contenu</a></li>
         </ul>
       </nav>
 
-      <h3 id="guest-decouvrir">1. Découvrir la carte</h3>
+      <h3 id="guest-decouvrir">1. Découvrir la carte et le menu</h3>
       <p>
         À l'arrivée sur la <a href="index.html">page d'accueil</a>, tu vois la
         carte centrée sur Saint-Roman-de-Codières. Chaque pin est un lieu
         contenant un ou plusieurs récits.
       </p>
+      <div class="step tip">
+        <strong>Le menu <code>☰ Menu</code></strong> (en haut à droite) regroupe
+        tous les accès secondaires : l'<strong>arbre généalogique</strong>, le
+        <strong>livret à imprimer</strong>, le tutoriel et la
+        <strong>connexion membre</strong>. Une fois connecté·e, il affiche en
+        plus <em>« Mon compte »</em> (et, pour les administrateurs, un accès
+        direct à l'espace d'administration).
+      </div>
       <figure class="shot">
         <picture>
           <source media="(max-width: 768px)" srcset="screenshots/01-home-anonyme-mobile.png" />
@@ -337,13 +350,75 @@
       <div class="step warn">
         Les fiches de personnes vivantes ne sont <strong>jamais</strong>
         visibles sans être connecté·e : c'est volontaire pour respecter la vie
-        privée.
+        privée. Certains passages de récits peuvent aussi être
+        <strong>masqués ou anonymisés</strong> selon ton statut : tu ne verras
+        alors qu'une version expurgée, le reste s'ouvre en te connectant.
       </div>
 
-      <h3 id="guest-inscrire">4. M'inscrire pour aller plus loin</h3>
+      <h3 id="guest-ecouter">4. Écouter une fiche à voix haute</h3>
+      <p>
+        Sur chaque lieu, chaque personne et chaque récit, un bouton
+        <strong>🔊 Écouter</strong> lit le texte à voix haute. Pratique pour
+        les longues transcriptions, pour reposer les yeux, ou pour les
+        personnes qui lisent moins facilement.
+      </p>
+      <div class="step tip">
+        La lecture se fait <strong>directement dans ton navigateur</strong>
+        (aucun envoi vers un serveur). Reclique sur le bouton pour mettre en
+        pause. La qualité de la voix dépend de ton appareil.
+      </div>
+
+      <h3 id="guest-photos">5. Regarder les photos en grand</h3>
+      <p>
+        Clique une photo, une vidéo ou un enregistrement dans un récit : il
+        s'ouvre en <strong>plein écran</strong>. Tu peux zoomer dans l'image
+        sans zoomer toute la page, et passer d'un média à l'autre avec les
+        flèches quand un récit en contient plusieurs.
+      </p>
+
+      <h3 id="guest-arbre">6. Explorer l'arbre généalogique</h3>
+      <p>
+        Depuis le <code>☰ Menu</code>, l'entrée
+        <strong>🌳 Arbre généalogique</strong> ouvre un arbre de parenté
+        (parents, conjoints, fratrie, enfants). Depuis la fiche d'une personne,
+        le lien <em>« → Voir l'arbre en grand »</em> recentre l'arbre sur elle.
+        Chaque carte est cliquable pour se déplacer de proche en proche.
+      </p>
+      <figure class="shot">
+        <img src="screenshots/04-full-tree-desktop.png" alt="Arbre généalogique en plein écran" />
+        <figcaption>L'arbre généalogique en plein écran, centré sur une personne.</figcaption>
+      </figure>
+      <div class="step">
+        L'arbre respecte lui aussi ta visibilité : selon ton statut (visiteur,
+        membre, admin), certaines personnes ou certains détails restent
+        masqués.
+      </div>
+
+      <h3 id="guest-livret">7. Fabriquer un livret PDF à imprimer</h3>
+      <p>
+        L'entrée <strong>📖 Livret à imprimer</strong> du menu ouvre une page
+        où tu coches les lieux et les personnes qui t'intéressent, puis génères
+        un <strong>livret PDF</strong> prêt à imprimer (avec les photos). Idéal
+        pour offrir, archiver sur papier, ou lire hors ligne.
+      </p>
+      <div class="step tip">
+        Le PDF ne contient que ce que tu as le droit de voir : en visiteur, le
+        livret reprend uniquement les contenus publics.
+      </div>
+
+      <h3 id="guest-partager">8. Partager un lieu ou une personne</h3>
+      <p>
+        Sur une fiche, le bouton <strong>📤 Partager</strong> te donne un lien
+        copiable et un <strong>QR code</strong> téléchargeable qui pointent
+        droit sur cette fiche. Parfait pour envoyer un lieu précis à quelqu'un
+        ou l'imprimer à côté d'une photo.
+      </p>
+
+      <h3 id="guest-inscrire">9. M'inscrire pour aller plus loin</h3>
       <p>
         Pour voir le contenu réservé aux membres et éventuellement
-        contribuer, clique sur <strong>Connexion membre</strong> en haut, puis
+        contribuer, ouvre le <code>☰ Menu</code> puis
+        <strong>Connexion membre</strong>, et enfin
         <em>« Pas encore de compte ? S'inscrire »</em>.
       </p>
       <figure class="shot">
@@ -364,7 +439,7 @@
         personnes, récits : chaque création passe par la file de modération).
       </div>
 
-      <h3 id="guest-signaler">5. Signaler un contenu</h3>
+      <h3 id="guest-signaler">10. Signaler un contenu</h3>
       <p>
         Si un contenu te concerne et qu'il pose un problème (vie privée, droit
         d'auteur, image), va sur la
@@ -400,11 +475,14 @@
           <li><a href="#member-cle-acces">1. Première connexion avec ma clé d'accès</a></li>
           <li><a href="#member-connecte">2. Ma session connectée</a></li>
           <li><a href="#member-ajouter-lieu">3. Ajouter un lieu</a></li>
-          <li><a href="#member-recit">4. Ajouter un récit</a></li>
-          <li><a href="#member-mentions">5. Mentionner @quelqu'un</a></li>
-          <li><a href="#member-proposer">6. Proposer une modification</a></li>
-          <li><a href="#member-visibilites">7. Choisir la visibilité</a></li>
-          <li><a href="#member-droits">8. Mes droits (RGPD)</a></li>
+          <li><a href="#member-recit">4. Ajouter un récit (type, date, conteur)</a></li>
+          <li><a href="#member-ocr">5. Extraire le texte d'une image (OCR)</a></li>
+          <li><a href="#member-mentions">6. Mentionner @quelqu'un</a></li>
+          <li><a href="#member-liens">7. Mettre en forme et lier vers l'extérieur</a></li>
+          <li><a href="#member-proposer">8. Proposer une modification</a></li>
+          <li><a href="#member-anonymiser">9. Anonymiser ou censurer un passage</a></li>
+          <li><a href="#member-visibilites">10. Choisir la visibilité</a></li>
+          <li><a href="#member-droits">11. Mes droits (RGPD)</a></li>
         </ul>
       </nav>
 
@@ -507,8 +585,23 @@
       <ol>
         <li>Ouvre le panneau d'un lieu en cliquant sur son marqueur.</li>
         <li>Bouton <strong>« + Ajouter un récit »</strong> en bas du panneau.</li>
-        <li>Choisis le type (texte, photo, audio, vidéo, dessin, note).</li>
+        <li>
+          Choisis le <strong>type de contenu</strong> en cliquant une carte :
+          <em>Texte</em>, <em>Image</em> (photo, dessin, scan), <em>Audio</em>
+          ou <em>Vidéo</em>.
+        </li>
+        <li>
+          Indique <strong>« Quand ça se passe ? »</strong> si tu le sais (une
+          année, une décennie, « années 60 »… c'est facultatif mais précieux
+          pour situer le souvenir dans le temps).
+        </li>
         <li>Rédige ton récit : utilise <code>@</code> pour mentionner une personne ou un lieu.</li>
+        <li>
+          Renseigne <strong>« Qui raconte cette histoire ? »</strong> : le nom
+          complet du conteur ou de la conteuse (prénom <em>et</em> nom). Ce
+          n'est pas forcément toi : tu peux recueillir le récit de quelqu'un
+          d'autre.
+        </li>
         <li>Joins un fichier média si tu veux (audio enregistré dans le navigateur, par exemple).</li>
       </ol>
       <figure class="shot">
@@ -516,13 +609,43 @@
         <figcaption>Le dialog d'ajout de récit, ici avec l'enregistreur audio.</figcaption>
       </figure>
       <div class="step tip">
+        <strong>Brouillon automatique :</strong> ce que tu tapes est sauvegardé
+        dans ton navigateur. Si tu fermes la fenêtre par erreur, un bandeau te
+        propose de <em>reprendre ton brouillon</em> la prochaine fois.
+      </div>
+      <div class="step tip">
+        <strong>Plusieurs médias :</strong> tu peux joindre plusieurs photos ou
+        fichiers à un même récit, et en retirer un par un avant d'envoyer.
+      </div>
+      <div class="step tip">
         <strong>Compléter un récit existant :</strong> le bouton
         <em>« ➕ Compléter »</em> sous chaque récit ajoute un chapitre qui
         s'attache au récit d'origine : utile pour préciser, corriger, ou ajouter
         une perspective complémentaire.
       </div>
 
-      <h3 id="member-mentions">5. Mentionner <code>@</code>quelqu'un</h3>
+      <h3 id="member-ocr">5. Extraire le texte d'une image (OCR)</h3>
+      <p>
+        Tu numérises une lettre, une carte postale, une page de cahier ? Quand
+        tu joins une <strong>image</strong> à un récit, un bouton
+        <strong>🔎 Extraire le texte (OCR)</strong> apparaît sous cette image.
+        Il lit le texte manuscrit ou imprimé et te le propose : tu le
+        <strong>relis, corriges</strong>, puis tu l'insères dans le récit d'un
+        clic.
+      </p>
+      <div class="step">
+        L'OCR tourne <strong>sur le serveur du projet</strong> (rien n'est
+        envoyé à un service tiers). Relis toujours le résultat : l'écriture
+        ancienne ou pâle peut donner des erreurs. Tu peux
+        <em>🔁 Relancer l'OCR</em> si besoin.
+      </div>
+      <div class="step tip">
+        Ça marche aussi <strong>après coup</strong> : en modifiant un récit qui
+        contient déjà des images, tu peux lancer l'OCR sur celles qui n'avaient
+        pas encore de texte.
+      </div>
+
+      <h3 id="member-mentions">6. Mentionner <code>@</code>quelqu'un</h3>
       <p>
         Dans n'importe quel champ texte d'un récit, tape <code>@</code> suivi
         des premières lettres d'un nom de personne ou de lieu. Une liste de
@@ -555,7 +678,26 @@
         en créer une fiche à la volée : elle partira en file de modération.
       </div>
 
-      <h3 id="member-proposer">6. Proposer une modification</h3>
+      <h3 id="member-liens">7. Mettre en forme et lier vers l'extérieur</h3>
+      <p>
+        Les récits, descriptions et biographies acceptent un peu de mise en
+        forme façon Markdown :
+      </p>
+      <ul>
+        <li><code>**gras**</code> pour <strong>mettre en valeur</strong> un mot ;</li>
+        <li>
+          <code>[texte](https://…)</code> pour créer un
+          <strong>lien cliquable</strong> vers une page extérieure (archives en
+          ligne, article, site d'une association…).
+        </li>
+      </ul>
+      <p>
+        Et tu n'as rien à faire pour les liens internes : tout nom de lieu ou
+        de personne <strong>déjà présent dans la base</strong> devient
+        automatiquement cliquable dans le texte.
+      </p>
+
+      <h3 id="member-proposer">8. Proposer une modification</h3>
       <p>
         Tu remarques une faute, une date à corriger, un complément à ajouter
         sur une fiche existante ? Bouton <strong>« ✏️ Proposer une
@@ -570,7 +712,31 @@
         avant/après et accepte ou refuse.
       </div>
 
-      <h3 id="member-visibilites">7. Choisir la visibilité</h3>
+      <h3 id="member-anonymiser">9. Anonymiser ou censurer un passage</h3>
+      <p>
+        Un récit contient un nom, une adresse ou un détail sensible qui ne
+        devrait pas être lu par tout le monde ? Sélectionne le passage concerné
+        dans un récit publié : un bouton <strong>🕶️ Anonymiser</strong>
+        apparaît.
+      </p>
+      <ul>
+        <li>
+          <strong>Anonymiser</strong> : remplace le passage (par exemple un nom
+          par « [un voisin] »).
+        </li>
+        <li>
+          <strong>Censurer</strong> : masque le passage derrière un caviardage.
+        </li>
+      </ul>
+      <p>
+        Tu choisis <strong>à qui</strong> le passage reste caché (aux visiteurs,
+        ou aux visiteurs <em>et</em> membres). L'effet est
+        <strong>immédiat</strong> : le texte masqué ne part même pas vers les
+        navigateurs qui n'ont pas le droit de le voir. Seul un administrateur
+        peut lever une anonymisation.
+      </p>
+
+      <h3 id="member-visibilites">10. Choisir la visibilité</h3>
       <p>Chaque entité (lieu, personne, récit) a un champ <code>visibility</code> :</p>
       <ul>
         <li><strong><code>public</code></strong> : visible par tout le monde, même sans compte. À utiliser pour les éléments patrimoniaux qui n'engagent personne (un mas abandonné, un lieu-dit ancien, un événement historique).</li>
@@ -582,7 +748,7 @@
         sans accord explicite (charte du contributeur).
       </p>
 
-      <h3 id="member-droits">8. Mes droits (RGPD)</h3>
+      <h3 id="member-droits">11. Mes droits (RGPD)</h3>
       <p>
         Pour exercer tes droits (accès, rectification, suppression,
         portabilité), contacte l'association à l'adresse indiquée dans la
@@ -609,7 +775,7 @@
 
     <p class="tuto-version">
       Tutoriel mis à jour pour <span data-version></span>. Dernière révision :
-      28 avril 2026.
+      7 juillet 2026.
     </p>
   </main>
 
