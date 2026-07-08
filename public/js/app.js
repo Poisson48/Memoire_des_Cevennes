@@ -59,6 +59,21 @@ if ('serviceWorker' in navigator) {
 // doigt sur tél, par ex. la calibration cadastre). Chaque couche a son
 // propre `maxNativeZoom` pour que l'upscale parte du bon niveau au lieu
 // de virer au gris.
+// Défauts appliqués à TOUTES les couches de tuiles (fond OSM + IGN/cadastre
+// de map-layers.js, créées après ce script). Corrige le symptôme « on est
+// trop zoomé, on se déplace et la tuile ne charge pas » :
+//   - updateWhenIdle:false → charge les tuiles PENDANT le déplacement, pas
+//     seulement une fois arrêté (sur mobile ce défaut vaut true, d'où les
+//     zones qui restaient blanches tant qu'on faisait glisser la carte).
+//   - keepBuffer élargi → garde plus de tuiles autour du cadre : en fort
+//     sur-zoom (tuiles natives très agrandies) le pruning était trop
+//     agressif et laissait des trous en pannant.
+//   - updateWhenZooming:false → évite les requêtes intermédiaires en plein
+//     zoom animé.
+L.GridLayer.prototype.options.updateWhenIdle = false;
+L.GridLayer.prototype.options.updateWhenZooming = false;
+L.GridLayer.prototype.options.keepBuffer = 6;
+
 const map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 // Fond par défaut. Exposé pour que map-layers.js puisse le piloter via le
 // sélecteur de couches (cadastre, cartes anciennes, photos aériennes IGN).
