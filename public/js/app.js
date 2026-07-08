@@ -733,6 +733,82 @@ function openPersonPanel(personId) {
   }
 }
 
+// Compte des récits liés à une personne (racontés + mentions), pour la
+// pastille des cartes de l'arbre et le panneau latéral.
+function personStoryCount(id) {
+  let n = 0;
+  for (const s of state.stories) {
+    if (s.contributorId === id) { n++; continue; }
+    if ((s.mentions || []).some(m => m.type === 'person' && m.entityId === id)) n++;
+  }
+  return n;
+}
+
+const STORY_TYPE_ICON = {
+  text: '📖', photo: '📷', audio: '🔊', video: '🎬', drawing: '🖌️', note: '📝',
+};
+
+// Panneau latéral de l'arbre : récits de la personne au centre (racontés +
+// mentions) et lieux de ses récits, le tout cliquable. Refait à chaque
+// recentrage pour suivre la navigation dans l'arbre.
+function treeAsideHtml(person) {
+  const asContrib = state.stories.filter(s => s.contributorId === person.id);
+  const asMention = state.stories.filter(s =>
+    (s.mentions || []).some(m => m.type === 'person' && m.entityId === person.id)
+    && s.contributorId !== person.id
+  );
+  // Lieux tirés de tous les récits liés à la personne (racontés + mentions) :
+  // ancrage placeId et mentions de lieux.
+  const placeIds = new Set();
+  [...asContrib, ...asMention].forEach(s => {
+    if (s.placeId) placeIds.add(s.placeId);
+    (s.mentions || []).forEach(m => { if (m.type === 'place') placeIds.add(m.entityId); });
+  });
+
+  const storyItem = (s) => {
+    const icon = STORY_TYPE_ICON[s.type] || '📖';
+    const title = (s.title || '').trim() || '(sans titre)';
+    return `<a class="tree-aside-item" href="#/recit/${encodeURIComponent(s.id)}">
+      <span class="tas-icon" aria-hidden="true">${icon}</span>
+      <span class="tas-title">${escapeHtml(title)}</span>
+    </a>`;
+  };
+  const emptyLine = (txt) => `<p class="tree-aside-empty">${txt}</p>`;
+
+  const dates = [
+    person.birth && `né·e en ${eventLabel(person.birth)}`,
+    person.death && `† ${eventLabel(person.death)}`,
+  ].filter(Boolean).join(' · ');
+
+  const placeChips = [...placeIds]
+    .map(id => state.places.get(id))
+    .filter(Boolean)
+    .map(p => `<a class="tree-aside-place" href="#/lieu/${encodeURIComponent(p.id)}">📍 ${escapeHtml(p.primaryName)}</a>`)
+    .join('');
+
+  return `
+    <div class="tree-aside-person">
+      <div class="tree-aside-name">👤 ${escapeHtml(person.primaryName)}</div>
+      ${dates ? `<div class="tree-aside-dates">${dates}</div>` : ''}
+      <a class="tree-aside-fiche" href="#/personne/${encodeURIComponent(person.id)}">Voir la fiche complète →</a>
+    </div>
+    <hr class="tree-aside-divider" />
+    <section>
+      <h4>🎙️ Récits racontés (${asContrib.length})</h4>
+      ${asContrib.length ? asContrib.map(storyItem).join('') : emptyLine('Aucun récit livré pour l\'instant.')}
+    </section>
+    <section>
+      <h4>Récits où il/elle est cité·e (${asMention.length})</h4>
+      ${asMention.length ? asMention.map(storyItem).join('') : emptyLine('Aucune mention.')}
+    </section>
+    ${placeChips ? `
+    <section>
+      <h4>📍 Lieux de ses récits</h4>
+      <div class="tree-aside-places">${placeChips}</div>
+    </section>` : ''}
+  `;
+}
+
 function openFullTree(personId) {
   const person = state.people.get(personId);
   if (!person) {
@@ -750,8 +826,8 @@ function openFullTree(personId) {
         <div class="tree-overlay-title"></div>
         <div class="tree-search">
           <input type="search" class="tree-search-input" autocomplete="off"
-                 placeholder="Chercher une personne…"
-                 aria-label="Chercher une personne à afficher dans l'arbre" />
+                 placeholder="Chercher une personne ou un lieu…"
+                 aria-label="Chercher une personne ou un lieu dans l'arbre" />
           <ul class="tree-search-results" role="listbox" hidden></ul>
         </div>
         <button type="button" class="btn-ghost tree-overlay-back">👤 Voir la fiche</button>
@@ -760,7 +836,10 @@ function openFullTree(personId) {
           <span class="close-label">Fermer</span>
         </button>
       </div>
-      <div class="tree-overlay-body"></div>
+      <div class="tree-overlay-body">
+        <div class="tree-canvas"></div>
+        <aside class="tree-aside" aria-label="Récits et lieux de la personne"></aside>
+      </div>
     `;
     document.body.appendChild(overlay);
     overlay.querySelector('.tree-overlay-close').addEventListener('click', () => {
@@ -778,96 +857,176 @@ function openFullTree(personId) {
     `🌳 <strong>${escapeHtml(person.primaryName)}</strong> : arbre généalogique`;
   const searchInput = overlay.querySelector('.tree-search-input');
   if (searchInput) { searchInput.value = ''; }
-  const body = overlay.querySelector('.tree-overlay-body');
-  if (window.FamilyTree) {
-    FamilyTree.render(body, personId, state.people, {
+  if (overlay._treeSearchReset) overlay._treeSearchReset();
+  const canvas = overlay.querySelector('.tree-canvas');
+  if (window.FamilyTree && canvas) {
+    FamilyTree.render(canvas, personId, state.people, {
       compact: false,
+      badge: personStoryCount,
       onNavigate: (id) => navigateTo('arbre', id),
     });
   }
+  const aside = overlay.querySelector('.tree-aside');
+  if (aside) aside.innerHTML = treeAsideHtml(person);
 }
 
-// Barre de recherche de l'arbre. Comme les familles peuvent être déconnectées
-// les unes des autres, c'est le moyen de passer de l'une à l'autre (et
-// d'atteindre n'importe qui) depuis l'entrée « menu ». Filtre sur le nom et les
-// alias, priorise les personnes qui ont déjà de la parenté, navigation clavier.
+// Barre de recherche de l'arbre. Cherche à la fois les personnes (nom / alias)
+// et les lieux. Comme les familles peuvent être déconnectées les unes des
+// autres, c'est le moyen d'atteindre n'importe qui. Choisir une personne
+// recentre l'arbre ; choisir un lieu déroule les personnes qui y sont citées
+// (contributrices + mentions dans les récits du lieu), pour rebondir de la
+// carte vers la parenté. Priorise les personnes déjà reliées, clavier géré.
 function wireTreeSearch(overlay) {
   const input = overlay.querySelector('.tree-search-input');
   const list  = overlay.querySelector('.tree-search-results');
   if (!input || !list) return;
   let active = -1;
+  let placeCtx = null; // lieu choisi : la liste montre alors ses personnes
 
-  function familyMap() {
-    const childCount = new Map();
+  const norm = (s) => (s || '').toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+  function famChecker() {
+    const cc = new Map();
     state.people.forEach(p => (p.parents || []).forEach(par => {
-      childCount.set(par.id, (childCount.get(par.id) || 0) + 1);
+      cc.set(par.id, (cc.get(par.id) || 0) + 1);
     }));
-    return childCount;
+    return (p) => !!((p.parents || []).length || (p.spouses || []).length || (cc.get(p.id) || 0));
   }
 
-  function matches(q) {
-    const norm = (s) => (s || '').toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  function peopleMatching(q, limit) {
     const nq = norm(q);
-    const childCount = familyMap();
-    const hasFam = (p) =>
-      (p.parents || []).length || (p.spouses || []).length || (childCount.get(p.id) || 0);
+    const hasFam = famChecker();
     const people = [...state.people.values()].filter(p => {
       if (!nq) return true;
       const names = [p.primaryName, p.maidenName, ...((p.aliases || []).map(a => a.name))];
       return names.some(n => norm(n).includes(nq));
     });
-    // Parenté d'abord, puis ordre alphabétique.
     people.sort((a, b) => {
       const fa = hasFam(a) ? 0 : 1, fb = hasFam(b) ? 0 : 1;
       if (fa !== fb) return fa - fb;
       return a.primaryName.localeCompare(b.primaryName, 'fr');
     });
-    return { people: people.slice(0, 12), hasFam };
+    return people.slice(0, limit).map(p => ({ kind: 'person', p, fam: hasFam(p) }));
   }
 
-  function render() {
-    const { people, hasFam } = matches(input.value.trim());
-    if (!people.length) {
-      list.innerHTML = `<li class="tree-search-empty" aria-disabled="true">Aucune personne trouvée</li>`;
-      list.hidden = false;
-      active = -1;
-      return;
+  function placesMatching(q, limit) {
+    const nq = norm(q);
+    if (!nq) return [];
+    return [...state.places.values()].filter(pl => {
+      const names = [pl.primaryName, ...((pl.aliases || []).map(a => a.name))];
+      return names.some(n => norm(n).includes(nq));
+    })
+      .sort((a, b) => a.primaryName.localeCompare(b.primaryName, 'fr'))
+      .slice(0, limit)
+      .map(pl => ({ kind: 'place', pl }));
+  }
+
+  function peopleOfPlace(placeId) {
+    const rel = state.stories.filter(s =>
+      s.placeId === placeId ||
+      (s.mentions || []).some(m => m.type === 'place' && m.entityId === placeId)
+    );
+    const ids = new Set();
+    rel.forEach(s => {
+      if (s.contributorId) ids.add(s.contributorId);
+      (s.mentions || []).forEach(m => { if (m.type === 'person') ids.add(m.entityId); });
+    });
+    const hasFam = famChecker();
+    return [...ids].map(id => state.people.get(id)).filter(Boolean)
+      .sort((a, b) => a.primaryName.localeCompare(b.primaryName, 'fr'))
+      .map(p => ({ kind: 'person', p, fam: hasFam(p) }));
+  }
+
+  function itemHtml(it, i) {
+    const cls = `tree-search-item${i === active ? ' active' : ''}`;
+    if (it.kind === 'person') {
+      return `<li role="option" data-kind="person" data-id="${escapeAttr(it.p.id)}" class="${cls}">
+        <span class="tree-search-name">${escapeHtml(it.p.primaryName)}</span>
+        ${it.fam ? '<span class="tree-search-badge">🌿 parenté</span>' : ''}
+      </li>`;
     }
-    list.innerHTML = people.map((p, i) => `
-      <li role="option" data-id="${escapeAttr(p.id)}" class="tree-search-item${i === active ? ' active' : ''}">
-        <span class="tree-search-name">${escapeHtml(p.primaryName)}</span>
-        ${hasFam(p) ? '<span class="tree-search-badge">🌿 parenté</span>' : ''}
-      </li>
-    `).join('');
+    return `<li role="option" data-kind="place" data-id="${escapeAttr(it.pl.id)}" class="${cls} tree-search-place">
+      <span class="tree-search-name">📍 ${escapeHtml(it.pl.primaryName)}</span>
+      <span class="tree-search-type">voir les personnes →</span>
+    </li>`;
+  }
+
+  function renderList() {
+    let items, prefix = '';
+    if (placeCtx) {
+      prefix = `<li class="tree-search-head" aria-disabled="true">
+        <span>📍 ${escapeHtml(placeCtx.primaryName)} — personnes citées</span>
+        <button type="button" class="tree-search-back">← retour</button>
+      </li>`;
+      items = peopleOfPlace(placeCtx.id);
+      if (!items.length) {
+        list.innerHTML = prefix + `<li class="tree-search-empty" aria-disabled="true">Aucune personne citée dans ce lieu</li>`;
+        list.hidden = false;
+        return;
+      }
+    } else {
+      const q = input.value.trim();
+      items = [...peopleMatching(q, q ? 8 : 12), ...placesMatching(q, 6)];
+      if (!items.length) {
+        list.innerHTML = `<li class="tree-search-empty" aria-disabled="true">Aucun résultat</li>`;
+        list.hidden = false;
+        return;
+      }
+    }
+    if (active >= items.length) active = items.length - 1;
+    list.innerHTML = prefix + items.map((it, i) => itemHtml(it, i)).join('');
     list.hidden = false;
   }
 
-  function choose(id) {
+  function activate(kind, id) {
     if (!id) return;
-    list.hidden = true;
-    input.value = '';
-    navigateTo('arbre', id);
+    if (kind === 'place') {
+      placeCtx = state.places.get(id) || null;
+      active = -1;
+      renderList();
+      input.focus();
+    } else {
+      list.hidden = true;
+      input.value = '';
+      placeCtx = null;
+      navigateTo('arbre', id);
+    }
   }
 
-  input.addEventListener('input', () => { active = -1; render(); });
-  input.addEventListener('focus', render);
+  function goBack() {
+    placeCtx = null;
+    active = -1;
+    renderList();
+    input.focus();
+  }
+
+  input.addEventListener('input', () => { placeCtx = null; active = -1; renderList(); });
+  input.addEventListener('focus', () => renderList());
   input.addEventListener('keydown', (e) => {
     const items = Array.from(list.querySelectorAll('.tree-search-item'));
-    if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, items.length - 1); render(); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); render(); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, items.length - 1); renderList(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); renderList(); }
     else if (e.key === 'Enter') {
       e.preventDefault();
       const pick = items[active] || items[0];
-      if (pick) choose(pick.dataset.id);
-    } else if (e.key === 'Escape') { list.hidden = true; input.blur(); }
+      if (pick) activate(pick.dataset.kind, pick.dataset.id);
+    } else if (e.key === 'Escape') {
+      if (placeCtx) { goBack(); }
+      else { list.hidden = true; input.blur(); }
+    }
   });
   list.addEventListener('mousedown', (e) => {
     // mousedown (pas click) pour devancer le blur de l'input.
+    if (e.target.closest('.tree-search-back')) { e.preventDefault(); goBack(); return; }
     const li = e.target.closest('.tree-search-item');
-    if (li) { e.preventDefault(); choose(li.dataset.id); }
+    if (li) { e.preventDefault(); activate(li.dataset.kind, li.dataset.id); }
   });
-  input.addEventListener('blur', () => { setTimeout(() => { list.hidden = true; }, 120); });
+  input.addEventListener('blur', () => { setTimeout(() => { list.hidden = true; }, 150); });
+
+  // Réinitialise le drill-down « personnes d'un lieu » quand on rouvre l'arbre
+  // sur quelqu'un d'autre (l'overlay et son closure sont réutilisés).
+  overlay._treeSearchReset = () => { placeCtx = null; active = -1; list.hidden = true; };
 }
 
 function closeFullTree() {

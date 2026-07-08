@@ -55,6 +55,18 @@
   stroke: var(--accent);
   stroke-width: 2;
 }
+/* Pastille « récits liés » en coin de carte. */
+.tree-svg .card-badge-bg {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.tree-svg .card-badge-text {
+  fill: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
 .tree-svg .tree-card:focus {
   outline: none;
 }
@@ -174,17 +186,148 @@
 .tree-overlay-close .close-label {
   font-size: 0.92rem;
 }
+/* Corps de l'overlay : arbre (gauche) + panneau récits/lieux (droite). */
 .tree-overlay-body {
   flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+.tree-canvas {
+  flex: 1;
+  min-width: 0;
   overflow: auto;
   padding: 1.2rem;
   -webkit-overflow-scrolling: touch;
 }
-.tree-overlay-body .tree-wrap {
+.tree-canvas .tree-wrap {
   border: none;
   padding: 0;
   background: transparent;
   overflow: visible;
+}
+
+/* ── Panneau latéral : récits de la personne au centre + lieux ── */
+.tree-aside {
+  flex: 0 0 320px;
+  border-left: 1px solid var(--border);
+  background: var(--panel-bg);
+  overflow-y: auto;
+  padding: 1rem 1rem 2rem;
+  -webkit-overflow-scrolling: touch;
+}
+.tree-aside-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.tree-aside-dates {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.1rem;
+}
+.tree-aside-fiche {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--accent-dark);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+}
+.tree-aside-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.9rem 0 0.2rem;
+}
+.tree-aside h4 {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.9rem;
+  color: var(--accent-dark);
+}
+.tree-aside-item {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--fg);
+  font-size: 0.92rem;
+}
+.tree-aside-item:hover {
+  background: rgba(140, 90, 43, 0.10);
+}
+.tree-aside-item .tas-icon { flex: 0 0 auto; }
+.tree-aside-empty {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.88rem;
+  padding: 0.2rem 0.5rem;
+  margin: 0;
+}
+.tree-aside-places {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.tree-aside-place {
+  text-decoration: none;
+  font-size: 0.85rem;
+  background: rgba(140, 90, 43, 0.10);
+  color: var(--accent-dark);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.tree-aside-place:hover {
+  background: rgba(140, 90, 43, 0.20);
+}
+
+/* ── Résultats de recherche : type lieu + entête de drill-down ── */
+.tree-search-type {
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tree-search-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+.tree-search-back {
+  font: inherit;
+  font-size: 0.8rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.tree-search-back:hover {
+  background: rgba(140, 90, 43, 0.12);
+}
+
+/* Sous 760px : le panneau passe sous l'arbre (colonne). */
+@media (max-width: 760px) {
+  .tree-overlay-body {
+    flex-direction: column;
+  }
+  .tree-canvas {
+    flex: 1 1 auto;
+  }
+  .tree-aside {
+    flex: 0 0 auto;
+    max-height: 45vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
 }
 @media (max-width: 600px) {
   .tree-overlay-head {

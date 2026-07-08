@@ -340,7 +340,7 @@
     return { nodes, edges, canvasW, canvasH };
   }
 
-  function drawCard(svg, node, onNavigate, focusId) {
+  function drawCard(svg, node, onNavigate, focusId, badge) {
     const g = ns('g', { class: 'tree-card' + (node.person.id === focusId ? ' focus' : '') });
     g.setAttribute('transform', `translate(${node.x} ${node.y})`);
     g.style.cursor = 'pointer';
@@ -353,6 +353,10 @@
       class: 'card-bg',
     });
     g.appendChild(rect);
+
+    // Pastille « récits » : signale d'un coup d'œil les personnes qui ont du
+    // contenu à lire (récits racontés ou mentions). Le compte vient de l'appelant.
+    const count = typeof badge === 'function' ? (badge(node.person.id) || 0) : 0;
 
     const primary = node.person.primaryName || '';
     const lines = wrapName(primary, W - 2 * NAME_PAD);
@@ -390,6 +394,19 @@
       });
       meta.textContent = [node.meta.start, node.meta.end].filter(Boolean).join(' – ');
       g.appendChild(meta);
+    }
+
+    if (count > 0) {
+      const bx = ns('circle', { cx: W - 12, cy: 12, r: 10, class: 'card-badge-bg' });
+      g.appendChild(bx);
+      const bt = ns('text', {
+        x: W - 12, y: 12, 'text-anchor': 'middle',
+        'dominant-baseline': 'central', class: 'card-badge-text',
+      });
+      bt.textContent = count > 9 ? '9+' : String(count);
+      g.appendChild(bt);
+      const tip = ns('title', {}, count > 1 ? `${count} récits liés` : '1 récit lié');
+      g.appendChild(tip);
     }
 
     g.addEventListener('click', (e) => {
@@ -455,7 +472,7 @@
     });
     // Edges d'abord (derrière)
     edges.forEach(e => drawEdge(svg, e));
-    nodes.forEach(n => drawCard(svg, n, opts.onNavigate, focusId));
+    nodes.forEach(n => drawCard(svg, n, opts.onNavigate, focusId, opts.badge));
     wrap.appendChild(svg);
   }
 
