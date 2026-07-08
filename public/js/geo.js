@@ -38,11 +38,15 @@ let searchTimer = null;
 let searchAbort = null;
 let searchMarker = null;
 
+const LOCAL_MIN_CHARS = 2;   // personnes / lieux : dès 2 caractères
+const norm = (s) => (s || '').toLowerCase()
+  .normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim();
   searchClear.hidden = q.length === 0;
   clearTimeout(searchTimer);
-  if (q.length < SEARCH_MIN_CHARS) {
+  if (q.length < LOCAL_MIN_CHARS) {
     hideResults();
     return;
   }
@@ -53,8 +57,8 @@ searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     clearTimeout(searchTimer);
-    const first = searchResults.querySelector('li[data-lat]');
-    if (first) selectResult(first);
+    const first = searchResults.querySelector('.map-search-item');
+    if (first) selectItem(first);
     else runSearch(searchInput.value.trim(), { pickFirst: true });
   } else if (e.key === 'Escape') {
     hideResults();
@@ -77,8 +81,62 @@ searchClear.addEventListener('click', () => {
   searchInput.focus();
 });
 
+// Index des entités qui ont au moins un récit (contributeur, ancrage ou
+// mention), pour ne proposer que des personnes/lieux qui mènent à du contenu.
+function storiesIndex() {
+  const people = new Set();
+  const places = new Set();
+  for (const s of state.stories) {
+    if (s.contributorId) people.add(s.contributorId);
+    if (s.placeId) places.add(s.placeId);
+    (s.mentions || []).forEach(m => {
+      if (m.type === 'person') people.add(m.entityId);
+      else if (m.type === 'place') places.add(m.entityId);
+    });
+  }
+  return { people, places };
+}
+
+function placeStoryCount(id) {
+  let n = 0;
+  for (const s of state.stories) {
+    if (s.placeId === id) { n++; continue; }
+    if ((s.mentions || []).some(m => m.type === 'place' && m.entityId === id)) n++;
+  }
+  return n;
+}
+
+// Personnes et lieux (ayant des récits) dont le nom / alias contient la requête.
+function localMatches(q) {
+  const nq = norm(q);
+  if (!nq) return { people: [], places: [] };
+  const idx = storiesIndex();
+  const people = [...state.people.values()].filter(p => {
+    if (!idx.people.has(p.id)) return false;
+    const names = [p.primaryName, p.maidenName, ...((p.aliases || []).map(a => a.name))];
+    return names.some(n => norm(n).includes(nq));
+  }).sort((a, b) => a.primaryName.localeCompare(b.primaryName, 'fr')).slice(0, 5);
+  const places = [...state.places.values()].filter(pl => {
+    if (!idx.places.has(pl.id)) return false;
+    const names = [pl.primaryName, ...((pl.aliases || []).map(a => a.name))];
+    return names.some(n => norm(n).includes(nq));
+  }).sort((a, b) => a.primaryName.localeCompare(b.primaryName, 'fr')).slice(0, 5);
+  return { people, places };
+}
+
 async function runSearch(q, { pickFirst = false } = {}) {
   if (!q) return;
+  const local = localMatches(q);
+  const willOsm = q.length >= SEARCH_MIN_CHARS;
+  // On affiche d'abord les mémoires (personnes / lieux), puis on va chercher
+  // sur OpenStreetMap et on complète la liste dessous.
+  renderResults(local, [], { osmLoading: willOsm });
+  if (pickFirst) {
+    const first = searchResults.querySelector('.map-search-item');
+    if (first) { selectItem(first); return; }
+  }
+  if (!willOsm) return;
+
   if (searchAbort) searchAbort.abort();
   searchAbort = new AbortController();
   const url = new URL(NOMINATIM_URL);
@@ -94,48 +152,98 @@ async function runSearch(q, { pickFirst = false } = {}) {
     const res = await fetch(url.toString(), { signal: searchAbort.signal });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const items = await res.json();
-    renderResults(items);
-    if (pickFirst && items.length) {
-      selectResult(searchResults.querySelector('li[data-lat]'));
+    renderResults(local, items, { osmLoading: false });
+    if (pickFirst) {
+      const first = searchResults.querySelector('.map-search-item');
+      if (first) selectItem(first);
     }
   } catch (err) {
     if (err.name === 'AbortError') return;
-    renderResults([], 'Recherche indisponible (réessaye dans un instant).');
+    renderResults(local, [], { osmError: true });
   }
 }
 
-function renderResults(items, errorMsg) {
+function addHead(label) {
+  const li = document.createElement('li');
+  li.className = 'map-search-head';
+  li.textContent = label;
+  searchResults.appendChild(li);
+}
+
+function addEntityItem({ kind, id, icon, name, ctx }) {
+  const li = document.createElement('li');
+  li.className = 'map-search-item map-search-entity';
+  li.setAttribute('role', 'option');
+  li.dataset.kind = kind;
+  li.dataset.id = id;
+  li.dataset.label = name;
+  const primary = document.createElement('strong');
+  primary.textContent = `${icon} ${name}`;
+  li.appendChild(primary);
+  if (ctx) {
+    const sec = document.createElement('span');
+    sec.className = 'map-search-ctx';
+    sec.textContent = ctx;
+    li.appendChild(sec);
+  }
+  li.addEventListener('click', () => selectItem(li));
+  searchResults.appendChild(li);
+}
+
+function renderResults(local, osmItems, { osmLoading = false, osmError = false } = {}) {
   searchResults.innerHTML = '';
-  if (errorMsg) {
+  local = local || { people: [], places: [] };
+  osmItems = osmItems || [];
+  const hasLocal = local.people.length || local.places.length;
+
+  if (hasLocal) {
+    addHead('Dans les mémoires');
+    local.people.forEach(p => {
+      const years = [p.birth && p.birth.year, p.death && p.death.year].filter(Boolean).join(' – ');
+      addEntityItem({ kind: 'person', id: p.id, icon: '👤', name: p.primaryName, ctx: years || 'Personne' });
+    });
+    local.places.forEach(pl => {
+      const n = placeStoryCount(pl.id);
+      addEntityItem({ kind: 'place', id: pl.id, icon: '📍', name: pl.primaryName, ctx: `Lieu · ${n} récit${n > 1 ? 's' : ''}` });
+    });
+  }
+
+  if (osmLoading) {
+    const li = document.createElement('li');
+    li.className = 'map-search-loading';
+    li.textContent = 'Recherche sur la carte…';
+    searchResults.appendChild(li);
+  } else if (osmError) {
     const li = document.createElement('li');
     li.className = 'map-search-error';
-    li.textContent = errorMsg;
+    li.textContent = 'Carte indisponible (réessaye dans un instant).';
     searchResults.appendChild(li);
-    searchResults.hidden = false;
-    return;
+  } else if (osmItems.length) {
+    addHead('Sur la carte (OpenStreetMap)');
+    for (const it of osmItems) {
+      const li = document.createElement('li');
+      li.className = 'map-search-item';
+      li.setAttribute('role', 'option');
+      li.dataset.kind = 'osm';
+      li.dataset.lat = it.lat;
+      li.dataset.lng = it.lon;
+      li.dataset.label = it.display_name;
+      const primary = document.createElement('strong');
+      primary.textContent = shortLabel(it);
+      const secondary = document.createElement('span');
+      secondary.className = 'map-search-ctx';
+      secondary.textContent = contextLabel(it);
+      li.appendChild(primary);
+      if (secondary.textContent) li.appendChild(secondary);
+      li.addEventListener('click', () => selectItem(li));
+      searchResults.appendChild(li);
+    }
   }
-  if (!items.length) {
+
+  if (!searchResults.children.length) {
     const li = document.createElement('li');
     li.className = 'map-search-empty';
     li.textContent = 'Aucun résultat.';
-    searchResults.appendChild(li);
-    searchResults.hidden = false;
-    return;
-  }
-  for (const it of items) {
-    const li = document.createElement('li');
-    li.setAttribute('role', 'option');
-    li.dataset.lat = it.lat;
-    li.dataset.lng = it.lon;
-    li.dataset.label = it.display_name;
-    const primary = document.createElement('strong');
-    primary.textContent = shortLabel(it);
-    const secondary = document.createElement('span');
-    secondary.className = 'map-search-ctx';
-    secondary.textContent = contextLabel(it);
-    li.appendChild(primary);
-    if (secondary.textContent) li.appendChild(secondary);
-    li.addEventListener('click', () => selectResult(li));
     searchResults.appendChild(li);
   }
   searchResults.hidden = false;
@@ -156,6 +264,40 @@ function contextLabel(it) {
   if (town && town !== shortLabel(it)) parts.push(town);
   if (a.county && !parts.includes(a.county)) parts.push(a.county);
   return parts.slice(0, 3).join(' · ');
+}
+
+// Dispatch selon le type de résultat cliqué / validé.
+function selectItem(li) {
+  if (!li) return;
+  const kind = li.dataset.kind;
+  if (kind === 'person') {
+    searchInput.value = li.dataset.label || '';
+    searchClear.hidden = false;
+    hideResults();
+    if (searchMarker) { map.removeLayer(searchMarker); searchMarker = null; }
+    navigateTo('personne', li.dataset.id);
+  } else if (kind === 'place') {
+    selectPlace(li.dataset.id, li.dataset.label);
+  } else {
+    selectResult(li);
+  }
+}
+
+// Lieu du site : recentre la carte dessus, pose le repère et ouvre sa fiche.
+function selectPlace(id, label) {
+  const place = state.places.get(id);
+  searchInput.value = label || (place ? place.primaryName : '');
+  searchClear.hidden = false;
+  hideResults();
+  if (place && Number.isFinite(place.lat) && Number.isFinite(place.lng)) {
+    map.flyTo([place.lat, place.lng], SEARCH_ZOOM, { duration: 0.8 });
+    if (searchMarker) map.removeLayer(searchMarker);
+    searchMarker = L.circleMarker([place.lat, place.lng], {
+      radius: 9, color: '#8c5a2b', weight: 2,
+      fillColor: '#d9a55a', fillOpacity: 0.6,
+    }).addTo(map);
+  }
+  navigateTo('lieu', id);
 }
 
 function selectResult(li) {

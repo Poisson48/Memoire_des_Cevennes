@@ -85,10 +85,30 @@
   font-size: 0.85rem;
 }
 .map-search-empty,
-.map-search-error {
+.map-search-error,
+.map-search-loading {
   color: var(--muted);
   font-style: italic;
   cursor: default !important;
 }
 .map-search-error { color: #a04a30; }
+
+/* Entête de section (« Dans les mémoires », « Sur la carte »). */
+.map-search-head {
+  padding: 0.35rem 0.7rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent-dark);
+  background: rgba(140, 90, 43, 0.06);
+  cursor: default !important;
+}
+.map-search-head:hover { background: rgba(140, 90, 43, 0.06); }
+
+/* Résultats internes (personnes / lieux) : liseré à gauche pour les
+   distinguer des résultats OpenStreetMap. */
+.map-search-entity {
+  border-left: 3px solid var(--accent);
+}
 
