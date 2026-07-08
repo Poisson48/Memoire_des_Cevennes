@@ -40,6 +40,37 @@
 }
 .rgpd-table thead th { background: var(--panel-bg); }
 
+/* Sur téléphone, une table à 4 colonnes de texte déborde et se fait rogner.
+   On empile chaque ligne en carte : l'en-tête de colonne (data-label)
+   s'affiche devant chaque valeur. */
+@media (max-width: 640px) {
+  .rgpd-table,
+  .rgpd-table tbody,
+  .rgpd-table tr,
+  .rgpd-table td { display: block; width: auto; }
+  .rgpd-table thead { display: none; }
+  .rgpd-table tr {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 0 0 0.8rem;
+    overflow: hidden;
+  }
+  .rgpd-table td {
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.7rem;
+  }
+  .rgpd-table td:last-child { border-bottom: none; }
+  .rgpd-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--accent-dark);
+    margin-bottom: 0.15rem;
+  }
+}
+
 [data-todo] {
   background: #fff6c9;
   padding: 0 0.25rem;
