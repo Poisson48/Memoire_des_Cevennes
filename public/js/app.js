@@ -1397,6 +1397,13 @@ function enterMovePlaceMode(placeId) {
   state.movePlaceId = placeId;
   _moveOriginalLatLng = marker.getLatLng();
 
+  // On referme le panneau du lieu : sur PC c'est une fenêtre centrée avec un
+  // fond grisé qui couvre toute la carte, sur mobile un bottom-sheet par-dessus
+  // la carte. Tant qu'il est ouvert, impossible de paner sous la mire. Le
+  // déplacement se fait justement en panant la carte, donc on libère la carte.
+  // (validate rouvre la fiche via navigateTo ; sinon on reste sur la carte.)
+  closePanel();
+
   // Centre la carte sur la position d'origine pour que la mire parte
   // pile sur le marker ; zoom au moins à 18 pour la précision.
   map.setView(_moveOriginalLatLng, Math.max(map.getZoom(), 18));
