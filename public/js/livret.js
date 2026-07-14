@@ -95,24 +95,68 @@
     return r.json();
   }
 
+  // Rend le HTML dans un iframe isolé puis ouvre le dialogue d'impression du
+  // navigateur (« Enregistrer au format PDF »). Tout se passe côté client :
+  // aucune puissance serveur consommée, ça marche sur tout navigateur (y
+  // compris mobile), sans dépendance Chromium/Playwright.
+  function printHtml(html) {
+    return new Promise((resolve) => {
+      const blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.style.cssText =
+        'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+
+      let done = false;
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        // Laisser le dialogue se fermer avant de retirer l'iframe.
+        setTimeout(() => { iframe.remove(); URL.revokeObjectURL(blobUrl); resolve(); }, 500);
+      };
+
+      iframe.onload = async () => {
+        // Un iframe fraîchement inséré charge d'abord about:blank : on ignore
+        // ce premier onload et on n'agit que sur le document blob (le livret).
+        if (!/^blob:/.test(iframe.contentWindow.location.href)) return;
+        try {
+          const win = iframe.contentWindow;
+          // Attendre le chargement des images (data-URI : quasi instantané).
+          const imgs = [...iframe.contentDocument.images];
+          await Promise.all(imgs.map(img => img.complete ? null
+            : new Promise(res => { img.onload = img.onerror = res; })));
+          win.focus();
+          // afterprint : nettoyage une fois le dialogue clos ; filet de
+          // sécurité si l'évènement ne se déclenche pas (certains mobiles).
+          win.addEventListener('afterprint', cleanup, { once: true });
+          setTimeout(cleanup, 60000);
+          win.print();
+        } catch (e) {
+          cleanup();
+        }
+      };
+
+      document.body.appendChild(iframe);
+      iframe.src = blobUrl;
+    });
+  }
+
   async function generate() {
-    // Retour visuel immédiat : la génération (rendu Chromium) prend quelques
-    // secondes, il faut que l'utilisateur voie tout de suite qu'il se passe
-    // quelque chose. Spinner sur le bouton + message d'état bien visible.
+    // Retour visuel immédiat : préparer le livret puis ouvrir l'impression.
     const label = genBtn.textContent;
     genBtn.disabled = true;
     genBtn.classList.add('is-loading');
-    genBtn.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Génération en cours…';
+    genBtn.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Préparation…';
     statusEl.hidden = false;
     statusEl.className = 'livret-status is-working';
-    statusEl.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Génération du PDF en cours… cela peut prendre quelques secondes.';
+    statusEl.innerHTML = '<span class="livret-spinner" aria-hidden="true"></span> Préparation du livret… la fenêtre d\'impression va s\'ouvrir. Choisis « Enregistrer au format PDF ».';
     try {
       const payload = {
         ...selectionPayload(),
         title: titleEl.value || 'Mémoire des Cévennes',
         includeImages: imagesEl.checked,
       };
-      const r = await fetch('/api/livret', {
+      const r = await fetch('/api/livret/html', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -122,17 +166,10 @@
         const d = await r.json().catch(() => ({}));
         throw new Error(d.error || r.statusText);
       }
-      const blob = await r.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'livret-memoire-cevennes.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      const html = await r.text();
+      await printHtml(html);
       statusEl.className = 'livret-status is-done';
-      statusEl.textContent = '✅ PDF téléchargé.';
+      statusEl.textContent = '✅ Livret prêt : dans la fenêtre d\'impression, choisis « Enregistrer au format PDF ».';
     } catch (e) {
       statusEl.className = 'livret-status is-error';
       statusEl.textContent = '⚠️ Erreur : ' + e.message;

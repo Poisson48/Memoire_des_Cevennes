@@ -1,7 +1,9 @@
-/* Styles d'impression du livret PDF (rendu par Chromium via Playwright).
-   Pensé A4, sobre, lisible (gros corps de texte pour l'impression). */
+/* Styles d'impression du livret PDF (rendu côté client via window.print).
+   Pensé A4, sobre, lisible (gros corps de texte pour l'impression).
+   Les marges de page sont portées ici (le rendu navigateur n'a pas les
+   options margin de Chromium/Playwright). */
 
-@page { size: A4; }
+@page { size: A4; margin: 18mm 16mm; }
 
 * { box-sizing: border-box; }
 

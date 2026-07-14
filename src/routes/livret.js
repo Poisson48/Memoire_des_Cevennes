@@ -1,9 +1,10 @@
 // Routes du livret PDF par tags.
 //   POST /api/livret/preview : { count, titles[] } pour la selection courante
-//   POST /api/livret         : genere et renvoie le PDF (piece jointe)
+//   POST /api/livret/html    : renvoie le HTML pret a imprimer (rendu PDF
+//                              cote client via window.print, zero CPU serveur)
+//   POST /api/livret         : (legacy) genere le PDF cote serveur via Chromium
 // Accessible publiquement, mais le CONTENU est filtre par audience
-// (visibilite + anonymisation) via src/audience.js. Rate-limit strict
-// (Chromium est lourd).
+// (visibilite + anonymisation) via src/audience.js.
 
 'use strict';
 
@@ -44,6 +45,39 @@ router.post('/preview', (req, res, next) => {
     const aud = audience.audienceOf(req);
     res.json(livret.preview(parseSelection(req.body), aud));
   } catch (e) { next(e); }
+});
+
+// Rendu cote client : on renvoie le HTML complet (images en data-URI, CSS
+// d'impression inline, texte deja filtre par audience). Le navigateur du
+// visiteur le transforme en PDF via window.print() -> « Enregistrer au format
+// PDF ». Aucune dependance Chromium cote serveur : marche sur tout navigateur.
+router.post('/html', (req, res, next) => {
+  try {
+    const aud = audience.audienceOf(req);
+    const selection = parseSelection(req.body);
+    if (selection.placeIds.length === 0 && selection.personIds.length === 0) {
+      return res.status(400).json({ error: 'Coche au moins un sujet (lieu ou personne).' });
+    }
+    const title = (req.body && typeof req.body.title === 'string')
+      ? req.body.title.slice(0, 120) : 'Mémoire des Cévennes';
+    const includeImages = req.body && req.body.includeImages !== false;
+
+    const stories = livret.selectStories(selection, aud);
+    const html = livret.buildHtml({ title, selection, aud, includeImages, css: printCss() });
+    opLog(req, 'livret.html', {
+      aud,
+      places: selection.placeIds.length,
+      people: selection.personIds.length,
+      recits: stories.length,
+      images: includeImages ? 1 : 0,
+      bytes: html.length,
+    });
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (e) {
+    opLog(req, 'livret.html.fail', { err: e.message });
+    next(e);
+  }
 });
 
 router.post('/', pdfLimiter, async (req, res, next) => {
