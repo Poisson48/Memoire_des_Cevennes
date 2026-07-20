@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Bug trouvé ! : Mémoire des Cévennes</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/text-size.js"></script>
+  <link rel="stylesheet" href="css/legal.css" />
+  <script src="js/wake-lock.js" defer></script>
+</head>
+<body class="legal-body">
+  <header class="topbar">
+    <div class="topbar-titles">
+      <h1>🐞 Bug trouvé !</h1>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-ghost">← Retour à la carte</a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <article>
+      <p>
+        Le carnet de bord du site, réservé aux membres connectés. Rien de ce
+        qui est écrit ici n'est visible par les visiteurs.
+      </p>
+
+      <!-- Visiteur non connecté : on n'affiche ni le formulaire ni la liste. -->
+      <p id="bugs-locked" class="bugs-locked" hidden>
+        🔒 Cette page est réservée aux membres.
+        <a href="login.html">Se connecter</a>
+      </p>
+
+      <div id="bugs-app" hidden>
+        <form id="form-bug" class="legal-form">
+          <label>C'est…
+            <select name="kind">
+              <option value="bug">🐞 Un bug : quelque chose ne marche pas</option>
+              <option value="remarque">💡 Une remarque : une idée, une gêne, une amélioration</option>
+            </select>
+          </label>
+          <label>En deux mots
+            <input type="text" name="title" required maxlength="160"
+                   placeholder="Ex. « Le bouton Écouter ne réagit pas sur téléphone »" />
+          </label>
+          <label>Qu'est-ce qui s'est passé ?
+            <textarea name="description" required rows="6" maxlength="5000"
+                      placeholder="Ce que tu faisais, ce que tu attendais, ce qui s'est produit à la place. Téléphone ou ordinateur, quel navigateur si tu le sais."></textarea>
+          </label>
+          <label>Page concernée (facultatif)
+            <input type="text" name="page" maxlength="300"
+                   placeholder="Ex. la carte, la fiche d'un lieu, le livret…" />
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn-primary">Envoyer</button>
+          </div>
+          <p id="bug-status" class="bugs-status" hidden></p>
+        </form>
+
+        <h2>Déjà signalé</h2>
+        <p class="hint">
+          Jette un œil avant d'écrire : si c'est déjà là, inutile de le
+          redire. Les entrées corrigées restent affichées.
+        </p>
+        <div id="bugs-list"><p class="empty">Chargement…</p></div>
+      </div>
+    </article>
+  </main>
+
+  <script src="js/bugs.js"></script>
+</body>
+</html>

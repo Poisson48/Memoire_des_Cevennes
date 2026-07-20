@@ -22,6 +22,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (helpSection)    helpSection.hidden    = currentTab !== 'help';
     const redactionsSection = document.getElementById('redactions');
     if (redactionsSection) redactionsSection.hidden = currentTab !== 'redactions';
+    const bugsSection = document.getElementById('bugs');
+    if (bugsSection) bugsSection.hidden = currentTab !== 'bugs';
     const oplogSection = document.getElementById('oplog');
     if (oplogSection) oplogSection.hidden = currentTab !== 'oplog';
     if (currentTab === 'queue')    renderQueue(lastQueue);
@@ -31,6 +33,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (currentTab === 'activity') refreshActivity();
     if (currentTab === 'redactions') refreshRedactions();
     if (currentTab === 'oplog')      refreshOplog();
+    if (currentTab === 'bugs')       refreshBugs();
     if (currentTab === 'backups')  refreshBackups();
     if (currentTab === 'welcome')  refreshWelcome();
     if (currentTab === 'settings') refreshSettings();

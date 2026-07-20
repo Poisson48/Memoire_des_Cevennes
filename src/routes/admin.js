@@ -21,6 +21,7 @@ const passwordResets = require('../passwordResets');
 const backupsRouter = require('./backups');
 const { requireAdmin } = require('../middleware');
 const { readOps } = require('../oplog');
+const bugs = require('./bugs');
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
@@ -366,6 +367,62 @@ router.get('/oplog', (req, res) => {
   const ops = Object.entries(byOp).map(([op, count]) => ({ op, count }))
     .sort((a, b) => b.count - a.count);
   res.json({ recent: all.slice(0, 300), total: all.length, topIps, ops });
+});
+
+// ─── « Bug trouvé ! » : carnet de bord des membres ────────────────────
+// Les membres écrivent depuis /bugs.html ; l'admin voit tout (y compris
+// l'auteur et le user-agent) et fait avancer le statut.
+router.get('/bugs', (_req, res) => {
+  const all = bugs.loadBugs().slice()
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  res.json({ bugs: all });
+});
+
+// Changement de statut et/ou réponse de l'admin (visible par les membres).
+router.patch('/bugs/:id', (req, res, next) => {
+  try {
+    const all = bugs.loadBugs();
+    const bug = all.find(b => b.id === req.params.id);
+    if (!bug) return res.status(404).json({ error: 'Entrée introuvable' });
+    const { status, adminNote } = req.body || {};
+    if (status !== undefined) {
+      if (!bugs.STATUSES.includes(status)) {
+        return res.status(400).json({ error: 'Statut inconnu : ' + status });
+      }
+      bug.status = status;
+      bug.resolvedAt = (status === 'fixed' || status === 'wontfix')
+        ? new Date().toISOString() : null;
+    }
+    if (adminNote !== undefined) bug.adminNote = String(adminNote ?? '').slice(0, 2000).trim();
+    bugs.saveBugs(all);
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'bug.update',
+      entityType: 'bug',
+      entityId: bug.id,
+      ip: req.ip,
+      details: { status: bug.status },
+    });
+    res.json({ ok: true, bug });
+  } catch (err) { next(err); }
+});
+
+router.delete('/bugs/:id', (req, res, next) => {
+  try {
+    const all = bugs.loadBugs();
+    const i = all.findIndex(b => b.id === req.params.id);
+    if (i === -1) return res.status(404).json({ error: 'Entrée introuvable' });
+    all.splice(i, 1);
+    bugs.saveBugs(all);
+    activityLog.logActivity({
+      memberId: (req.member && req.member.id) || 'admin-token',
+      action: 'bug.delete',
+      entityType: 'bug',
+      entityId: req.params.id,
+      ip: req.ip,
+    });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 // ─── Anonymisations (redactions) : vue d'ensemble admin ───────────────

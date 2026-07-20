@@ -202,3 +202,58 @@
   cursor: pointer;
 }
 .media-remove-btn:hover { background: #fbeae8; border-color: #c0392b; }
+
+/* ── « Bug trouvé ! » (bugs.html + onglet admin) ───────────────────────── */
+.bugs-locked {
+  padding: 1rem;
+  border: 1px solid var(--border, #d9cfbd);
+  border-radius: 10px;
+  background: #fdf8ef;
+}
+.bugs-status { margin: .6rem 0 0; font-size: .95rem; }
+.bugs-status.is-error { color: #c0392b; }
+.bugs-status.is-done  { color: #1e7a46; }
+
+.bug-row {
+  border: 1px solid var(--border, #d9cfbd);
+  border-left: 4px solid #b8b0a2;
+  border-radius: 10px;
+  padding: .75rem .9rem;
+  margin-bottom: .7rem;
+  background: #fff;
+}
+.bug-row.is-fixed   { border-left-color: #1e7a46; opacity: .75; }
+.bug-row.is-wontfix { border-left-color: #999; opacity: .6; }
+.bug-row.is-in-progress { border-left-color: #d19100; }
+.bug-row.is-open    { border-left-color: #c0392b; }
+
+.bug-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .6rem;
+}
+.bug-badge {
+  flex: none;
+  font-size: .78rem;
+  padding: .12em .6em;
+  border-radius: 999px;
+  background: #eee7da;
+  color: #5a5347;
+  white-space: nowrap;
+}
+.bug-badge.bug-fixed       { background: #dff0e5; color: #1e7a46; }
+.bug-badge.bug-in-progress { background: #fbf0d5; color: #8a6100; }
+.bug-badge.bug-open        { background: #fbe3e0; color: #a5301f; }
+
+.bug-desc { margin: .45rem 0; white-space: pre-wrap; }
+.bug-meta { font-size: .82rem; color: #6b6357; }
+.bug-note {
+  margin-top: .5rem;
+  padding: .45rem .6rem;
+  border-radius: 8px;
+  background: #f2efe6;
+  font-size: .9rem;
+}
+.bug-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.bug-note-input { flex: 1 1 320px; min-width: 200px; }

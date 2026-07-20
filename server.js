@@ -19,6 +19,7 @@ const storiesRouter = require('./src/routes/stories');
 const editsRouter   = require('./src/routes/edits');
 const adminRouter   = require('./src/routes/admin');
 const reportsRouter = require('./src/routes/reports');
+const bugsRouter    = require('./src/routes/bugs');
 const visitsRouter  = require('./src/routes/visits');
 const ocrRouter     = require('./src/routes/ocr');
 const ttsRouter     = require('./src/routes/tts');
@@ -89,6 +90,7 @@ app.use('/api/people',  peopleRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api', editsRouter);         // /api/:type/:id/edits
 app.use('/api/reports', reportsRouter);
+app.use('/api/bugs',    bugsRouter);
 app.use('/api/visits',  visitsRouter);
 
 // API : OCR (extraction de texte des images, membres), synthese vocale
@@ -141,8 +143,18 @@ app.get('/sitemap.xml', (req, res) => {
 // Statique
 app.use('/uploads', express.static(UPLOADS_DIR, { fallthrough: true }));
 // Expose data/ pour cohérence avec le mode statique (GitHub Pages) : le
-// frontend peut faire un fallback sur /data/*.json en statique.
-app.use('/data', express.static(DATA_DIR));
+// frontend peut faire un fallback sur /data/*.json en statique. STRICTEMENT
+// limité aux fichiers que le workflow Pages recopie : servir tout le dossier
+// exposait aussi members.json (emails + hash bcrypt), password_resets.json,
+// bugs.json… à n'importe quel visiteur.
+const PUBLIC_DATA_FILES = new Set([
+  'places.json', 'people.json', 'stories.json', 'changelog.json',
+]);
+app.use('/data', (req, res, next) => {
+  const name = path.basename(req.path);
+  if (!PUBLIC_DATA_FILES.has(name)) return res.status(404).end();
+  next();
+}, express.static(DATA_DIR));
 // Captures d'écran utilisées par la page tutoriel (aide.html). Servies
 // depuis docs/ pour rester la source unique (régénérées par
 // scripts/screenshots.js).

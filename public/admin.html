@@ -82,6 +82,7 @@
         <button type="button" class="tab-btn" data-tab="activity">Journal d'activité</button>
         <button type="button" class="tab-btn" data-tab="redactions">🕶️ Anonymisations</button>
         <button type="button" class="tab-btn" data-tab="oplog">🛰️ Opérations</button>
+        <button type="button" class="tab-btn" data-tab="bugs">🐞 Bugs et remarques</button>
         <button type="button" class="tab-btn" data-tab="backups">Sauvegardes</button>
         <button type="button" class="tab-btn" data-tab="welcome">Page d'accueil</button>
         <button type="button" class="tab-btn" data-tab="settings">Réglages du site</button>
@@ -194,6 +195,12 @@
         <h3>🕶️ Anonymisations / passages masqués</h3>
         <p class="hint">Tous les passages anonymisés ou censurés des récits. Tu vois le texte original (admin) et tu peux retirer un masquage.</p>
         <div id="redactions-list"></div>
+      </div>
+
+      <div id="bugs" class="queue" hidden>
+        <h3>🐞 Bugs et remarques des membres</h3>
+        <p class="hint">Écrit par les membres depuis la page « Bug trouvé ! ». Invisible du public. Le statut et la réponse sont affichés aux membres.</p>
+        <div id="bugs-list"></div>
       </div>
 
       <div id="oplog" class="queue" hidden>
@@ -668,6 +675,7 @@
   <script src="js/admin/activity.js"></script>
   <script src="js/admin/redactions.js"></script>
   <script src="js/admin/oplog.js"></script>
+  <script src="js/admin/bugs.js"></script>
   <script src="js/admin/resets.js"></script>
   <script src="js/admin/members.js"></script>
   <script src="js/admin/backups.js"></script>

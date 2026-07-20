@@ -40,6 +40,7 @@ const DATA_FILES = [
   'edits.json',
   'members.json',
   'reports.json',
+  'bugs.json',
   'activity_log.json',
   'password_resets.json',
   'site_config.json',

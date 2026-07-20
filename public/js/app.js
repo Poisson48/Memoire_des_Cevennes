@@ -191,6 +191,7 @@ function renderAuthNav() {
   const greeting   = document.getElementById('member-greeting');
   const accountLink = document.getElementById('menu-account');
   const adminLink  = document.getElementById('menu-admin');
+  const bugLink    = document.getElementById('menu-bug');
 
   if (!loginBtn || !logoutBtn || !greeting) {
     // Page sans ces hooks (login/register/admin) : rien à faire.
@@ -203,6 +204,7 @@ function renderAuthNav() {
     greeting.hidden  = true;
     if (accountLink) accountLink.hidden = true;
     if (adminLink) adminLink.hidden = true;
+    if (bugLink) bugLink.hidden = true;
     return;
   }
 
@@ -215,6 +217,8 @@ function renderAuthNav() {
   if (accountLink) accountLink.hidden = false;
   // Le lien vers la console d'administration n'apparaît que pour les admins.
   if (adminLink) adminLink.hidden = !hasRole('admin');
+  // « Bug trouvé ! » : carnet de bord réservé aux membres connectés.
+  if (bugLink) bugLink.hidden = false;
 
   // Branche le bouton de déconnexion (idempotent : on le rebranche à chaque rendu).
   logoutBtn.onclick = async () => {

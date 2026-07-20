@@ -22,6 +22,8 @@ data/edits.json
 data/members.json
 data/activity_log.json
 data/reports.json
+data/bugs.json
+data/visits.json
 data/welcome.json
 data/password_resets.json
 data/site_config.json
