@@ -3,7 +3,10 @@ uploads/
 backups/
 # Binaires/modeles locaux OCR (tesseract fra) + TTS (Piper + voix).
 # Telecharges par scripts/setup-ocr-tts.sh, pas du code programme.
-vendor/
+# Barre oblique initiale : ne vise QUE le vendor/ de la racine. Les
+# librairies front auto-hebergees (public/vendor/leaflet, ffmpeg...) sont
+# du code servi au navigateur et doivent rester dans git.
+/vendor/
 data/import/
 *.log
 .env

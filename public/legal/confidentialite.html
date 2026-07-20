@@ -97,12 +97,107 @@
         (voir <a href="mentions.html">mentions légales</a>).
       </p>
 
-      <h2>Cookies</h2>
+      <h2>Cookies et stockage dans votre navigateur</h2>
       <p>
-        Le site utilise un unique cookie de session <code>token</code> pour
-        conserver votre authentification (cookie <em>httpOnly</em>, durée
-        7 jours). Aucun cookie de mesure d'audience ou publicitaire n'est
-        déposé.
+        Le site ne dépose <strong>aucun cookie publicitaire</strong>, aucun
+        traceur commercial et n'utilise aucun service d'analyse d'audience
+        tiers (pas de Google Analytics ni équivalent). Voici, en toute
+        transparence, l'intégralité de ce qui est enregistré chez vous.
+      </p>
+
+      <h3>Cookies</h3>
+      <p>
+        Deux cookies, déposés uniquement si vous vous connectez à un compte.
+        Ils sont <em>httpOnly</em> (inaccessibles aux scripts de la page),
+        limités à ce site (<em>SameSite Lax</em>), marqués <em>Secure</em>
+        lorsque vous naviguez en HTTPS, et expirent au bout de 7 jours.
+      </p>
+      <ul>
+        <li>
+          <code>token</code> : votre session de membre. Il contient un jeton
+          signé portant votre identifiant, votre nom, votre email et votre
+          rôle.
+        </li>
+        <li>
+          <code>admin_jwt</code> : même jeton, déposé en plus pour les
+          comptes administrateurs afin de séparer l'espace d'administration
+          de l'espace membre.
+        </li>
+      </ul>
+      <p>
+        Ces cookies sont strictement nécessaires au fonctionnement du compte
+        et ne requièrent donc pas de consentement préalable. Vous déconnecter
+        les supprime.
+      </p>
+
+      <h3>Stockage local (<em>localStorage</em>)</h3>
+      <p>
+        Ces informations restent dans votre navigateur et ne sont pas
+        transmises au serveur, sauf mention contraire ci-dessous. Vider les
+        données du site dans votre navigateur les efface.
+      </p>
+      <ul>
+        <li>
+          <code>mdc-visit-id</code> : un identifiant aléatoire, sans lien
+          avec votre identité, transmis au site pour compter les visiteurs
+          sans utiliser de cookie ni enregistrer d'adresse IP. Seuls des
+          totaux par jour sont conservés côté serveur, pendant 90 jours.
+        </li>
+        <li>
+          <code>mdc:story-draft:…</code> : le brouillon d'un récit en cours
+          de rédaction, pour ne rien perdre en cas de fermeture accidentelle.
+          Il est effacé dès que le récit est envoyé.
+        </li>
+        <li>
+          Vos préférences d'affichage : taille du texte
+          (<code>mdc-text-size</code>), zoom du panneau
+          (<code>mdc-panel-zoom</code>), bandeaux déjà fermés, rôle choisi
+          dans le tutoriel, et une copie de la configuration publique du site
+          pour accélérer l'affichage.
+        </li>
+        <li>
+          Pour les administrateurs uniquement : le jeton et le nom de
+          relecteur utilisés par la console d'administration, effacés à la
+          déconnexion.
+        </li>
+      </ul>
+
+      <h3>Cartes enregistrées hors ligne</h3>
+      <p>
+        Un <em>service worker</em> conserve jusqu'à 1500 tuiles de carte déjà
+        affichées, pour que la carte reste fluide et consomme moins de
+        données. Aucune page, aucun récit et aucun média ne sont mis en cache.
+      </p>
+
+      <h3>Services extérieurs contactés par votre navigateur</h3>
+      <p>
+        Afficher une carte suppose de télécharger ses images auprès de leurs
+        fournisseurs. Ces services reçoivent alors votre adresse IP, comme
+        pour toute visite d'un site web. Ils ne reçoivent ni votre identité,
+        ni le contenu des récits.
+      </p>
+      <ul>
+        <li>
+          <strong>data.geopf.fr</strong> et <strong>wxs.ign.fr</strong>
+          (Géoplateforme / IGN, service public français) : fonds de carte,
+          photographies aériennes, cartes anciennes.
+        </li>
+        <li>
+          <strong>tile.openstreetmap.org</strong> et
+          <strong>tile.openstreetmap.fr</strong> : fonds de carte
+          collaboratifs.
+        </li>
+        <li>
+          <strong>nominatim.openstreetmap.org</strong> : uniquement lorsque
+          vous utilisez la recherche de lieux. Le texte que vous saisissez
+          dans ce champ est alors envoyé à ce service pour retrouver les
+          coordonnées correspondantes.
+        </li>
+      </ul>
+      <p>
+        Toutes les autres ressources du site (code de la carte, styles,
+        images, polices) sont hébergées sur notre propre serveur : aucun
+        réseau de distribution tiers n'est sollicité.
       </p>
 
       <h2>Vos droits</h2>

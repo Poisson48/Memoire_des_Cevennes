@@ -10,8 +10,8 @@
   'use strict';
 
   const BOURRAS = [44.00918, 3.79003];
-  const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  const LEAFLET_CSS = '/vendor/leaflet/leaflet.css';
+  const LEAFLET_JS  = '/vendor/leaflet/leaflet.js';
 
   let map = null;
   let realPoint = null;

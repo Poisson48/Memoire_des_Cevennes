@@ -72,13 +72,23 @@ const resetLimiter = rateLimit({
   message: { error: 'Trop de tentatives : réessaie dans 15 minutes.' },
 });
 
-/** Options du cookie JWT. */
-const cookieOpts = () => ({
+/**
+ * Options du cookie JWT.
+ *
+ * `secure` est decide par requete plutot qu'en dur : le site est joignable
+ * a la fois en HTTPS (nom de domaine, via le proxy) et en HTTP direct sur
+ * l'IP:18542. Forcer secure=true casserait la connexion sur la voie HTTP ;
+ * le laisser a false envoyait le cookie de session en clair sur HTTPS.
+ * On marque donc le cookie Secure des que la requete est arrivee en TLS
+ * (`req.secure`, fiable ici car `trust proxy` est actif en production).
+ * COOKIE_SECURE=true dans .env force le comportement strict partout.
+ */
+const cookieOpts = (req) => ({
   httpOnly: true,
   sameSite: 'lax',
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,           // 7 jours en ms
-  secure: process.env.COOKIE_SECURE === 'true',
+  secure: process.env.COOKIE_SECURE === 'true' || Boolean(req && req.secure),
 });
 
 // ── POST /api/auth/register ───────────────────────────────────────────────
@@ -159,7 +169,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       entityId: '-',
       ip: req.ip,
     });
-    res.cookie('token', token, cookieOpts());
+    res.cookie('token', token, cookieOpts(req));
     res.json({ ok: true, role: payload && payload.role });
   } catch (err) {
     next(err);
@@ -210,8 +220,8 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     // contribuer comme un contributeur. On pose donc admin_jwt (pour les
     // routes /api/admin/*) ET token (pour optionalAuth / requireAuth sur
     // les routes membres).
-    res.cookie('admin_jwt', token, cookieOpts());
-    res.cookie('token',     token, cookieOpts());
+    res.cookie('admin_jwt', token, cookieOpts(req));
+    res.cookie('token',     token, cookieOpts(req));
     res.json({ ok: true, member: { id: payload.sub, email: payload.email, name: payload.name, role: payload.role } });
   } catch (err) {
     next(err);
@@ -229,8 +239,12 @@ router.post('/logout', optionalAuth, (req, res) => {
       ip: req.ip,
     });
   }
-  res.clearCookie('token',     { path: '/' });
-  res.clearCookie('admin_jwt', { path: '/' });
+  // Les options doivent refleter celles de la pose, sinon le navigateur
+  // ne reconnait pas le cookie a supprimer.
+  const clearOpts = { path: '/', httpOnly: true, sameSite: 'lax',
+    secure: process.env.COOKIE_SECURE === 'true' || Boolean(req.secure) };
+  res.clearCookie('token',     clearOpts);
+  res.clearCookie('admin_jwt', clearOpts);
   res.json({ ok: true });
 });
 
