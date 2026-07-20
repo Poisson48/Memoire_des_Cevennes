@@ -904,3 +904,49 @@
 .oplog-table th, .oplog-table td { text-align: left; padding: .3rem .4rem; border-bottom: 1px solid #efe6d4; }
 .oplog-table .num { text-align: right; }
 .oplog-recent .oplog-details { color: #555; font-family: monospace; font-size: .8rem; }
+
+/* ── Journal d'activité ────────────────────────────────────────────────── */
+.activity-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin: .6rem 0 .9rem;
+}
+.activity-count { font-size: .85rem; color: #6b6357; margin-left: auto; }
+.activity-row {
+  border: 1px solid #e6ddcc;
+  border-left: 3px solid #cdbfa6;
+  border-radius: 8px;
+  padding: .5rem .7rem;
+  margin-bottom: .4rem;
+  background: #fff;
+}
+.activity-row.is-sensitive { border-left-color: #c0392b; background: #fffaf9; }
+.activity-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; }
+.activity-icon { font-size: 1.05rem; }
+.activity-entity {
+  font-size: .78rem;
+  padding: .08em .5em;
+  border-radius: 999px;
+  background: #eee7da;
+  color: #5a5347;
+}
+.activity-main code {
+  font-size: .78rem;
+  color: #6b6357;
+  background: #f6f2e9;
+  padding: .05em .35em;
+  border-radius: 4px;
+}
+.activity-meta { font-size: .8rem; color: #6b6357; margin-top: .2rem; }
+.activity-code { font-family: ui-monospace, monospace; font-size: .74rem; opacity: .7; }
+.activity-details {
+  margin-top: .3rem;
+  font-size: .82rem;
+  color: #4a463d;
+  background: #f7f4ec;
+  border-radius: 6px;
+  padding: .3rem .5rem;
+  word-break: break-word;
+}

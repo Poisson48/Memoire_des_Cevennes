@@ -10,6 +10,7 @@ const fs      = require('fs');
 const path    = require('path');
 const { randomUUID } = require('crypto');
 const { requireAuth } = require('../middleware');
+const { logActivity } = require('../activityLog');
 
 const BUGS_FILE = path.join(__dirname, '..', '..', 'data', 'bugs.json');
 
@@ -85,6 +86,14 @@ router.post('/', requireAuth('member'), (req, res, next) => {
     const all = loadBugs();
     all.push(bug);
     saveBugs(all);
+    logActivity({
+      memberId: req.member.id,
+      action: 'bug.create',
+      entityType: 'bug',
+      entityId: bug.id,
+      ip: req.ip,
+      details: { type: bug.kind, titre: bug.title },
+    });
     res.status(201).json({ ok: true, bug: publicView(bug, req.member) });
   } catch (err) { next(err); }
 });
@@ -100,8 +109,16 @@ router.delete('/:id', requireAuth('member'), (req, res, next) => {
     if (!isAdmin && all[i].memberId !== req.member.id) {
       return res.status(403).json({ error: 'Tu ne peux retirer que tes propres entrées.' });
     }
-    all.splice(i, 1);
+    const [removed] = all.splice(i, 1);
     saveBugs(all);
+    logActivity({
+      memberId: req.member.id,
+      action: 'bug.delete',
+      entityType: 'bug',
+      entityId: req.params.id,
+      ip: req.ip,
+      details: { titre: removed.title, par: isAdmin ? 'admin' : 'auteur' },
+    });
     res.json({ ok: true });
   } catch (err) { next(err); }
 });

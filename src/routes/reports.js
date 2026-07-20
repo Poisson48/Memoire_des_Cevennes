@@ -7,6 +7,7 @@ const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
 const { randomUUID } = require('crypto');
+const { logActivity } = require('../activityLog');
 
 const REPORTS_FILE = path.join(__dirname, '..', '..', 'data', 'reports.json');
 
@@ -47,6 +48,14 @@ router.post('/', (req, res, next) => {
     const all = loadReports();
     all.push(report);
     saveReports(all);
+    logActivity({
+      memberId: (req.member && req.member.id) || 'anonyme',
+      action: 'report.create',
+      entityType: 'report',
+      entityId: report.id,
+      ip: req.ip,
+      details: { cible: report.target, categorie: report.category },
+    });
     res.status(201).json({
       ok: true,
       id: report.id,

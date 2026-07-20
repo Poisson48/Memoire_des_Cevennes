@@ -202,6 +202,7 @@ router.post('/members', async (req, res, next) => {
 router.post('/members/:id/approve', (req, res, next) => {
   try {
     const member = auth.approveMember(req.params.id);
+    audit(req, 'member.approve', 'member', member.id, { email: member.email });
     res.json({ member });
   } catch (err) { next(err); }
 });
@@ -230,7 +231,13 @@ router.post('/members/:id/reject', (req, res, next) => {
 router.post('/members/:id/role', (req, res, next) => {
   try {
     const role = req.body && req.body.role;
+    const before = auth.getMemberById(req.params.id);
     const member = auth.setRole(req.params.id, role);
+    audit(req, 'member.role-change', 'member', member.id, {
+      email: member.email,
+      avant: (before && before.role) || '?',
+      apres: member.role,
+    });
     res.json({ member });
   } catch (err) { next(err); }
 });
@@ -340,10 +347,33 @@ router.post('/password-resets/:id/reject', (req, res, next) => {
   }
 });
 
+// Journal d'activite. On resout memberId -> nom lisible (le journal ne
+// stocke qu'un UUID), et on renvoie la liste des actions presentes pour
+// alimenter le filtre cote client. `action` filtre sur un prefixe
+// (ex. "backup" attrape backup.create, backup.restore...).
 router.get('/activity', (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 200, 2000);
-  const log = activityLog.readLog().slice(-limit).reverse();
-  res.json({ activity: log });
+  const limit  = Math.min(parseInt(req.query.limit, 10) || 200, 5000);
+  const filter = String(req.query.action || '').trim();
+
+  const names = new Map();
+  for (const m of auth.loadMembers()) names.set(m.id, m.name || m.email || m.id);
+
+  const all = activityLog.readLog();
+  // Toutes les familles d'actions presentes, pour peupler le menu du filtre.
+  const actions = [...new Set(all.map(e => e.action).filter(Boolean))].sort();
+
+  let log = all;
+  if (filter) log = log.filter(e => String(e.action || '') === filter
+    || String(e.action || '').startsWith(filter + '.'));
+
+  const out = log.slice(-limit).reverse().map(e => ({
+    ...e,
+    memberName: e.memberId === 'admin-token'
+      ? 'jeton admin partage'
+      : (names.get(e.memberId) || null),
+  }));
+
+  res.json({ activity: out, actions, total: all.length, matched: log.length });
 });
 
 router.get('/queue', (req, res) => {
@@ -475,6 +505,22 @@ router.delete('/redactions/:storyId/:rid', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Raccourci de journalisation : toutes les actions de moderation passent
+// par la, pour que le journal d'audit soit complet sans repeter 10 lignes.
+// Type d'entite (singulier) a partir du segment d'URL au pluriel.
+const ENTITY_OF = { places: 'place', people: 'person', stories: 'story' };
+
+function audit(req, action, entityType, entityId, details) {
+  activityLog.logActivity({
+    memberId: (req.member && req.member.id) || 'admin-token',
+    action,
+    entityType,
+    entityId: entityId || '-',
+    ip: req.ip,
+    ...(details ? { details } : {}),
+  });
+}
+
 // ─── Propositions de modification ─────────────────────────────────────
 router.get('/edits/:id', (req, res) => {
   const edit = edits.get(req.params.id);
@@ -486,6 +532,7 @@ router.post('/edits/:id/approve', async (req, res, next) => {
   try {
     const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
     const out = await edits.approve(req.params.id, { reviewer });
+    audit(req, 'edit.approve', 'edit', req.params.id, { relecteur: reviewer });
     res.json({ edit: out });
   } catch (err) { next(err); }
 });
@@ -495,6 +542,7 @@ router.post('/edits/:id/reject', async (req, res, next) => {
     const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
     const reason = (req.body && req.body.reason) || '';
     const out = await edits.reject(req.params.id, { reviewer, reason });
+    audit(req, 'edit.reject', 'edit', req.params.id, { relecteur: reviewer, motif: reason || '(sans motif)' });
     res.json({ edit: out });
   } catch (err) { next(err); }
 });
@@ -510,6 +558,8 @@ router.post('/stories/:storyId/completions/:completionId/approve', async (req, r
       rejectionReason: undefined,
     }));
     if (!out) return res.status(404).json({ error: 'Complétion introuvable' });
+    audit(req, 'completion.approve', 'completion', req.params.completionId,
+      { recit: req.params.storyId, relecteur: reviewer });
     res.json({ completion: out });
   } catch (err) { next(err); }
 });
@@ -525,6 +575,8 @@ router.post('/stories/:storyId/completions/:completionId/reject', async (req, re
       rejectionReason: String(reason).slice(0, 2000),
     }));
     if (!out) return res.status(404).json({ error: 'Complétion introuvable' });
+    audit(req, 'completion.reject', 'completion', req.params.completionId,
+      { recit: req.params.storyId, relecteur: reviewer, motif: reason || '(sans motif)' });
     res.json({ completion: out });
   } catch (err) { next(err); }
 });
@@ -537,6 +589,10 @@ router.post('/:type(places|people|stories)/:id/approve', async (req, res, next) 
     const reviewer = req.body && req.body.reviewer ? String(req.body.reviewer) : 'admin';
     const updated = await moderation.approve(req.params.type, req.params.id, { reviewer });
     if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
+    audit(req, 'moderation.approve', ENTITY_OF[req.params.type], req.params.id, {
+      titre: updated.primaryName || updated.title || '',
+      relecteur: reviewer,
+    });
     res.json({ item: updated });
   } catch (err) { next(err); }
 });
@@ -547,6 +603,11 @@ router.post('/:type(places|people|stories)/:id/reject', async (req, res, next) =
     const reason = (req.body && req.body.reason) || '';
     const updated = await moderation.reject(req.params.type, req.params.id, { reviewer, reason });
     if (!updated) return res.status(404).json({ error: 'Entité introuvable' });
+    audit(req, 'moderation.reject', ENTITY_OF[req.params.type], req.params.id, {
+      titre: updated.primaryName || updated.title || '',
+      relecteur: reviewer,
+      motif: reason || '(sans motif)',
+    });
     res.json({ item: updated });
   } catch (err) { next(err); }
 });
@@ -578,9 +639,9 @@ router.patch('/places/:id/move', async (req, res, next) => {
       entityType: 'place',
       entityId: req.params.id,
       ip: req.ip,
-      // Le journal accepte des champs additionnels : on stocke les coords
-      // d'avant/après pour pouvoir reconstituer l'historique.
-      meta: { from: before, to: { lat, lng } },
+      // Coordonnees d'avant/apres, pour reconstituer l'historique. Le
+      // champ doit s'appeler `details` : logActivity ignore tout le reste.
+      details: { avant: before, apres: { lat, lng } },
     });
     res.json({ place: updated, from: before });
   } catch (err) { next(err); }
@@ -610,7 +671,7 @@ function buildAliasRoute(type, store, label) {
         entityType: type === 'places' ? 'place' : 'person',
         entityId: req.params.id,
         ip: req.ip,
-        meta: { from: before, to: aliases },
+        details: { avant: before, apres: aliases },
       });
       res.json({ item: updated });
     } catch (err) { next(err); }
@@ -627,6 +688,9 @@ router.delete('/places/:id',  async (req, res, next) => {
   try {
     const removed = await places.remove(req.params.id);
     if (!removed) return res.status(404).json({ error: 'Lieu introuvable' });
+    audit(req, 'moderation.delete', 'place', req.params.id, {
+      nom: removed.primaryName || '', statut: removed.status || '',
+    });
     res.json({ ok: true, removed });
   } catch (err) { next(err); }
 });
@@ -635,6 +699,9 @@ router.delete('/people/:id',  async (req, res, next) => {
   try {
     const removed = await people.remove(req.params.id);
     if (!removed) return res.status(404).json({ error: 'Personne introuvable' });
+    audit(req, 'moderation.delete', 'person', req.params.id, {
+      nom: removed.primaryName || '', statut: removed.status || '',
+    });
     res.json({ ok: true, removed });
   } catch (err) { next(err); }
 });
@@ -644,6 +711,11 @@ router.delete('/stories/:id', async (req, res, next) => {
     const removed = await stories.remove(req.params.id);
     if (!removed) return res.status(404).json({ error: 'Récit introuvable' });
     removeStoryMedia(req.params.id);
+    audit(req, 'moderation.delete', 'story', req.params.id, {
+      titre: removed.title || '(sans titre)',
+      statut: removed.status || '',
+      medias: (removed.mediaFiles || []).length,
+    });
     res.json({ ok: true, removed });
   } catch (err) { next(err); }
 });

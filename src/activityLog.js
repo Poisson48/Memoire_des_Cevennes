@@ -7,6 +7,20 @@ const path = require('path');
 
 const LOG_PATH = path.join(__dirname, '../data/activity_log.json');
 
+// La politique de confidentialite (public/legal/confidentialite.html)
+// annonce 12 mois de conservation pour « ID membre, action, adresse IP,
+// horodatage ». On purge donc a chaque ecriture, sinon l'engagement n'est
+// pas tenu (les entrees s'accumulaient indefiniment).
+const KEEP_MONTHS = 12;
+
+function withinRetention(entry) {
+  if (!entry || !entry.timestamp) return true;   // horodatage illisible : on garde
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - KEEP_MONTHS);
+  const t = new Date(entry.timestamp);
+  return Number.isNaN(t.getTime()) || t >= cutoff;
+}
+
 function readLog() {
   try {
     return JSON.parse(fs.readFileSync(LOG_PATH, 'utf8'));
@@ -38,7 +52,12 @@ function logActivity({ memberId, action, entityType, entityId, ip, details }) {
   };
   if (details && typeof details === 'object') entry.details = details;
   log.push(entry);
-  fs.writeFileSync(LOG_PATH, JSON.stringify(log, null, 2), 'utf8');
+  const kept = log.filter(withinRetention);
+  // Ecriture atomique : deux requetes concurrentes ne peuvent plus laisser
+  // le fichier a moitie ecrit.
+  const tmp = LOG_PATH + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(kept, null, 2), 'utf8');
+  fs.renameSync(tmp, LOG_PATH);
 }
 
-module.exports = { logActivity, readLog };
+module.exports = { logActivity, readLog, KEEP_MONTHS };

@@ -39,12 +39,6 @@ function loadLog() {
   }
 }
 
-function saveLog(entries) {
-  const tmp = LOG_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(entries, null, 2) + '\n');
-  fs.renameSync(tmp, LOG_FILE);
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 /** Retourne une copie du membre sans le hash de mot de passe. */
@@ -446,22 +440,11 @@ function roleIndex(role) {
 
 // ── Journal d'activité ────────────────────────────────────────────────────
 
-/**
- * Enregistre une action dans data/activity_log.json.
- * @param {{ memberId, action, entityType, entityId, ip }} opts
- */
-function logActivity({ memberId, action, entityType, entityId, ip }) {
-  const log = loadLog();
-  log.push({
-    memberId:   memberId   || null,
-    action:     String(action),
-    entityType: entityType || null,
-    entityId:   entityId   || null,
-    timestamp:  new Date().toISOString(),
-    ip:         ip         || null,
-  });
-  saveLog(log);
-}
+// NB : le journal d'activite s'ecrit UNIQUEMENT via src/activityLog.js.
+// Une seconde implementation vivait ici et ecrivait dans le meme fichier
+// avec un schema legerement different (pas de `details`, ip a null au lieu
+// de 'unknown'). Elle n'avait aucun appelant : retiree pour eviter que
+// deux schemas cohabitent dans data/activity_log.json.
 
 module.exports = {
   createMember,
@@ -481,5 +464,4 @@ module.exports = {
   ROLES,
   loadMembers,
   loadLog,
-  logActivity,
 };

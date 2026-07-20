@@ -95,6 +95,14 @@ router.post('/register', registerLimiter, async (req, res, next) => {
       charterVersion: '1.0',
       phone: phone || null,
     });
+    activityLog.logActivity({
+      memberId: member.id,
+      action: 'member.register',
+      entityType: 'member',
+      entityId: member.id,
+      ip: req.ip,
+      details: { email: member.email, nom: member.name },
+    });
     res.status(201).json({
       ok: true,
       member,
@@ -123,6 +131,16 @@ router.post('/login', loginLimiter, async (req, res, next) => {
     }
     const token = await login(email, password);
     if (!token) {
+      // Echec trace sans le mot de passe, avec l'email tente : c'est ce qui
+      // permet de reperer une tentative de bruteforce dans le journal.
+      activityLog.logActivity({
+        memberId: 'anonyme',
+        action: 'member.login-failed',
+        entityType: 'auth',
+        entityId: '-',
+        ip: req.ip,
+        details: { email: String(email).slice(0, 160) },
+      });
       return res.status(401).json({
         error: 'Identifiants invalides ou compte non approuvé.',
       });
@@ -134,6 +152,13 @@ router.post('/login', loginLimiter, async (req, res, next) => {
         adminLoginUrl: '/admin.html',
       });
     }
+    activityLog.logActivity({
+      memberId: (payload && payload.sub) || 'inconnu',
+      action: 'member.login',
+      entityType: 'auth',
+      entityId: '-',
+      ip: req.ip,
+    });
     res.cookie('token', token, cookieOpts());
     res.json({ ok: true, role: payload && payload.role });
   } catch (err) {
@@ -152,12 +177,35 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     }
     const token = await login(email, password);
     if (!token) {
+      activityLog.logActivity({
+        memberId: 'anonyme',
+        action: 'admin.login-failed',
+        entityType: 'auth',
+        entityId: '-',
+        ip: req.ip,
+        details: { email: String(email).slice(0, 160), motif: 'identifiants invalides' },
+      });
       return res.status(401).json({ error: 'Identifiants invalides ou compte non approuvé.' });
     }
     const payload = jwt.decode(token);
     if (!payload || payload.role !== 'admin') {
+      activityLog.logActivity({
+        memberId: (payload && payload.sub) || 'inconnu',
+        action: 'admin.login-failed',
+        entityType: 'auth',
+        entityId: '-',
+        ip: req.ip,
+        details: { email: String(email).slice(0, 160), motif: 'compte sans role admin' },
+      });
       return res.status(403).json({ error: "Ce compte n'a pas le rôle administrateur." });
     }
+    activityLog.logActivity({
+      memberId: payload.sub,
+      action: 'admin.login',
+      entityType: 'auth',
+      entityId: '-',
+      ip: req.ip,
+    });
     // Double cookie : un admin est techniquement aussi un membre : il peut
     // contribuer comme un contributeur. On pose donc admin_jwt (pour les
     // routes /api/admin/*) ET token (pour optionalAuth / requireAuth sur
@@ -171,7 +219,16 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
 });
 
 // ── POST /api/auth/logout ─────────────────────────────────────────────────
-router.post('/logout', (_req, res) => {
+router.post('/logout', optionalAuth, (req, res) => {
+  if (req.member) {
+    activityLog.logActivity({
+      memberId: req.member.id,
+      action: 'member.logout',
+      entityType: 'auth',
+      entityId: '-',
+      ip: req.ip,
+    });
+  }
   res.clearCookie('token',     { path: '/' });
   res.clearCookie('admin_jwt', { path: '/' });
   res.json({ ok: true });

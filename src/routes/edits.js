@@ -4,6 +4,7 @@
 const express = require('express');
 const edits = require('../edits');
 const { resolveContributor } = require('../contributor');
+const { logActivity } = require('../activityLog');
 
 const router = express.Router({ mergeParams: true });
 
@@ -33,6 +34,18 @@ router.post('/:type(places|people|stories)/:id/edits', async (req, res, next) =>
       submittedBy,
     });
     const applied = await maybeAutoApply(req, edit);
+    logActivity({
+      memberId: (req.member && req.member.id) || 'anonyme',
+      action: applied ? 'edit.approve' : 'edit.submit',
+      entityType: 'edit',
+      entityId: edit.id,
+      ip: req.ip,
+      details: {
+        cible: `${req.params.type}/${req.params.id}`,
+        champs: Object.keys((req.body && req.body.changes) || {}).join(', '),
+        ...(applied ? { applique: 'immediatement (admin)' } : {}),
+      },
+    });
     res.status(201).json({
       edit, applied,
       message: applied
