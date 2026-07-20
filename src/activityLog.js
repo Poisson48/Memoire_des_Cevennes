@@ -39,8 +39,9 @@ function readLog() {
  * @param {string} opts.entityId    - ID de l'entité concernée
  * @param {string} [opts.ip]        - adresse IP de la requête
  * @param {object} [opts.details]   - metadata libre (counts, motif, etc.)
+ * @param {string} [opts.actorName] - nom lisible si memberId ne l'identifie pas
  */
-function logActivity({ memberId, action, entityType, entityId, ip, details }) {
+function logActivity({ memberId, action, entityType, entityId, ip, details, actorName }) {
   const log = readLog();
   const entry = {
     memberId,
@@ -50,6 +51,9 @@ function logActivity({ memberId, action, entityType, entityId, ip, details }) {
     timestamp: new Date().toISOString(),
     ip: ip || 'unknown',
   };
+  // Nom lisible de l'auteur, stocke seulement quand il ne peut pas etre
+  // deduit de memberId (jeton admin partage, contributeur non connecte).
+  if (actorName) entry.actorName = String(actorName).slice(0, 120);
   if (details && typeof details === 'object') entry.details = details;
   log.push(entry);
   const kept = log.filter(withinRetention);

@@ -58,8 +58,8 @@
         <label>Token
           <input type="password" name="token" autocomplete="off" required />
         </label>
-        <label>Nom (pour l'historique d'audit)
-          <input type="text" name="reviewer" placeholder="ton pseudo" maxlength="80" />
+        <label>Ton nom <span class="hint-inline">(le jeton partagé n'identifie personne : sans ce nom, le journal d'activité ne pourra pas dire qui a agi)</span>
+          <input type="text" name="reviewer" placeholder="ex. Valère, Antoine…" maxlength="80" required />
         </label>
         <div id="auth-error-token" class="auth-error" hidden></div>
         <div class="actions">

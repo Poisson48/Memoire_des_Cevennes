@@ -125,7 +125,12 @@ function reviewer() { return localStorage.getItem(REVIEWER_KEY) || 'admin'; }
 // En mode token, on injecte X-Admin-Token dans les headers.
 function authHeaders() {
   const h = { 'Content-Type': 'application/json' };
-  if (mode() === 'token') h['X-Admin-Token'] = token();
+  if (mode() === 'token') {
+    h['X-Admin-Token'] = token();
+    // Le jeton partage est anonyme : on joint le nom saisi a la connexion
+    // pour que le journal d'activite sache qui a fait quoi.
+    h['X-Admin-Reviewer'] = reviewer();
+  }
   return h;
 }
 function authFetchOpts(opts = {}) {

@@ -167,11 +167,16 @@ async function refreshActivity() {
             <span class="activity-icon" aria-hidden="true">${icon}</span>
             <strong>${escapeHtml(label)}</strong>
             ${ent ? `<span class="activity-entity">${escapeHtml(ent)}</span>` : ''}
-            ${a.entityId && a.entityId !== '-' ? `<code>${activityHighlight(escapeHtml(a.entityId))}</code>` : ''}
+            ${a.entityName
+              ? `<span class="activity-name">${activityHighlight(escapeHtml(a.entityName))}</span>`
+              : ''}
+            ${a.entityId && a.entityId !== '-'
+              ? `<code title="identifiant technique">${activityHighlight(escapeHtml(a.entityId))}</code>`
+              : ''}
             ${activityLink(a)}
           </div>
           <div class="activity-meta">
-            <time>${escapeHtml(when)}</time> · par ${who}
+            <time>${escapeHtml(when)}</time> · par <strong class="activity-who">${who}</strong>
             ${a.ip && a.ip !== 'unknown' ? ` · ${activityHighlight(escapeHtml(a.ip))}` : ''}
             · <span class="activity-code">${activityHighlight(escapeHtml(a.action || ''))}</span>
           </div>

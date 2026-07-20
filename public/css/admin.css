@@ -966,3 +966,9 @@
   padding: .3rem .5rem;
   word-break: break-word;
 }
+.activity-name {
+  font-weight: 600;
+  color: #4a3a26;
+}
+.activity-who { color: #4a3a26; font-weight: 600; }
+.hint-inline { font-weight: 400; font-size: .82rem; color: #6b6357; }

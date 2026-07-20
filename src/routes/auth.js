@@ -107,6 +107,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
     });
     activityLog.logActivity({
       memberId: member.id,
+      actorName: member.name || member.email || '',
       action: 'member.register',
       entityType: 'member',
       entityId: member.id,
@@ -145,6 +146,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       // permet de reperer une tentative de bruteforce dans le journal.
       activityLog.logActivity({
         memberId: 'anonyme',
+        actorName: String(email).slice(0, 120),
         action: 'member.login-failed',
         entityType: 'auth',
         entityId: '-',
@@ -164,6 +166,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
     }
     activityLog.logActivity({
       memberId: (payload && payload.sub) || 'inconnu',
+      actorName: (payload && payload.name) || String(email).slice(0, 120),
       action: 'member.login',
       entityType: 'auth',
       entityId: '-',
@@ -189,6 +192,7 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     if (!token) {
       activityLog.logActivity({
         memberId: 'anonyme',
+        actorName: String(email).slice(0, 120),
         action: 'admin.login-failed',
         entityType: 'auth',
         entityId: '-',
@@ -201,6 +205,7 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     if (!payload || payload.role !== 'admin') {
       activityLog.logActivity({
         memberId: (payload && payload.sub) || 'inconnu',
+        actorName: (payload && payload.name) || String(email).slice(0, 120),
         action: 'admin.login-failed',
         entityType: 'auth',
         entityId: '-',
@@ -211,6 +216,7 @@ router.post('/admin-login', loginLimiter, async (req, res, next) => {
     }
     activityLog.logActivity({
       memberId: payload.sub,
+      actorName: payload.name || payload.email || '',
       action: 'admin.login',
       entityType: 'auth',
       entityId: '-',

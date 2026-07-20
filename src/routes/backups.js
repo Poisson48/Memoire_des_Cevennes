@@ -41,6 +41,9 @@ function logAdminAction(req, action, entityId) {
   try {
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      // reviewerFromReq couvre deja le compte admin, le champ `reviewer` du
+      // corps, et sinon on prend le nom envoye par la console admin.
+      actorName: req.adminName || reviewerFromReq(req),
       action,
       entityType: 'backup',
       entityId: entityId || '-',

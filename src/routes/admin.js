@@ -66,6 +66,7 @@ router.put('/welcome', async (req, res, next) => {
     const out = await welcome.save({ content, updatedBy });
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'welcome.update',
       entityType: 'welcome',
       entityId: '-',
@@ -87,6 +88,7 @@ router.put('/site-config', async (req, res, next) => {
     const out = await siteConfig.save({ title, tagline, updatedBy });
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'site-config.update',
       entityType: 'site-config',
       entityId: '-',
@@ -280,6 +282,7 @@ router.patch('/members/:id', (req, res, next) => {
     const member = auth.updateMember(req.params.id, patch);
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'admin.member-update',
       entityType: 'member',
       entityId: member.id,
@@ -369,18 +372,42 @@ router.get('/activity', (req, res) => {
   const names = new Map();
   for (const m of auth.loadMembers()) names.set(m.id, m.name || m.email || m.id);
 
+  // Noms des entites, pour afficher « Mas de la Nible » plutot qu'un UUID.
+  // Le journal ne stocke qu'un identifiant : on resout a la lecture, et on
+  // laisse l'identifiant brut quand l'entite a depuis ete supprimee.
+  const entityNames = new Map();
+  const indexEntities = (list, type, field) => {
+    for (const it of list) entityNames.set(type + ':' + it.id, it[field] || '');
+  };
+  try {
+    indexEntities(places.list({ status: 'all' }),  'place',  'primaryName');
+    indexEntities(people.list({ status: 'all' }),  'person', 'primaryName');
+    indexEntities(stories.list({ status: 'all' }), 'story',  'title');
+    for (const m of auth.loadMembers()) {
+      entityNames.set('member:' + m.id, m.name || m.email || '');
+    }
+  } catch { /* un fichier illisible ne doit pas casser le journal */ }
+
   const all = activityLog.readLog();
   // Toutes les familles d'actions presentes, pour peupler le menu du filtre.
   const actions = [...new Set(all.map(e => e.action).filter(Boolean))].sort();
 
   // Nom lisible ajoute avant filtrage, pour qu'une recherche sur le nom du
   // membre fonctionne (le journal ne contient que l'UUID).
-  const named = all.map(e => ({
-    ...e,
-    memberName: e.memberId === 'admin-token'
-      ? 'jeton admin partage'
-      : (names.get(e.memberId) || null),
-  }));
+  const named = all.map(e => {
+    // Priorite : nom du compte connecte, puis nom explicitement enregistre
+    // au moment de l'action (jeton admin partage, visiteur non connecte).
+    const fromAccount = names.get(e.memberId);
+    let memberName = fromAccount || e.actorName || null;
+    if (!memberName && e.memberId === 'admin-token') memberName = 'jeton admin partagé (nom non renseigné)';
+    if (!memberName && (e.memberId === 'anonyme' || !e.memberId)) memberName = 'visiteur non connecté';
+    return {
+      ...e,
+      memberName,
+      // Nom lisible de la cible quand elle existe encore.
+      entityName: entityNames.get(e.entityType + ':' + e.entityId) || null,
+    };
+  });
 
   let log = named;
   if (filter) {
@@ -394,6 +421,7 @@ router.get('/activity', (req, res) => {
     log = log.filter(e => {
       const hay = [
         e.action, e.entityType, e.entityId, e.ip, e.memberName, e.memberId,
+        e.entityName,
         e.details ? JSON.stringify(e.details) : '',
       ].join(' ').toLowerCase();
       return hay.includes(q);
@@ -468,6 +496,7 @@ router.patch('/bugs/:id', (req, res, next) => {
     bugs.saveBugs(all);
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'bug.update',
       entityType: 'bug',
       entityId: bug.id,
@@ -487,6 +516,7 @@ router.delete('/bugs/:id', (req, res, next) => {
     bugs.saveBugs(all);
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'bug.delete',
       entityType: 'bug',
       entityId: req.params.id,
@@ -537,6 +567,7 @@ router.delete('/redactions/:storyId/:rid', async (req, res, next) => {
     }
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin',
+      actorName: actorNameOf(req),
       action: 'unredact',
       entityType: 'story',
       entityId: req.params.storyId,
@@ -551,9 +582,23 @@ router.delete('/redactions/:storyId/:rid', async (req, res, next) => {
 // Type d'entite (singulier) a partir du segment d'URL au pluriel.
 const ENTITY_OF = { places: 'place', people: 'person', stories: 'story' };
 
+// Nom lisible de qui agit. Avec un compte admin, req.member porte le nom.
+// Avec le jeton partage, personne n'est identifie : on retombe sur le nom
+// de relecteur envoye par la console (X-Admin-Reviewer), puis sur le champ
+// `reviewer` du corps de requete.
+function actorNameOf(req) {
+  if (req.member && (req.member.name || req.member.email)) {
+    return req.member.name || req.member.email;
+  }
+  if (req.adminName) return req.adminName;
+  if (req.body && req.body.reviewer) return String(req.body.reviewer).slice(0, 80);
+  return '';
+}
+
 function audit(req, action, entityType, entityId, details) {
   activityLog.logActivity({
     memberId: (req.member && req.member.id) || 'admin-token',
+    actorName: actorNameOf(req),
     action,
     entityType,
     entityId: entityId || '-',
@@ -676,6 +721,7 @@ router.patch('/places/:id/move', async (req, res, next) => {
     if (!updated) return res.status(404).json({ error: 'Lieu introuvable' });
     activityLog.logActivity({
       memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
       action: 'place.move',
       entityType: 'place',
       entityId: req.params.id,
@@ -708,6 +754,7 @@ function buildAliasRoute(type, store, label) {
       if (!updated) return res.status(404).json({ error: `${label} introuvable` });
       activityLog.logActivity({
         memberId: (req.member && req.member.id) || 'admin-token',
+      actorName: actorNameOf(req),
         action: `${type === 'places' ? 'place' : 'person'}.aliases.update`,
         entityType: type === 'places' ? 'place' : 'person',
         entityId: req.params.id,

@@ -44,6 +44,12 @@ function requireAdmin(req, res, next) {
     ? decodeURIComponent(sharedCookiePart.slice('admin_token='.length))
     : '';
   if (sharedToken && (header === sharedToken || sharedCookieToken === sharedToken)) {
+    // Le jeton partage n'identifie personne. La console admin envoie le nom
+    // du relecteur saisi a la connexion (en-tete X-Admin-Reviewer) : on le
+    // conserve pour que le journal d'audit puisse dire QUI a agi, au lieu
+    // d'un « jeton admin partage » anonyme.
+    const name = String(req.header('x-admin-reviewer') || '').slice(0, 80).trim();
+    req.adminName = name || '';
     return next();
   }
   return res.status(401).json({ error: 'Authentification admin requise.' });
