@@ -1,4 +1,4 @@
-# Rapport de l'agent autonome — Implémentation Option C
+# Rapport de l'agent autonome : Implémentation Option C
 
 **Branche** : `feature/auth-option-c`
 **Date** : 2026-04-24
@@ -20,7 +20,7 @@
 | 10 | `create_register_html` | ✓ | `public/register.html` (196 lignes, consent checkbox) |
 | 11 | `update_admin_html`    | ✖ | Claude CLI planté (même cause) |
 | 12 | `update_app_js`        | ✓ | `public/js/app.js` réécrit (26 Kb) |
-| 13 | `write_rapport`        | ✖ | Réponse tronquée — rapport écrit manuellement (ce fichier) |
+| 13 | `write_rapport`        | ✖ | Réponse tronquée : rapport écrit manuellement (ce fichier) |
 
 **Coût observé** : ~$1.10 équivalent API sur 10 appels réussis. Sous abonnement Max OAuth → **zéro facturation**, uniquement du quota.
 
@@ -28,8 +28,8 @@
 
 ### Dettes techniques des étapes KO
 
-- **Étape 4 (update_schema)** : `src/schema.js` — ajout du champ `visibility` dans `makePlace`, `makePerson`, `makeStory` avec défaut `"members"`. `makePerson` honore aussi `isLiving: true` qui force `visibility="members"`.
-- **Étape 11 (update_admin_html)** : `public/admin.html` + `public/js/admin.js` — ajout de deux onglets (Membres, Journal d'activité), `refreshMembers()` / `refreshActivity()`, actions approuver + changer rôle.
+- **Étape 4 (update_schema)** : `src/schema.js` : ajout du champ `visibility` dans `makePlace`, `makePerson`, `makeStory` avec défaut `"members"`. `makePerson` honore aussi `isLiving: true` qui force `visibility="members"`.
+- **Étape 11 (update_admin_html)** : `public/admin.html` + `public/js/admin.js` : ajout de deux onglets (Membres, Journal d'activité), `refreshMembers()` / `refreshActivity()`, actions approuver + changer rôle.
 
 ### Bugs introduits par l'agent
 
@@ -88,8 +88,8 @@ npm install --save bcryptjs jsonwebtoken cookie-parser
 
 Voir `.env.example`. En prod :
 
-- `JWT_SECRET` — OBLIGATOIRE. Généré via `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
-- `ADMIN_TOKEN` — Token partagé pour les routes admin. À régénérer en prod.
+- `JWT_SECRET` : OBLIGATOIRE. Généré via `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
+- `ADMIN_TOKEN` : Token partagé pour les routes admin. À régénérer en prod.
 - `COOKIE_SECURE=true` en prod (HTTPS uniquement).
 - `PORT=3003` par défaut.
 
@@ -140,4 +140,4 @@ Tous ces tests ont été exécutés avec succès avant la publication du rapport
 - Remplir les `<span data-todo>...</span>` dans les pages légales avec les vraies informations (RNA, adresse, nom du président, hébergeur, email de contact).
 - Faire signer un formulaire de consentement papier aux témoins enregistrés (cf. `public/legal/consentement-temoin.html`, imprimable).
 - Mettre en place les sauvegardes hors VPS (rsync périodique vers un disque perso).
-- Relecture de `public/js/app.js` — le fichier a été réécrit par l'agent (de 571 à 663 lignes), je n'ai pas passé chaque changement en revue.
+- Relecture de `public/js/app.js` : le fichier a été réécrit par l'agent (de 571 à 663 lignes), je n'ai pas passé chaque changement en revue.

@@ -1,6 +1,6 @@
 {
-  "$schema": "data/seeds/bootstrap.json — contenu de référence du programme",
-  "description": "Lieux, personnes et récits canoniques. Injectés via 'node scripts/seed-bootstrap.js' lors du déploiement initial. Le contenu utilisateur (data/*.json) n'est pas dans git. Vide pour l'instant — sera repopulé avec les données réelles issues des cahiers du Haut Vidourle.",
+  "$schema": "data/seeds/bootstrap.json : contenu de référence du programme",
+  "description": "Lieux, personnes et récits canoniques. Injectés via 'node scripts/seed-bootstrap.js' lors du déploiement initial. Le contenu utilisateur (data/*.json) n'est pas dans git. Vide pour l'instant : sera repopulé avec les données réelles issues des cahiers du Haut Vidourle.",
   "places": [],
   "people": [],
   "stories": []

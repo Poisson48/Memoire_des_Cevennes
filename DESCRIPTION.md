@@ -1,4 +1,4 @@
-# Mémoire des Cévennes — description du projet
+# Mémoire des Cévennes : description du projet
 
 > Ce fichier est pensé pour être **lu et modifié librement**. C'est le point
 > de départ du récit que porte l'application. Change-le, rédige à ta voix,
@@ -7,7 +7,7 @@
 ## L'idée en une phrase
 
 Une carte interactive des Cévennes où chaque lieu peut recueillir les photos,
-les voix, les récits et les dessins de celles et ceux qui l'ont habité — pour
+les voix, les récits et les dessins de celles et ceux qui l'ont habité : pour
 que la mémoire des anciens reste vivante et se prolonge dans celle
 d'aujourd'hui.
 
@@ -22,14 +22,14 @@ Les Cévennes sont un territoire tissé de mémoires fragiles :
 
 Beaucoup de ces histoires se perdent au rythme où s'en vont ceux qui les
 portent. Elles se transmettent encore à la veillée, dans les repas de
-famille, au détour d'une photo retrouvée — mais sans support partagé pour
+famille, au détour d'une photo retrouvée : mais sans support partagé pour
 les attacher au lieu où elles prennent sens.
 
 ## Ce que fait l'application
 
 Une **carte interactive** centrée sur les Cévennes. Sur cette carte :
 
-1. **N'importe qui peut épingler un lieu** — un hameau, une source, un
+1. **N'importe qui peut épingler un lieu** : un hameau, une source, un
    sentier, une pierre, un arbre remarquable.
 2. **À chaque lieu, on peut attacher des contenus** :
    - 📖 des **récits écrits** (souvenirs, témoignages, légendes)
@@ -59,11 +59,11 @@ timeline. Juste un lieu, une histoire.
 - **Un lieu, des histoires.** La géographie structure la mémoire.
 - **Toutes les voix comptent.** Les récits d'enfants autant que ceux des
   anciens, les grandes histoires comme les anecdotes, les choses
-  vérifiables comme les légendes — elles peuvent cohabiter.
+  vérifiables comme les légendes : elles peuvent cohabiter.
 - **Sobre techniquement.** Carte OpenStreetMap, stockage en fichiers
   lisibles, code simple. Pas de dépendance à un service propriétaire.
 - **Propriété partagée.** Les contenus sont mis en commun, sous licence
-  libre (à finaliser — probablement CC-BY-SA pour les contenus).
+  libre (à finaliser : probablement CC-BY-SA pour les contenus).
 - **Modifiable et fourchable.** Le projet est open source : n'importe qui
   peut l'installer chez soi, le décliner pour une autre vallée, une autre
   région.
@@ -89,7 +89,7 @@ timeline. Juste un lieu, une histoire.
 
 ## Nom du projet
 
-*Mémoire des Cévennes* — singulier volontaire. Une mémoire plurielle faite
+*Mémoire des Cévennes* : singulier volontaire. Une mémoire plurielle faite
 de mille voix, mais un territoire qui se souvient comme un seul être.
 
 ---

@@ -16,7 +16,7 @@ Preview du design, **lecture seule** (pas d'ajout, pas d'upload) :
 👉 **<https://poisson48.github.io/Memoire_des_Cevennes/>**
 
 La version complète (création de lieux, upload de photos/audio/vidéo…) tourne
-sur serveur Node — voir *Démarrer en local* plus bas.
+sur serveur Node : voir *Démarrer en local* plus bas.
 
 ---
 
@@ -26,7 +26,7 @@ sur serveur Node — voir *Démarrer en local* plus bas.
 
 ![Carte des Cévennes avec les marqueurs de lieux](docs/screenshots/01-map-desktop.png)
 
-### Panneau d'un lieu — avec ses alias historiques et locaux
+### Panneau d'un lieu : avec ses alias historiques et locaux
 
 Chaque lieu peut porter plusieurs noms à la fois : une dénomination cadastrale,
 une forme en occitan, un surnom familial, un surnom oral local. On voit ci-dessous
@@ -65,11 +65,11 @@ des contributeurs, **la compression se fait côté client** avant l'envoi :
   ultrafast, MP4 avec faststart.
 
 `ffmpeg.wasm` est **chargé à la demande** (~25 Mo, une seule fois par
-session) — uniquement quand on rencontre un audio ou une vidéo, pour ne
+session) : uniquement quand on rencontre un audio ou une vidéo, pour ne
 pas alourdir le premier chargement de la carte.
 
 Si la compression échoue (navigateur trop ancien, pas de connexion vers
-le CDN…), on uploade le fichier original en silence — aucune perte de
+le CDN…), on uploade le fichier original en silence : aucune perte de
 fonctionnalité.
 
 ### Capture audio in-browser + upload fichier
@@ -84,7 +84,7 @@ parcours cohabitent dans le formulaire d'ajout de contenu :
   faits au micro pro, les photos d'archives déjà numérisées, les vidéos…
 
 Selon le type de contenu choisi (photo / vidéo), l'attribut `capture` du
-file input passe sur `environment` — sur mobile, le picker ouvre
+file input passe sur `environment` : sur mobile, le picker ouvre
 directement l'appareil photo ou le caméscope.
 
 ![Dialog avec le widget d'enregistrement audio](docs/screenshots/10-add-story-audio-recorder.png)
@@ -124,7 +124,7 @@ passent en plein écran, les boutons font ≥ 44 px pour les doigts.
 
 - **Carte Leaflet** des Cévennes (tuiles OpenStreetMap France).
 - **Lieux** avec alias datés, contextuels (cadastre, occitan, familial…) et
-  attachables à un locuteur précis (ex. *« Chez Suzette » — utilisé par
+  attachables à un locuteur précis (ex. *« Chez Suzette » : utilisé par
   Pierre Duval depuis 1970*).
 - **Personnes** comme entités de premier rang, avec alias, bio, relations
   familiales (parents, conjoints, enfants dérivés).
@@ -167,9 +167,9 @@ Personne ──── contributeur de ──▶ Récit
 ```
 
 Chaque lieu et chaque personne peut avoir plusieurs **alias** :
-- **temporels** (startYear / endYear — utile pour les noms de lieux qui
+- **temporels** (startYear / endYear : utile pour les noms de lieux qui
   évoluent au fil des siècles),
-- **sociaux** (`usedBy: personId` — pour distinguer « chez Suzette »
+- **sociaux** (`usedBy: personId` : pour distinguer « chez Suzette »
   quand c'est Pierre qui parle),
 - **contextuels** (cadastre, occitan, oral local, familial…).
 
@@ -197,7 +197,7 @@ Puis ouvre <http://localhost:3003>.
 
 ### Modération (admin)
 
-Toutes les soumissions — créations **et** propositions de modification —
+Toutes les soumissions (créations **et** propositions de modification)
 tombent en `pending`.
 
 **Interface graphique** : <http://localhost:3003/admin.html>
@@ -244,7 +244,7 @@ memoire_des_cevennes/
 │   ├── people.json         # personnes + relations familiales
 │   ├── stories.json        # récits + mentions (offsets)
 │   └── edits.json          # propositions de modification (style Wikipédia)
-├── uploads/                # médias binaires (NON versionnés — voir plus bas)
+├── uploads/                # médias binaires (NON versionnés : voir plus bas)
 ├── public/                 # frontend vanilla
 │   ├── index.html          # carte + panneau + dialogs
 │   ├── admin.html          # page de modération
@@ -273,9 +273,9 @@ memoire_des_cevennes/
 
 ## Stockage
 
-- **`data/*.json`** — structure du graphe (lieux, personnes, récits,
+- **`data/*.json`** : structure du graphe (lieux, personnes, récits,
   mentions). Versionné dans git, on suit l'évolution dans l'historique.
-- **`uploads/`** — fichiers binaires (photos, audio, vidéo, PDF). **Ignorés
+- **`uploads/`** : fichiers binaires (photos, audio, vidéo, PDF). **Ignorés
   par git** : ils peuvent être gros (audio long, vidéo), pèsent sur le repo,
   et sortent du périmètre "Preview statique". Stratégies suivant :
   - sauvegarde `rsync` ou disque externe,
@@ -284,7 +284,7 @@ memoire_des_cevennes/
 
 ## Licence
 
-À définir — probablement **CC-BY-SA** pour les contenus et **MIT** pour le code.
+À définir : probablement **CC-BY-SA** pour les contenus et **MIT** pour le code.
 
 ---
 

@@ -1,10 +1,10 @@
-# Instructions pour Claude — Mémoire des Cévennes
+# Instructions pour Claude : Mémoire des Cévennes
 
 Ces règles s'appliquent à **toute session Claude Code dans ce dépôt**.
 
-## 🚨 Identité des commits — NON NÉGOCIABLE
+## 🚨 Identité des commits : NON NÉGOCIABLE
 
-**Tous les commits doivent être signés `crevette etincelante` — pas Antoine,
+**Tous les commits doivent être signés `crevette etincelante` : pas Antoine,
 pas Valère, pas Claude, pas Poisson48.**
 
 - `git config user.name` doit valoir `crevette etincelante` dans ce dépôt.
@@ -20,7 +20,7 @@ git config user.name     # doit afficher : crevette etincelante
 
 Si ce n'est pas le cas : `git config user.name "crevette etincelante"`.
 
-## 🔐 Push — clé SSH Poisson48
+## 🔐 Push : clé SSH Poisson48
 
 Le dépôt distant `Poisson48/Memoire_des_Cevennes` utilise la clé SSH dédiée.
 Toujours pusher via :
@@ -29,13 +29,13 @@ Toujours pusher via :
 GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519_poisson48 -o IdentitiesOnly=yes' git push
 ```
 
-L'alias `github-poisson48` est configuré dans `~/.ssh/config` — le remote
+L'alias `github-poisson48` est configuré dans `~/.ssh/config` : le remote
 `origin` pointe déjà sur `git@github-poisson48:Poisson48/Memoire_des_Cevennes.git`.
 
-## 🔄 Preview GitHub Pages — pousser souvent
+## 🔄 Preview GitHub Pages : pousser souvent
 
 Le workflow `.github/workflows/pages.yml` redéploie à chaque push sur
-`main`. L'utilisateur s'en sert comme aperçu visuel — **pusher après
+`main`. L'utilisateur s'en sert comme aperçu visuel : **pusher après
 chaque étape significative**, pas attendre de grouper 10 commits.
 
 Preview : <https://poisson48.github.io/Memoire_des_Cevennes/>
@@ -47,7 +47,7 @@ ses alentours dans le premier temps. Une ouverture plus large sur
 l'ensemble des Cévennes viendra plus tard. Ne pas re-centrer la carte sur
 un autre point sauf demande explicite.
 
-## 🛡️ Modération — principes
+## 🛡️ Modération : principes
 
 - Toute création (Lieu / Personne / Récit) atterrit en `status: pending`.
 - Toute proposition de modification (fichier `data/edits.json`) entre
@@ -62,7 +62,7 @@ un autre point sauf demande explicite.
 - Modèle inspiré de Wikipédia : diff avant/après, note de modification,
   audit avec horodatage et reviewer.
 
-## 🎫 Création de comptes — par invitation, jamais de mot de passe en clair
+## 🎫 Création de comptes : par invitation, jamais de mot de passe en clair
 
 **Règle dure** : aucun mot de passe ne doit être généré, transmis ou
 affiché par l'admin (ni par Claude). Toute création de compte (membre,
@@ -95,7 +95,7 @@ mot de passe sur `/reset.html` en saisissant la clé.
   live que l'utilisateur teste dans le navigateur tourne sur **18542**
   (voir section ci-dessous).
 
-## 🌐 Déploiement live — port 18542
+## 🌐 Déploiement live : port 18542
 
 L'utilisateur accède au site via **<http://78.122.112.36:18542/>** depuis
 l'extérieur. La box ne fait pas de translation de port : `18542` externe
@@ -106,7 +106,7 @@ l'extérieur. La box ne fait pas de translation de port : `18542` externe
   ```bash
   set -a && . ./.env && set +a; PORT=18542 node server.js
   ```
-  (laisser tourner en background — ne pas killer en fin de tâche).
+  (laisser tourner en background : ne pas killer en fin de tâche).
 
 - **Cette machine n'a pas de NAT loopback.** Donc `curl 78.122.112.36:18542`
   *depuis cette machine* échoue toujours, même quand le service est joignable
@@ -207,10 +207,10 @@ Le module `src/backup.js` produit des archives `.tar.gz` autoporteuses
   `kind` (`manual` / `pre-restore` / `export` / `import`), `files` (sha256
   par fichier JSON), inventaire `uploads`.
 - `data/*.json` (places, people, stories, edits, members, reports,
-  activity_log, password_resets, site_config) — `data/seeds/` exclu.
+  activity_log, password_resets, site_config) : `data/seeds/` exclu.
   La liste exacte est `DATA_FILES` dans `src/backup.js`, à mettre à jour
   quand on ajoute un fichier de données.
-- `uploads/` — médias attachés aux récits.
+- `uploads/` : médias attachés aux récits.
 
 **Versionnage** : `SCHEMA_VERSION` est un entier dans `src/backup.js`. Le
 **bumper** (et ajouter une migration dans l'objet `MIGRATIONS`) à chaque
@@ -234,7 +234,7 @@ est chiffrée, la nouvelle instance doit avoir la **même
 
 **Chiffrement** : si `BACKUP_PASSPHRASE` est défini, toutes les archives
 créées sont chiffrées AES-256-GCM (extension `.tar.gz.enc`, scrypt N=2¹⁴).
-Conserver la passphrase ailleurs (gestionnaire de mots de passe) — sans
+Conserver la passphrase ailleurs (gestionnaire de mots de passe) : sans
 elle, les archives chiffrées sont irrécupérables.
 
 **Sauvegardes périodiques** : `BACKUP_AUTO_INTERVAL_HOURS` active un timer

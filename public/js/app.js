@@ -971,7 +971,7 @@ function wireTreeSearch(overlay) {
     let items, prefix = '';
     if (placeCtx) {
       prefix = `<li class="tree-search-head" aria-disabled="true">
-        <span>📍 ${escapeHtml(placeCtx.primaryName)} — personnes citées</span>
+        <span>📍 ${escapeHtml(placeCtx.primaryName)} : personnes citées</span>
         <button type="button" class="tree-search-back">← retour</button>
       </li>`;
       items = peopleOfPlace(placeCtx.id);

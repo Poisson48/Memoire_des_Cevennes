@@ -51,7 +51,7 @@ if [ -f .env ]; then
 fi
 
 if [ -z "${JWT_SECRET:-}" ]; then
-  warn "JWT_SECRET non défini — l'authentification membres sera désactivée."
+  warn "JWT_SECRET non défini : l'authentification membres sera désactivée."
   warn "Ajoute-le dans .env (voir .env.example)."
 fi
 
@@ -68,7 +68,7 @@ if ss -tlnp 2>/dev/null | grep -q ":${PORT} "; then
   PIDS=$(lsof -ti :"$PORT" 2>/dev/null || true)
   if [ -n "$PIDS" ]; then
     say "port $PORT occupé, kill $PIDS"
-    kill -9 $PIDS 2>/dev/null || warn "certains PIDs root, impossible à kill sans sudo — continue"
+    kill -9 $PIDS 2>/dev/null || warn "certains PIDs root, impossible à kill sans sudo : continue"
     sleep 1
   fi
 fi
@@ -83,7 +83,7 @@ disown
 for i in $(seq 1 20); do
   if curl -sf "http://localhost:$PORT/api/version" > /dev/null 2>&1; then
     VERSION=$(curl -s "http://localhost:$PORT/api/version" | grep -oE '"version":"[^"]*"' | cut -d'"' -f4)
-    say "✅ serveur up — version $VERSION — pid $SERVER_PID"
+    say "✅ serveur up : version $VERSION : pid $SERVER_PID"
     say "log : tail -f $LOG"
     break
   fi
@@ -91,7 +91,7 @@ for i in $(seq 1 20); do
 done
 
 if ! curl -sf "http://localhost:$PORT/api/version" > /dev/null 2>&1; then
-  warn "serveur pas joignable après 10 s — check $LOG"
+  warn "serveur pas joignable après 10 s : check $LOG"
   tail -20 "$LOG"
   exit 1
 fi
@@ -106,7 +106,7 @@ if [ "$DO_OPEN" -eq 1 ]; then
     say "ouvre : $URL"
   fi
 else
-  say "skip navigateur (--no-open) — url : $URL"
+  say "skip navigateur (--no-open) : url : $URL"
 fi
 
 echo

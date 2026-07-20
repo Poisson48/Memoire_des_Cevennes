@@ -1,4 +1,4 @@
-// Mémoire des Cévennes — serveur Express.
+// Mémoire des Cévennes : serveur Express.
 // Côté HTTP : rien de métier ici, tout est dans src/routes/*.
 
 'use strict';
@@ -70,20 +70,20 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-// Parseur de cookies — nécessaire pour lire le cookie JWT "token".
+// Parseur de cookies : nécessaire pour lire le cookie JWT "token".
 app.use(cookieParser());
 
 // Peuple req.member sur toutes les routes (null si non connecté).
 // Les middlewares de route peuvent ensuite exiger requireAuth(minRole).
 app.use(optionalAuth);
 
-// API — authentification membres (routes publiques)
+// API : authentification membres (routes publiques)
 app.use('/api/auth', authRouter);
 
-// API — méta
+// API : méta
 app.use('/api', meta);
 
-// API — entités (visibilité filtrée par req.member dans chaque router)
+// API : entités (visibilité filtrée par req.member dans chaque router)
 app.use('/api/places',  placesRouter);
 app.use('/api/people',  peopleRouter);
 app.use('/api/stories', storiesRouter);
@@ -91,13 +91,13 @@ app.use('/api', editsRouter);         // /api/:type/:id/edits
 app.use('/api/reports', reportsRouter);
 app.use('/api/visits',  visitsRouter);
 
-// API — OCR (extraction de texte des images, membres), synthese vocale
+// API : OCR (extraction de texte des images, membres), synthese vocale
 // (Piper, lecture des recits) et livret PDF par tags. Tout local.
 app.use('/api/ocr',     ocrRouter);
 app.use('/api/tts',     ttsRouter);
 app.use('/api/livret',  livretRouter);
 
-// API — administration (X-Admin-Token OU JWT admin via requireAdmin)
+// API : administration (X-Admin-Token OU JWT admin via requireAdmin)
 app.use('/api/admin',   adminRouter);
 
 // SEO : sitemap.xml dynamique. Listé à la racine pour que les robots qui
@@ -140,7 +140,7 @@ app.get('/sitemap.xml', (req, res) => {
 
 // Statique
 app.use('/uploads', express.static(UPLOADS_DIR, { fallthrough: true }));
-// Expose data/ pour cohérence avec le mode statique (GitHub Pages) — le
+// Expose data/ pour cohérence avec le mode statique (GitHub Pages) : le
 // frontend peut faire un fallback sur /data/*.json en statique.
 app.use('/data', express.static(DATA_DIR));
 // Captures d'écran utilisées par la page tutoriel (aide.html). Servies
@@ -152,12 +152,12 @@ app.use(express.static(PUBLIC_DIR));
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`▸ Mémoire des Cévennes — http://localhost:${PORT}`);
+  console.log(`▸ Mémoire des Cévennes : http://localhost:${PORT}`);
   if (!process.env.ADMIN_TOKEN) {
-    console.log('  (ADMIN_TOKEN non défini — file de modération inaccessible)');
+    console.log('  (ADMIN_TOKEN non défini : file de modération inaccessible)');
   }
   if (!process.env.JWT_SECRET) {
-    console.log('  ⚠  JWT_SECRET non défini — authentification membres désactivée.');
+    console.log('  ⚠  JWT_SECRET non défini : authentification membres désactivée.');
   }
 
   // Sauvegardes automatiques périodiques (désactivé si l'env n'est pas mis).
@@ -172,8 +172,8 @@ app.listen(PORT, () => {
     });
   }
   if (!backup.encryptionEnabled()) {
-    console.log('  (BACKUP_PASSPHRASE non défini — backups en clair)');
+    console.log('  (BACKUP_PASSPHRASE non défini : backups en clair)');
   } else {
-    console.log('  Backups chiffrés (AES-256-GCM, scrypt) — ne perds pas BACKUP_PASSPHRASE !');
+    console.log('  Backups chiffrés (AES-256-GCM, scrypt) : ne perds pas BACKUP_PASSPHRASE !');
   }
 });

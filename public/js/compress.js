@@ -757,7 +757,7 @@
   }
 
   // ── Vidéo : HEVC > VP9 > H.264, container adapté au codec ────────
-  // Voie ffmpeg.wasm — fallback. Beaucoup plus lente (1 cœur, no-asm,
+  // Voie ffmpeg.wasm : fallback. Beaucoup plus lente (1 cœur, no-asm,
   // pas d'accélération matérielle) mais marche partout. On y passe
   // uniquement si la voie native (compressVideoNative) a échoué.
   //   libx265    → MP4, audio AAC. Tag hvc1 pour la lecture iOS.

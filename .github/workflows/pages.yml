@@ -2,7 +2,7 @@ name: Preview GitHub Pages
 
 # Preview statique, lecture seule, pour visualiser le design.
 # L'application complète (uploads audio/vidéo, écriture) tourne sur
-# serveur Node/Express — voir server.js et run.sh.
+# serveur Node/Express : voir server.js et run.sh.
 
 on:
   push:

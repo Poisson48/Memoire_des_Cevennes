@@ -142,7 +142,7 @@ function buildHtml({ title = 'Mémoire des Cévennes', selection, aud, includeIm
 <div class="couverture">
   <h1 class="titre">${escapeHtml(title)}</h1>
   <p class="sous-titre">Recueil de récits et de mémoire vivante</p>
-  <p class="meta">${escapeHtml(audLabel)} — ${list.length} récit${list.length > 1 ? 's' : ''} — ${escapeHtml(dateStr)}</p>
+  <p class="meta">${escapeHtml(audLabel)} · ${list.length} récit${list.length > 1 ? 's' : ''} · ${escapeHtml(dateStr)}</p>
 </div>
 <nav class="sommaire"><h1>Sommaire</h1><ol>${toc}</ol></nav>
 ${sections || '<p class="vide">Aucun récit ne correspond aux sujets choisis.</p>'}

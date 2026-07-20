@@ -3,7 +3,7 @@ Ta mission immédiate
 Tu ne codes pas l'Option C toi-même.
 Tu dois :
 Lire ce fichier et les fichiers clés du projet
-Générer un script agent/run.js — un orchestrateur autonome Node.js
+Générer un script agent/run.js : un orchestrateur autonome Node.js
 Installer ses dépendances
 Le lancer via bash
 Le sous-agent fait tout le travail de code, fichier par fichier, jusqu'à la fin
@@ -79,10 +79,10 @@ optionalAuth() sur toutes les routes GET
 requireAuth("contributor") sur toutes les routes POST de création
 requireAuth("admin") sur toutes les routes /api/admin/*
 Compatibilité X-Admin-Token maintenue sur les routes admin
-Routes GET — filtrage visibility
+Routes GET : filtrage visibility
 req.member null → visibility: "public" uniquement, champs name/bio/aliases masqués sur people
 req.member présent → tout le contenu approuvé
-Routes POST création — vérifications
+Routes POST création : vérifications
 req.body.consentGiven !== true → 400
 Logger dans activity_log.json : { memberId, action, entityType, entityId, timestamp, ip }
 Schémas (src/schema.js)
@@ -94,10 +94,10 @@ POST /api/admin/members/:id/approve
 POST /api/admin/members/:id/role
 GET /api/admin/activity
 Frontend
-public/login.html — formulaire email + mdp → POST /api/auth/login → redirect index
-public/register.html — nom + email + mdp → POST /api/auth/register → message attente
-public/js/app.js — GET /api/auth/me au chargement, redirect login si 401, afficher bouton ajout selon rôle, case consentement dans formulaire
-public/admin.html — section membres en attente + membres actifs + log activité
+public/login.html : formulaire email + mdp → POST /api/auth/login → redirect index
+public/register.html : nom + email + mdp → POST /api/auth/register → message attente
+public/js/app.js : GET /api/auth/me au chargement, redirect login si 401, afficher bouton ajout selon rôle, case consentement dans formulaire
+public/admin.html : section membres en attente + membres actifs + log activité
 Variables d'environnement
 Code
 Rapport final du sous-agent
@@ -108,7 +108,7 @@ Variables d'environnement à configurer
 Checklist de tests curl pour valider l'implémentation
 Instructions pour toi (Claude Code)
 Crée le dossier agent/
-Génère agent/run.js complet selon les specs ci-dessus — utilise https natif Node 18+ (pas de node-fetch)
+Génère agent/run.js complet selon les specs ci-dessus : utilise https natif Node 18+ (pas de node-fetch)
 Lance node agent/run.js depuis la racine du repo
 Surveille agent/activity.log en temps réel
 Une fois terminé, lis agent/rapport.md et résume ce qui a été fait

@@ -13,7 +13,7 @@ tests/screenshots/
 agent/transcripts/
 agent/activity.log
 
-# Contenu utilisateur — vit sur le serveur, pas dans le repo.
+# Contenu utilisateur : vit sur le serveur, pas dans le repo.
 # Pour redéployer : scripts/seed-bootstrap.js + seed-demo.js + seed-admin.js.
 data/places.json
 data/people.json

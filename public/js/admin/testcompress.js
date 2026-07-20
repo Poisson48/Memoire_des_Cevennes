@@ -72,7 +72,7 @@ runBtn.addEventListener('click', async () => {
     const ticker = setInterval(() => {
       const dt = (performance.now() - t0) / 1000;
       statusEl.hidden = false;
-      statusEl.textContent = `${lastStatus}  —  ${dt.toFixed(0)} s`;
+      statusEl.textContent = `${lastStatus} : ${dt.toFixed(0)} s`;
     }, tickEvery);
     function setStatusKeep(msg) { lastStatus = msg; setStatus(msg); }
 
@@ -111,15 +111,15 @@ runBtn.addEventListener('click', async () => {
       const lines = [];
       lines.push(`<h3>Résultat</h3>`);
       lines.push(`<dl class="tc-dl">`);
-      lines.push(`<dt>Source</dt><dd>${escapeHtml(file.name)} — ${fmtSize(r.original)} (${escapeHtml(file.type || 'inconnu')})</dd>`);
+      lines.push(`<dt>Source</dt><dd>${escapeHtml(file.name)} : ${fmtSize(r.original)} (${escapeHtml(file.type || 'inconnu')})</dd>`);
       if (r.skipped) {
         lines.push(`<dt>Statut</dt><dd>SAUTÉ`);
-        if (r.error) lines.push(` — erreur : ${escapeHtml(r.error)}`);
-        else lines.push(` — la sortie n'aurait pas été plus petite (ou type non géré)`);
+        if (r.error) lines.push(`, erreur : ${escapeHtml(r.error)}`);
+        else lines.push(`, la sortie n'aurait pas été plus petite (ou type non géré)`);
         lines.push(`</dd>`);
       } else {
         const ratio = ((1 - r.compressed / r.original) * 100).toFixed(1);
-        lines.push(`<dt>Compressé</dt><dd>${escapeHtml(r.filename)} — ${fmtSize(r.compressed)} (${escapeHtml(r.mime)})</dd>`);
+        lines.push(`<dt>Compressé</dt><dd>${escapeHtml(r.filename)} : ${fmtSize(r.compressed)} (${escapeHtml(r.mime)})</dd>`);
         lines.push(`<dt>Réduction</dt><dd>−${ratio}%</dd>`);
         if (r.codec) lines.push(`<dt>Codec</dt><dd>${escapeHtml(r.codec)}</dd>`);
         if (r.path) {

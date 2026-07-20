@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Orchestrateur autonome — implémente "Option C" (authentification membres,
+// Orchestrateur autonome : implémente "Option C" (authentification membres,
 // rôles, visibilité) en plusieurs étapes en dialoguant avec Claude via la
 // CLI `claude` en mode non-interactif (réutilise l'OAuth de l'abonnement
 // Max, pas besoin de clé API séparée).
@@ -8,9 +8,9 @@
 //   node agent/run.js
 //
 // Variables d'environnement :
-//   AGENT_MODEL         (optionnel — défaut : "sonnet", alias dernier Sonnet)
+//   AGENT_MODEL         (optionnel : défaut : "sonnet", alias dernier Sonnet)
 //   AGENT_DRY_RUN       (si "1", n'écrit rien et n'exécute pas de shell)
-//   AGENT_BUDGET_USD    (optionnel — cap par appel Claude, défaut : 0.30)
+//   AGENT_BUDGET_USD    (optionnel : cap par appel Claude, défaut : 0.30)
 
 const fs = require('fs');
 const path = require('path');
@@ -70,7 +70,7 @@ function readFile(rel) {
 }
 
 function callClaude(systemPrompt, userMessage) {
-  // Invoque `claude --print` — stdin = user message, --system-prompt remplace
+  // Invoque `claude --print` : stdin = user message, --system-prompt remplace
   // le prompt par défaut de Claude Code. --max-budget-usd plafonne le coût
   // par étape.
   const args = [
@@ -94,7 +94,7 @@ function callClaude(systemPrompt, userMessage) {
   let envelope;
   try { envelope = JSON.parse(res.stdout); }
   catch (e) {
-    throw new Error('Envelope JSON invalide : ' + e.message + ' — sortie brute : ' + res.stdout.slice(0, 400));
+    throw new Error('Envelope JSON invalide : ' + e.message + ' : sortie brute : ' + res.stdout.slice(0, 400));
   }
   if (envelope.is_error || envelope.subtype !== 'success') {
     throw new Error('Claude a renvoyé une erreur : ' + (envelope.error || envelope.subtype));
@@ -114,8 +114,8 @@ const SYSTEM_PROMPT = `Tu es un sous-agent d'implémentation pour le projet "Mé
 (Node 18+ / Express / Multer v2 / frontend vanilla + Leaflet, données JSON,
 médias en uploads/, port 3003, admin via X-Admin-Token).
 
-Tu implémentes l'Option C — authentification membres, rôles, visibilité
-"public | members" — étape par étape, sans jamais casser la compatibilité
+Tu implémentes l'Option C : authentification membres, rôles, visibilité
+"public | members" : étape par étape, sans jamais casser la compatibilité
 du flux admin via X-Admin-Token.
 
 À chaque étape, on te fournit :
@@ -266,14 +266,14 @@ function runStep(step, idx, total) {
 
 function main() {
   fs.writeFileSync(LOG_PATH, '');
-  log(`Démarrage — modèle : ${MODEL}${DRY_RUN ? ' [DRY RUN]' : ''}`);
+  log(`Démarrage : modèle : ${MODEL}${DRY_RUN ? ' [DRY RUN]' : ''}`);
   log(`Racine projet : ${ROOT}`);
   let ok = 0, ko = 0;
   for (let i = 0; i < STEPS.length; i++) {
     const res = runStep(STEPS[i], i, STEPS.length);
     if (res.ok) ok++; else ko++;
   }
-  log(`━━━ fin de la boucle — ${ok} OK / ${ko} KO ━━━`);
+  log(`━━━ fin de la boucle : ${ok} OK / ${ko} KO ━━━`);
   if (fs.existsSync(REPORT_PATH)) {
     log(`Rapport final : ${REPORT_PATH}`);
   } else {
