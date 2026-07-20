@@ -95,10 +95,49 @@
     return r.json();
   }
 
+  // Chrome Android et Safari iOS ne savent pas imprimer une iframe : leur
+  // dialogue d'impression retombe sur le document principal, et on obtient un
+  // PDF de la page livret au lieu du livret. Sur mobile on ouvre donc le
+  // livret dans un vrai onglet, qui déclenche lui-même son impression.
+  const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
+  // Script + bouton injectés dans le document du livret : l'impression est
+  // déclenchée depuis l'onglet lui-même (seul cas fiable sur mobile), et le
+  // bouton permet de relancer si le dialogue a été fermé ou bloqué.
+  function withPrintTrigger(html) {
+    const extra = `
+<style>
+  #livret-print-bar{position:fixed;left:0;right:0;bottom:0;padding:12px;
+    background:#fff;border-top:1px solid #ccc;text-align:center;z-index:9999;
+    font-family:system-ui,sans-serif}
+  #livret-print-bar button{font:inherit;font-size:1.05rem;padding:.6em 1.4em;
+    border:0;border-radius:8px;background:#7a4b2a;color:#fff}
+  @media print{#livret-print-bar{display:none !important}}
+</style>
+<div id="livret-print-bar">
+  <button type="button" onclick="window.print()">🖨️ Enregistrer au format PDF</button>
+</div>
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () { try { window.print(); } catch (e) {} }, 300);
+  });
+<\/script>`;
+    return html.replace(/<\/body>/i, extra + '</body>');
+  }
+
+  // Onglet dédié (mobile) : la fenêtre est ouverte en amont, dans le geste de
+  // clic, sinon les bloqueurs de pop-up la refusent.
+  function printInWindow(win, html) {
+    const blobUrl = URL.createObjectURL(
+      new Blob([withPrintTrigger(html)], { type: 'text/html' }));
+    win.location.replace(blobUrl);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  }
+
   // Rend le HTML dans un iframe isolé puis ouvre le dialogue d'impression du
   // navigateur (« Enregistrer au format PDF »). Tout se passe côté client :
-  // aucune puissance serveur consommée, ça marche sur tout navigateur (y
-  // compris mobile), sans dépendance Chromium/Playwright.
+  // aucune puissance serveur consommée, sans dépendance Chromium/Playwright.
   function printHtml(html) {
     return new Promise((resolve) => {
       const blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
@@ -143,6 +182,10 @@
 
   async function generate() {
     // Retour visuel immédiat : préparer le livret puis ouvrir l'impression.
+    // Sur mobile, l'onglet doit être ouvert MAINTENANT (dans le geste de clic)
+    // pour ne pas être bloqué comme pop-up ; il affiche le livret dès que le
+    // HTML est prêt.
+    const win = IS_MOBILE ? window.open('', '_blank') : null;
     const label = genBtn.textContent;
     genBtn.disabled = true;
     genBtn.classList.add('is-loading');
@@ -167,10 +210,29 @@
         throw new Error(d.error || r.statusText);
       }
       const html = await r.text();
-      await printHtml(html);
-      statusEl.className = 'livret-status is-done';
-      statusEl.textContent = '✅ Livret prêt : dans la fenêtre d\'impression, choisis « Enregistrer au format PDF ».';
+      if (win) {
+        printInWindow(win, html);
+        statusEl.className = 'livret-status is-done';
+        statusEl.textContent = '✅ Livret ouvert dans un nouvel onglet : choisis « Enregistrer au format PDF » dans le dialogue d\'impression.';
+      } else if (IS_MOBILE) {
+        // Pop-up bloquée : on retombe sur un téléchargement du livret, que le
+        // navigateur pourra ouvrir puis imprimer.
+        const blobUrl = URL.createObjectURL(
+          new Blob([withPrintTrigger(html)], { type: 'text/html' }));
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = (payload.title || 'livret').replace(/[^\w\s-]/g, '') + '.html';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        statusEl.className = 'livret-status is-done';
+        statusEl.textContent = '✅ Livret téléchargé. Autorise les fenêtres surgissantes pour l\'imprimer directement, ou ouvre le fichier puis « Imprimer ».';
+      } else {
+        await printHtml(html);
+        statusEl.className = 'livret-status is-done';
+        statusEl.textContent = '✅ Livret prêt : dans la fenêtre d\'impression, choisis « Enregistrer au format PDF ».';
+      }
     } catch (e) {
+      if (win) win.close();
       statusEl.className = 'livret-status is-error';
       statusEl.textContent = '⚠️ Erreur : ' + e.message;
     } finally {
