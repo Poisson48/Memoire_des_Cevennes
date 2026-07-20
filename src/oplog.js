@@ -7,8 +7,13 @@
 // On garde ca SEPARE de data/activity_log.json (audit metier) : ces
 // operations sont frequentes/publiques (TTS, PDF) et gonfleraient l'audit.
 //
-// Le fichier est borne : au-dela de KEEP_LINES, on ne garde que les plus
-// recentes (rotation paresseuse, faite a la lecture).
+// Le fichier est borne DANS LE TEMPS, pas en nombre de lignes : les
+// entrees contiennent des adresses IP, donc la duree de conservation est
+// ce qui compte pour le RGPD. Une borne en lignes ne garantissait rien (un
+// site peu frequente aurait garde des IP pendant des annees). On aligne
+// donc sur la meme duree que l'audit metier : voir KEEP_MONTHS dans
+// src/activityLog.js, et la politique de confidentialite qui l'annonce.
+// Rotation paresseuse, faite a la lecture.
 
 'use strict';
 
@@ -16,7 +21,26 @@ const fs = require('fs');
 const path = require('path');
 
 const OP_LOG = path.join(__dirname, '..', 'data', 'op_log.jsonl');
-const KEEP_LINES = 5000;
+const { KEEP_MONTHS } = require('./activityLog');
+
+// Garde-fou volume : purement anti-emballement (fichier qui exploserait
+// entre deux purges), pas une politique de conservation.
+const MAX_LINES = 200000;
+
+function cutoffDate() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - KEEP_MONTHS);
+  return d;
+}
+
+/** true si l'entree est dans la fenetre de conservation. */
+function withinRetention(line) {
+  const i = line.indexOf('"ts":"');
+  if (i === -1) return true;                       // ligne illisible : on garde
+  const ts = line.slice(i + 6, line.indexOf('"', i + 6));
+  const t = new Date(ts);
+  return Number.isNaN(t.getTime()) || t >= cutoffDate();
+}
 
 function ipOf(req) {
   if (!req) return '-';
@@ -58,13 +82,16 @@ function readOps({ limit = 300 } = {}) {
   } catch {
     return [];
   }
-  if (lines.length > KEEP_LINES + 1000) {
-    const trimmed = lines.slice(-KEEP_LINES);
-    try { fs.writeFileSync(OP_LOG, trimmed.join('\n') + '\n'); } catch {}
-    lines = trimmed;
+  // Purge par anciennete. On ne reecrit le fichier que si quelque chose a
+  // reellement ete retire, pour ne pas le reserialiser a chaque lecture.
+  const kept = lines.filter(withinRetention);
+  const capped = kept.length > MAX_LINES ? kept.slice(-MAX_LINES) : kept;
+  if (capped.length !== lines.length) {
+    try { fs.writeFileSync(OP_LOG, capped.length ? capped.join('\n') + '\n' : ''); } catch {}
+    lines = capped;
   }
-  const recent = lines.slice(-Math.max(1, Math.min(limit, KEEP_LINES))).reverse();
+  const recent = lines.slice(-Math.max(1, limit)).reverse();
   return recent.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
 
-module.exports = { opLog, readOps, ipOf, userOf };
+module.exports = { opLog, readOps, ipOf, userOf, KEEP_MONTHS };

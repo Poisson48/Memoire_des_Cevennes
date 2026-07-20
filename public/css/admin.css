@@ -906,12 +906,28 @@
 .oplog-recent .oplog-details { color: #555; font-family: monospace; font-size: .8rem; }
 
 /* ── Journal d'activité ────────────────────────────────────────────────── */
-.activity-controls {
+.activity-controls { margin: .6rem 0 .9rem; }
+.activity-controls-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: .5rem;
-  margin: .6rem 0 .9rem;
+  margin-bottom: .45rem;
+}
+#activity-search {
+  flex: 1 1 260px;
+  min-width: 180px;
+  padding: .4rem .6rem;
+  border: 1px solid #cdbfa6;
+  border-radius: 8px;
+  font: inherit;
+}
+.activity-dates-label { font-size: .85rem; color: #6b6357; }
+.activity-row mark {
+  background: #ffe08a;
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 .1em;
 }
 .activity-count { font-size: .85rem; color: #6b6357; margin-left: auto; }
 .activity-row {

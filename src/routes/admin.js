@@ -349,11 +349,22 @@ router.post('/password-resets/:id/reject', (req, res, next) => {
 
 // Journal d'activite. On resout memberId -> nom lisible (le journal ne
 // stocke qu'un UUID), et on renvoie la liste des actions presentes pour
-// alimenter le filtre cote client. `action` filtre sur un prefixe
-// (ex. "backup" attrape backup.create, backup.restore...).
+// alimenter le filtre cote client.
+//
+// Filtres, tri et recherche sont faits ICI et non dans le navigateur : la
+// recherche doit porter sur tout le journal, pas seulement sur la fenetre
+// des N dernieres entrees deja chargees.
+//   action= : famille d'actions ("backup" attrape backup.create, ...)
+//   q=      : recherche libre (nom, action, id, IP, contenu des details)
+//   sort=   : recent (defaut) | ancien | action | membre
+//   from=, to= : bornes de date (AAAA-MM-JJ), incluses
 router.get('/activity', (req, res) => {
   const limit  = Math.min(parseInt(req.query.limit, 10) || 200, 5000);
   const filter = String(req.query.action || '').trim();
+  const q      = String(req.query.q || '').trim().toLowerCase();
+  const sort   = String(req.query.sort || 'recent');
+  const from   = String(req.query.from || '').trim();
+  const to     = String(req.query.to || '').trim();
 
   const names = new Map();
   for (const m of auth.loadMembers()) names.set(m.id, m.name || m.email || m.id);
@@ -362,18 +373,48 @@ router.get('/activity', (req, res) => {
   // Toutes les familles d'actions presentes, pour peupler le menu du filtre.
   const actions = [...new Set(all.map(e => e.action).filter(Boolean))].sort();
 
-  let log = all;
-  if (filter) log = log.filter(e => String(e.action || '') === filter
-    || String(e.action || '').startsWith(filter + '.'));
-
-  const out = log.slice(-limit).reverse().map(e => ({
+  // Nom lisible ajoute avant filtrage, pour qu'une recherche sur le nom du
+  // membre fonctionne (le journal ne contient que l'UUID).
+  const named = all.map(e => ({
     ...e,
     memberName: e.memberId === 'admin-token'
       ? 'jeton admin partage'
       : (names.get(e.memberId) || null),
   }));
 
-  res.json({ activity: out, actions, total: all.length, matched: log.length });
+  let log = named;
+  if (filter) {
+    log = log.filter(e => String(e.action || '') === filter
+      || String(e.action || '').startsWith(filter + '.'));
+  }
+  if (from) log = log.filter(e => String(e.timestamp || '') >= from);
+  // `to` est une date seule : on la rend inclusive en comparant au jour+1.
+  if (to) log = log.filter(e => String(e.timestamp || '') <= to + 'T23:59:59.999Z');
+  if (q) {
+    log = log.filter(e => {
+      const hay = [
+        e.action, e.entityType, e.entityId, e.ip, e.memberName, e.memberId,
+        e.details ? JSON.stringify(e.details) : '',
+      ].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  const byTime = (a, b) => String(a.timestamp).localeCompare(String(b.timestamp));
+  if (sort === 'ancien')      log = log.slice().sort(byTime);
+  else if (sort === 'action') log = log.slice().sort((a, b) =>
+    String(a.action).localeCompare(String(b.action)) || byTime(b, a));
+  else if (sort === 'membre') log = log.slice().sort((a, b) =>
+    String(a.memberName || a.memberId).localeCompare(String(b.memberName || b.memberId), 'fr')
+      || byTime(b, a));
+  else                        log = log.slice().sort((a, b) => byTime(b, a));
+
+  res.json({
+    activity: log.slice(0, limit),
+    actions,
+    total: all.length,
+    matched: log.length,
+  });
 });
 
 router.get('/queue', (req, res) => {

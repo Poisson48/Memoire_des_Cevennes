@@ -88,6 +88,18 @@ const ENTITY_LABELS = {
 
 let activityFilter = '';
 let activityLimit  = 200;
+let activityQuery  = '';
+let activitySort   = 'recent';
+let activityFrom   = '';
+let activityTo     = '';
+let activityRows   = [];      // dernier lot recu, pour l'export CSV
+
+// Surligne le terme recherché dans un fragment DÉJÀ échappé.
+function activityHighlight(safeHtml) {
+  if (!activityQuery) return safeHtml;
+  const needle = escapeHtml(activityQuery).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safeHtml.replace(new RegExp(needle, 'gi'), m => `<mark>${m}</mark>`);
+}
 
 // Rend l'objet `details` (metadata libre) en une ligne lisible.
 function activityDetails(d) {
@@ -98,7 +110,7 @@ function activityDetails(d) {
     const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
     parts.push(`${escapeHtml(k)} : ${escapeHtml(val.slice(0, 300))}`);
   }
-  return parts.join(' · ');
+  return activityHighlight(parts.join(' · '));
 }
 
 // Lien vers la fiche concernée quand l'entité est encore consultable.
@@ -115,10 +127,14 @@ async function refreshActivity() {
   if (!el) return;
   el.innerHTML = '<p class="empty">Chargement…</p>';
   try {
-    const qs = new URLSearchParams({ limit: String(activityLimit) });
+    const qs = new URLSearchParams({ limit: String(activityLimit), sort: activitySort });
     if (activityFilter) qs.set('action', activityFilter);
+    if (activityQuery)  qs.set('q', activityQuery);
+    if (activityFrom)   qs.set('from', activityFrom);
+    if (activityTo)     qs.set('to', activityTo);
     const data = await fetchJson('/api/admin/activity?' + qs.toString(), authFetchOpts());
     const activity = data.activity || [];
+    activityRows = activity;
 
     const countEl = document.getElementById('activity-count');
     if (countEl) {
@@ -128,7 +144,9 @@ async function refreshActivity() {
     }
 
     if (!activity.length) {
-      el.innerHTML = '<p class="empty">Aucune entrée pour ce filtre.</p>';
+      el.innerHTML = activityQuery
+        ? `<p class="empty">Aucune entrée ne correspond à « ${escapeHtml(activityQuery)} ».</p>`
+        : '<p class="empty">Aucune entrée pour ce filtre.</p>';
       return;
     }
 
@@ -138,7 +156,7 @@ async function refreshActivity() {
       const label = known ? known[1] : (a.action || '(action inconnue)');
       const when = a.timestamp ? new Date(a.timestamp).toLocaleString('fr-FR') : '';
       const who = a.memberName
-        ? escapeHtml(a.memberName)
+        ? activityHighlight(escapeHtml(a.memberName))
         : `<code title="compte supprimé ou visiteur">${escapeHtml(a.memberId || '?')}</code>`;
       const ent = ENTITY_LABELS[a.entityType] || a.entityType || '';
       const det = activityDetails(a.details);
@@ -149,13 +167,13 @@ async function refreshActivity() {
             <span class="activity-icon" aria-hidden="true">${icon}</span>
             <strong>${escapeHtml(label)}</strong>
             ${ent ? `<span class="activity-entity">${escapeHtml(ent)}</span>` : ''}
-            ${a.entityId && a.entityId !== '-' ? `<code>${escapeHtml(a.entityId)}</code>` : ''}
+            ${a.entityId && a.entityId !== '-' ? `<code>${activityHighlight(escapeHtml(a.entityId))}</code>` : ''}
             ${activityLink(a)}
           </div>
           <div class="activity-meta">
             <time>${escapeHtml(when)}</time> · par ${who}
-            ${a.ip && a.ip !== 'unknown' ? ` · ${escapeHtml(a.ip)}` : ''}
-            · <span class="activity-code">${escapeHtml(a.action || '')}</span>
+            ${a.ip && a.ip !== 'unknown' ? ` · ${activityHighlight(escapeHtml(a.ip))}` : ''}
+            · <span class="activity-code">${activityHighlight(escapeHtml(a.action || ''))}</span>
           </div>
           ${det ? `<div class="activity-details">${det}</div>` : ''}
         </div>`;
@@ -170,29 +188,124 @@ async function refreshActivity() {
   const wrap = document.getElementById('activity-controls');
   if (!wrap) return;
 
-  const sel = document.createElement('select');
-  sel.id = 'activity-filter';
-  sel.setAttribute('aria-label', 'Filtrer par type d’action');
-  sel.innerHTML = ACTIVITY_FAMILIES
-    .map(([v, label]) => `<option value="${v}">${label}</option>`).join('');
-  sel.addEventListener('change', () => { activityFilter = sel.value; refreshActivity(); });
+  function select(id, label, options, onChange) {
+    const el = document.createElement('select');
+    el.id = id;
+    el.setAttribute('aria-label', label);
+    el.innerHTML = options.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    el.addEventListener('change', () => { onChange(el.value); refreshActivity(); });
+    return el;
+  }
 
-  const lim = document.createElement('select');
-  lim.id = 'activity-limit';
-  lim.setAttribute('aria-label', 'Nombre d’entrées');
-  lim.innerHTML = [200, 500, 1000, 5000]
-    .map(n => `<option value="${n}">${n} dernières</option>`).join('');
-  lim.addEventListener('change', () => { activityLimit = Number(lim.value); refreshActivity(); });
+  // Recherche libre. Debounce : on ne relance pas une requete a chaque
+  // frappe, sinon le journal complet est relu 15 fois par mot tape.
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.id = 'activity-search';
+  search.placeholder = 'Rechercher : nom, IP, identifiant, motif…';
+  search.setAttribute('aria-label', 'Rechercher dans le journal');
+  let debounce;
+  search.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      activityQuery = search.value.trim();
+      refreshActivity();
+    }, 300);
+  });
 
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'btn-ghost btn-inline';
-  btn.textContent = '↻ Rafraîchir';
-  btn.addEventListener('click', refreshActivity);
+  const dateFrom = document.createElement('input');
+  dateFrom.type = 'date';
+  dateFrom.id = 'activity-from';
+  dateFrom.setAttribute('aria-label', 'À partir du');
+  dateFrom.addEventListener('change', () => { activityFrom = dateFrom.value; refreshActivity(); });
+
+  const dateTo = document.createElement('input');
+  dateTo.type = 'date';
+  dateTo.id = 'activity-to';
+  dateTo.setAttribute('aria-label', "Jusqu'au");
+  dateTo.addEventListener('change', () => { activityTo = dateTo.value; refreshActivity(); });
+
+  const reset = document.createElement('button');
+  reset.type = 'button';
+  reset.className = 'btn-ghost btn-inline';
+  reset.textContent = '✕ Tout effacer';
+  reset.addEventListener('click', () => {
+    activityFilter = ''; activityQuery = ''; activityFrom = ''; activityTo = '';
+    activitySort = 'recent'; activityLimit = 200;
+    search.value = ''; dateFrom.value = ''; dateTo.value = '';
+    wrap.querySelector('#activity-filter').value = '';
+    wrap.querySelector('#activity-sort').value = 'recent';
+    wrap.querySelector('#activity-limit').value = '200';
+    refreshActivity();
+  });
+
+  const refresh = document.createElement('button');
+  refresh.type = 'button';
+  refresh.className = 'btn-ghost btn-inline';
+  refresh.textContent = '↻ Rafraîchir';
+  refresh.addEventListener('click', refreshActivity);
+
+  // Export CSV de ce qui est affiché : pratique pour archiver un incident
+  // ou trier dans un tableur.
+  const csv = document.createElement('button');
+  csv.type = 'button';
+  csv.className = 'btn-ghost btn-inline';
+  csv.textContent = '⬇️ CSV';
+  csv.addEventListener('click', () => {
+    if (!activityRows.length) return;
+    const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines = [['date', 'action', 'membre', 'type', 'identifiant', 'ip', 'details']
+      .map(cell).join(';')];
+    for (const a of activityRows) {
+      lines.push([
+        a.timestamp || '', a.action || '', a.memberName || a.memberId || '',
+        a.entityType || '', a.entityId || '', a.ip || '',
+        a.details ? JSON.stringify(a.details) : '',
+      ].map(cell).join(';'));
+    }
+    // BOM UTF-8 : sans lui, Excel massacre les accents.
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'journal-activite.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  });
 
   const count = document.createElement('span');
   count.id = 'activity-count';
   count.className = 'activity-count';
 
-  wrap.append(sel, lim, btn, count);
+  const row1 = document.createElement('div');
+  row1.className = 'activity-controls-row';
+  row1.append(
+    search,
+    select('activity-filter', 'Filtrer par type d’action', ACTIVITY_FAMILIES,
+      v => { activityFilter = v; }),
+    select('activity-sort', 'Trier', [
+      ['recent', 'Plus récentes d’abord'],
+      ['ancien', 'Plus anciennes d’abord'],
+      ['action', 'Par type d’action'],
+      ['membre', 'Par membre'],
+    ], v => { activitySort = v; }),
+  );
+
+  const row2 = document.createElement('div');
+  row2.className = 'activity-controls-row';
+  const dateLabel = document.createElement('span');
+  dateLabel.className = 'activity-dates-label';
+  dateLabel.textContent = 'Du';
+  const dateLabel2 = document.createElement('span');
+  dateLabel2.className = 'activity-dates-label';
+  dateLabel2.textContent = 'au';
+  row2.append(
+    dateLabel, dateFrom, dateLabel2, dateTo,
+    select('activity-limit', 'Nombre d’entrées',
+      [200, 500, 1000, 5000].map(n => [String(n), `${n} max`]),
+      v => { activityLimit = Number(v); }),
+    refresh, csv, reset, count,
+  );
+
+  wrap.append(row1, row2);
 })();
